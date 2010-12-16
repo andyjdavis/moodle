@@ -523,20 +523,21 @@ class grade_report_user extends grade_report {
         
             $groupsql = $this->groupsql;
             $groupwheresql = $this->groupwheresql;
-            $groupwheresqlparams = $this->groupwheresql_params;
+            //$groupwheresqlparams = ;
 
             if ($shownumberofgrades) {
                 $straverage .= ' (' . get_string('submissions', 'grades') . ') ';
-}
+            }
 
             $totalcount = $this->get_numusers(false);
 
-            list($usql, $rolesparams) = $DB->get_in_or_equal(explode(',', $this->gradebookroles), SQL_PARAMS_NAMED, 'grbr0');
+            //list($usql, $rolesparams) = $DB->get_in_or_equal(explode(',', $this->gradebookroles), SQL_PARAMS_NAMED, 'grbr0');
         
-            $params = array_merge(array('courseid'=>$this->courseid), $rolesparams, $groupwheresqlparams);
+            //$params = array_merge(array('courseid'=>$this->courseid), $rolesparams, $groupwheresqlparams);
+            //$params = array_merge($groupwheresqlparams);
 
             // find sums of all grade items in course
-            $SQL = "SELECT g.itemid, SUM(g.finalgrade) AS sum
+            /*$SQL = "SELECT g.itemid, SUM(g.finalgrade) AS sum
                       FROM {grade_items} gi
                            JOIN {grade_grades} g      ON g.itemid = gi.id
                            JOIN {user} u              ON u.id = g.userid
@@ -547,9 +548,23 @@ class grade_report_user extends grade_report {
                            AND ra.contextid ".get_related_contexts_string($this->context)."
                            AND g.finalgrade IS NOT NULL
                            $groupwheresql
-                  GROUP BY g.itemid";
+                  GROUP BY g.itemid";*/
+            $SQL = "SELECT g.itemid, SUM(g.finalgrade) AS sum
+                    FROM {grade_items} gi
+                        JOIN {grade_grades} g      ON g.itemid = gi.id
+                        JOIN {user} u              ON u.id = g.userid
+                        JOIN {user_enrolments} ue ON ue.userid = u.id
+                        JOIN {enrol} e ON e.id=ue.enrolid
+                        $groupsql
+                    WHERE gi.courseid = $this->courseid
+                        AND e.courseid = $this->courseid
+                        AND e.roleid in ($this->gradebookroles)
+                        AND ue.status = 0
+                        AND g.finalgrade IS NOT NULL
+                        $groupwheresql
+                    GROUP BY g.itemid";
             $sum_array = array();
-            if ($sums = $DB->get_recordset_sql($SQL, $params)) {
+            if ($sums = $DB->get_recordset_sql($SQL, $this->groupwheresql_params)) {
                 foreach ($sums as $itemid => $csum) {
                     $sum_array[$itemid] = $csum->sum;
                 }
@@ -560,7 +575,7 @@ class grade_report_user extends grade_report {
 
             // MDL-10875 Empty grades must be evaluated as grademin, NOT always 0
             // This query returns a count of ungraded grades (NULL finalgrade OR no matching record in grade_grades table)
-            $SQL = "SELECT gi.id, COUNT(u.id) AS count
+            /*$SQL = "SELECT gi.id, COUNT(u.id) AS count
                       FROM {grade_items} gi
                            CROSS JOIN {user} u
                            JOIN {role_assignments} ra        ON ra.userid = u.id
@@ -571,9 +586,23 @@ class grade_report_user extends grade_report {
                            AND ra.contextid ".get_related_contexts_string($this->context)."
                            AND g.id IS NULL
                            $groupwheresql
-                  GROUP BY gi.id";
+                  GROUP BY gi.id";*/
+            $SQL = "SELECT gi.id, COUNT(u.id) AS count
+                    FROM {grade_items} gi
+                        CROSS JOIN {user} u
+                        JOIN {user_enrolments} ue ON ue.userid = u.id
+	                    JOIN {enrol} e ON e.id=ue.enrolid
+                        LEFT OUTER JOIN {grade_grades} g ON (g.itemid = gi.id AND g.userid = u.id AND g.finalgrade IS NOT NULL)
+                        $groupsql
+                    WHERE gi.courseid = $this->courseid
+                        AND e.courseid = $this->courseid
+                        AND e.roleid in ($this->gradebookroles)
+                        AND ue.status = 0
+                        AND g.id IS NULL
+                        $groupwheresql
+                    GROUP BY gi.id";
 
-            $ungraded_counts = $DB->get_records_sql($SQL, $params);
+            $ungraded_counts = $DB->get_records_sql($SQL);
 
             foreach ($this->gtree->items as $itemid=>$unused) {
                 if (!empty($this->gtree->items[$itemid]->avg)) {
