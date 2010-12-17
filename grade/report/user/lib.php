@@ -530,32 +530,24 @@ class grade_report_user extends grade_report {
             }
 
             $totalcount = $this->get_numusers(false);
+            
+            list($enrolledsql, $enrolledparams) = get_enrolled_sql($this->context);
 
-            //list($usql, $rolesparams) = $DB->get_in_or_equal(explode(',', $this->gradebookroles), SQL_PARAMS_NAMED, 'grbr0');
-        
-            //$params = array_merge(array('courseid'=>$this->courseid), $rolesparams, $groupwheresqlparams);
-            //$params = array_merge($groupwheresqlparams);
-
+            $params = array_merge($this->groupwheresql_params, $enrolledparams);
+            
             // find sums of all grade items in course
             $SQL = "SELECT g.itemid, SUM(g.finalgrade) AS sum
                     FROM {grade_items} gi
-                        JOIN {grade_grades} g      ON g.itemid = gi.id
-                        JOIN {user} u              ON u.id = g.userid
-                        JOIN {user_enrolments} ue ON ue.userid = u.id
-                        JOIN {enrol} e ON e.id=ue.enrolid
-                        JOIN mdl_role_assignments ra        ON ra.userid = u.id
-                        $groupsql
+                    JOIN {grade_grades} g ON g.itemid = gi.id
+                    JOIN ($enrolledsql) je ON je.id = g.userid
+                    $groupsql
                     WHERE gi.courseid = $this->courseid
-                        AND e.courseid = $this->courseid
-                        AND e.roleid in ($this->gradebookroles)
-                        AND ue.status = 0
-                        AND ra.roleid in ($this->gradebookroles)
-                        AND ra.contextid  ".get_related_contexts_string($this->context)."
                         AND g.finalgrade IS NOT NULL
                         $groupwheresql
                     GROUP BY g.itemid";
+            
             $sum_array = array();
-            if ($sums = $DB->get_recordset_sql($SQL, $this->groupwheresql_params)) {
+            if ($sums = $DB->get_recordset_sql($SQL, $params)) {
                 foreach ($sums as $itemid => $csum) {
                     $sum_array[$itemid] = $csum->sum;
                 }
@@ -568,23 +560,16 @@ class grade_report_user extends grade_report {
             // This query returns a count of ungraded grades (NULL finalgrade OR no matching record in grade_grades table)
             $SQL = "SELECT gi.id, COUNT(u.id) AS count
                     FROM {grade_items} gi
-                        CROSS JOIN {user} u
-                        JOIN {user_enrolments} ue ON ue.userid = u.id
-	                    JOIN {enrol} e ON e.id=ue.enrolid
-                        JOIN mdl_role_assignments ra        ON ra.userid = u.id
-                        LEFT OUTER JOIN {grade_grades} g ON (g.itemid = gi.id AND g.userid = u.id AND g.finalgrade IS NOT NULL)
-                        $groupsql
+                    CROSS JOIN {user} u
+                    JOIN ($enrolledsql) je ON je.id = u.id
+                    LEFT OUTER JOIN {grade_grades} g ON (g.itemid = gi.id AND g.userid = u.id AND g.finalgrade IS NOT NULL)
+                    $groupsql
                     WHERE gi.courseid = $this->courseid
-                        AND e.courseid = $this->courseid
-                        AND e.roleid in ($this->gradebookroles)
-                        AND ue.status = 0
-                        AND ra.roleid in ($this->gradebookroles)
-                        AND ra.contextid  ".get_related_contexts_string($this->context)."
                         AND g.id IS NULL
                         $groupwheresql
                     GROUP BY gi.id";
 
-            $ungraded_counts = $DB->get_records_sql($SQL);
+            $ungraded_counts = $DB->get_records_sql($SQL, $params);
 
             foreach ($this->gtree->items as $itemid=>$unused) {
                 if (!empty($this->gtree->items[$itemid]->avg)) {
