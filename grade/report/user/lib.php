@@ -537,29 +537,20 @@ class grade_report_user extends grade_report {
             //$params = array_merge($groupwheresqlparams);
 
             // find sums of all grade items in course
-            /*$SQL = "SELECT g.itemid, SUM(g.finalgrade) AS sum
-                      FROM {grade_items} gi
-                           JOIN {grade_grades} g      ON g.itemid = gi.id
-                           JOIN {user} u              ON u.id = g.userid
-                           JOIN {role_assignments} ra ON ra.userid = u.id
-                           $groupsql
-                     WHERE gi.courseid = $this->courseid
-                           AND ra.roleid in ($this->gradebookroles)
-                           AND ra.contextid ".get_related_contexts_string($this->context)."
-                           AND g.finalgrade IS NOT NULL
-                           $groupwheresql
-                  GROUP BY g.itemid";*/
             $SQL = "SELECT g.itemid, SUM(g.finalgrade) AS sum
                     FROM {grade_items} gi
                         JOIN {grade_grades} g      ON g.itemid = gi.id
                         JOIN {user} u              ON u.id = g.userid
                         JOIN {user_enrolments} ue ON ue.userid = u.id
                         JOIN {enrol} e ON e.id=ue.enrolid
+                        JOIN mdl_role_assignments ra        ON ra.userid = u.id
                         $groupsql
                     WHERE gi.courseid = $this->courseid
                         AND e.courseid = $this->courseid
                         AND e.roleid in ($this->gradebookroles)
                         AND ue.status = 0
+                        AND ra.roleid in ($this->gradebookroles)
+                        AND ra.contextid  ".get_related_contexts_string($this->context)."
                         AND g.finalgrade IS NOT NULL
                         $groupwheresql
                     GROUP BY g.itemid";
@@ -573,31 +564,22 @@ class grade_report_user extends grade_report {
 
             $columncount=0;
 
-            // MDL-10875 Empty grades must be evaluated as grademin, NOT always 0
+            // Empty grades must be evaluated as grademin, NOT always 0
             // This query returns a count of ungraded grades (NULL finalgrade OR no matching record in grade_grades table)
-            /*$SQL = "SELECT gi.id, COUNT(u.id) AS count
-                      FROM {grade_items} gi
-                           CROSS JOIN {user} u
-                           JOIN {role_assignments} ra        ON ra.userid = u.id
-                           LEFT OUTER JOIN  {grade_grades} g ON (g.itemid = gi.id AND g.userid = u.id AND g.finalgrade IS NOT NULL)
-                           $groupsql
-                     WHERE gi.courseid = $this->courseid
-                           AND ra.roleid in ($this->gradebookroles)
-                           AND ra.contextid ".get_related_contexts_string($this->context)."
-                           AND g.id IS NULL
-                           $groupwheresql
-                  GROUP BY gi.id";*/
             $SQL = "SELECT gi.id, COUNT(u.id) AS count
                     FROM {grade_items} gi
                         CROSS JOIN {user} u
                         JOIN {user_enrolments} ue ON ue.userid = u.id
 	                    JOIN {enrol} e ON e.id=ue.enrolid
+                        JOIN mdl_role_assignments ra        ON ra.userid = u.id
                         LEFT OUTER JOIN {grade_grades} g ON (g.itemid = gi.id AND g.userid = u.id AND g.finalgrade IS NOT NULL)
                         $groupsql
                     WHERE gi.courseid = $this->courseid
                         AND e.courseid = $this->courseid
                         AND e.roleid in ($this->gradebookroles)
                         AND ue.status = 0
+                        AND ra.roleid in ($this->gradebookroles)
+                        AND ra.contextid  ".get_related_contexts_string($this->context)."
                         AND g.id IS NULL
                         $groupwheresql
                     GROUP BY gi.id";
