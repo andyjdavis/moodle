@@ -558,17 +558,19 @@ class grade_report_user extends grade_report {
 
             // Empty grades must be evaluated as grademin, NOT always 0
             // This query returns a count of ungraded grades (NULL finalgrade OR no matching record in grade_grades table)
+            // No join condition when joining grade_items and user to get a grade item row for every user
+            // Then left join with grade_grades and look for rows with null final grade (which includes grade items with no grade_grade)
             $SQL = "SELECT gi.id, COUNT(u.id) AS count
                     FROM {grade_items} gi
-                    CROSS JOIN {user} u
+                    JOIN {user} u
                     JOIN ($enrolledsql) je ON je.id = u.id
-                    LEFT OUTER JOIN {grade_grades} g ON (g.itemid = gi.id AND g.userid = u.id AND g.finalgrade IS NOT NULL)
+                    LEFT JOIN {grade_grades} gg ON (gg.itemid = gi.id AND gg.userid = u.id AND gg.finalgrade IS NOT NULL)
                     $groupsql
                     WHERE gi.courseid = $this->courseid
-                        AND g.id IS NULL
+                        AND gg.finalgrade IS NULL
                         $groupwheresql
                     GROUP BY gi.id";
-echo($SQL);
+
             $ungraded_counts = $DB->get_records_sql($SQL, $params);
 
             foreach ($this->gtree->items as $itemid=>$unused) {
