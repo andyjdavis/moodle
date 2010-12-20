@@ -101,14 +101,14 @@ class grade_report_user extends grade_report {
         $this->showhiddenitems = grade_get_setting($this->courseid, 'report_user_showhiddenitems', $CFG->grade_report_user_showhiddenitems);
         $this->showtotalsifcontainhidden = grade_get_setting($this->courseid, 'report_user_showtotalsifcontainhidden', $CFG->grade_report_user_showtotalsifcontainhidden);
 
-        $this->showgrade        = grade_get_setting($this->courseid, 'report_user_showgrade', !empty($CFG->grade_report_user_showgrade));
-        $this->showrange        = grade_get_setting($this->courseid, 'report_user_showrange', !empty($CFG->grade_report_user_showrange));
+        $this->showgrade       = grade_get_setting($this->courseid, 'report_user_showgrade', !empty($CFG->grade_report_user_showgrade));
+        $this->showrange       = grade_get_setting($this->courseid, 'report_user_showrange', !empty($CFG->grade_report_user_showrange));
         $this->decimals        = grade_get_setting($this->courseid, 'decimalpoints', $CFG->grade_decimalpoints);
-        $this->rangedecimals        = grade_get_setting($this->courseid, 'report_user_rangedecimals', $CFG->grade_report_user_rangedecimals);
-        $this->showfeedback        = grade_get_setting($this->courseid, 'report_user_showfeedback', !empty($CFG->grade_report_user_showfeedback));
-        $this->showweight        = grade_get_setting($this->courseid, 'report_user_showweight', !empty($CFG->grade_report_user_showweight));
-        $this->showlettergrade        = grade_get_setting($this->courseid, 'report_user_showlettergrade', !empty($CFG->grade_report_user_showlettergrade));
-        $this->showaverage        = grade_get_setting($this->courseid, 'report_user_showaverage', !empty($CFG->grade_report_user_showaverage));
+        $this->rangedecimals   = grade_get_setting($this->courseid, 'report_user_rangedecimals', $CFG->grade_report_user_rangedecimals);
+        $this->showfeedback    = grade_get_setting($this->courseid, 'report_user_showfeedback', !empty($CFG->grade_report_user_showfeedback));
+        $this->showweight      = grade_get_setting($this->courseid, 'report_user_showweight', !empty($CFG->grade_report_user_showweight));
+        $this->showlettergrade = grade_get_setting($this->courseid, 'report_user_showlettergrade', !empty($CFG->grade_report_user_showlettergrade));
+        $this->showaverage     = grade_get_setting($this->courseid, 'report_user_showaverage', !empty($CFG->grade_report_user_showaverage));
 
         $this->switch = grade_get_setting($this->courseid, 'aggregationposition', $CFG->grade_aggregationposition);
 
@@ -159,8 +159,8 @@ class grade_report_user extends grade_report {
      */
     public function setup_table() {
         /*
-         * Table has 5-6 columns
-         *| itemname/description | final grade | percentage final grade | rank (optional) | feedback |
+         * Table has 1-8 columns
+         *| All columns except for itemname/description are optional
          */
 
         // setting up table headers
@@ -206,9 +206,9 @@ class grade_report_user extends grade_report {
         }
 
         if ($this->showfeedback) {
-        $this->tablecolumns[] = 'feedback';
-        $this->tableheaders[] = $this->get_lang_string('feedback', 'grades');
-    }
+            $this->tablecolumns[] = 'feedback';
+            $this->tableheaders[] = $this->get_lang_string('feedback', 'grades');
+        }
     }
 
     function fill_table() {
@@ -299,24 +299,24 @@ class grade_report_user extends grade_report {
                 }
 
                 if ($this->showgrade) {
-                if ($grade_grade->grade_item->needsupdate) {
-                    $data['grade']['class'] = $class.' gradingerror';
-                    $data['grade']['content'] = get_string('error');
-                } else if (!empty($CFG->grade_hiddenasdate) and $grade_grade->get_datesubmitted() and !$this->canviewhidden and $grade_grade->is_hidden()
-                       and !$grade_grade->grade_item->is_category_item() and !$grade_grade->grade_item->is_course_item()) {
-                    // the problem here is that we do not have the time when grade value was modified, 'timemodified' is general modification date for grade_grades records
-                    $class .= ' datesubmitted';
-                    $data['grade']['class'] = $class;
-                    $data['grade']['content'] = get_string('submittedon', 'grades', userdate($grade_grade->get_datesubmitted(), get_string('strftimedatetimeshort')));
+                    if ($grade_grade->grade_item->needsupdate) {
+                        $data['grade']['class'] = $class.' gradingerror';
+                        $data['grade']['content'] = get_string('error');
+                    } else if (!empty($CFG->grade_hiddenasdate) and $grade_grade->get_datesubmitted() and !$this->canviewhidden and $grade_grade->is_hidden()
+                           and !$grade_grade->grade_item->is_category_item() and !$grade_grade->grade_item->is_course_item()) {
+                        // the problem here is that we do not have the time when grade value was modified, 'timemodified' is general modification date for grade_grades records
+                        $class .= ' datesubmitted';
+                        $data['grade']['class'] = $class;
+                        $data['grade']['content'] = get_string('submittedon', 'grades', userdate($grade_grade->get_datesubmitted(), get_string('strftimedatetimeshort')));
 
-                } elseif ($grade_grade->is_hidden()) {
-                        $data['grade']['class'] = $class.' hidden';
-                        $data['grade']['content'] = '-';
-                } else {
-                    $data['grade']['class'] = $class;
-                    $gradeval = $this->blank_hidden_total($this->courseid, $grade_grade->grade_item, $gradeval);
-                    $data['grade']['content'] = grade_format_gradevalue($gradeval, $grade_grade->grade_item, true);
-                }
+                    } elseif ($grade_grade->is_hidden()) {
+                            $data['grade']['class'] = $class.' hidden';
+                            $data['grade']['content'] = '-';
+                    } else {
+                        $data['grade']['class'] = $class;
+                        $gradeval = $this->blank_hidden_total($this->courseid, $grade_grade->grade_item, $gradeval);
+                        $data['grade']['content'] = grade_format_gradevalue($gradeval, $grade_grade->grade_item, true);
+                    }
                 }
 
                 // Range
@@ -330,9 +330,9 @@ class grade_report_user extends grade_report {
                     if ($grade_grade->grade_item->needsupdate) {
                         $data['percentage']['class'] = $class.' gradingerror';
                         $data['percentage']['content'] = get_string('error');
-                        } elseif ($grade_grade->is_hidden()) {
-                            $data['percentage']['class'] = $class.' hidden';
-                            $data['percentage']['content'] = '-';
+                    } elseif ($grade_grade->is_hidden()) {
+                        $data['percentage']['class'] = $class.' hidden';
+                        $data['percentage']['content'] = '-';
                     } else {
                         $data['percentage']['class'] = $class;
                         $data['percentage']['content'] = grade_format_gradevalue($gradeval, $grade_grade->grade_item, true, GRADE_DISPLAY_TYPE_PERCENTAGE);
@@ -568,7 +568,7 @@ class grade_report_user extends grade_report {
                         AND g.id IS NULL
                         $groupwheresql
                     GROUP BY gi.id";
-
+echo($SQL);
             $ungraded_counts = $DB->get_records_sql($SQL, $params);
 
             foreach ($this->gtree->items as $itemid=>$unused) {
