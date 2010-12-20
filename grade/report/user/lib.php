@@ -536,7 +536,7 @@ class grade_report_user extends grade_report {
             $params = array_merge($this->groupwheresql_params, $enrolledparams);
             
             // find sums of all grade items in course
-            $SQL = "SELECT g.itemid, SUM(g.finalgrade) AS sum
+            $sql = "SELECT g.itemid, SUM(g.finalgrade) AS sum
                     FROM {grade_items} gi
                     JOIN {grade_grades} g ON g.itemid = gi.id
                     JOIN ($enrolledsql) je ON je.id = g.userid
@@ -547,7 +547,7 @@ class grade_report_user extends grade_report {
                     GROUP BY g.itemid";
             
             $sum_array = array();
-            if ($sums = $DB->get_recordset_sql($SQL, $params)) {
+            if ($sums = $DB->get_recordset_sql($sql, $params)) {
                 foreach ($sums as $itemid => $csum) {
                     $sum_array[$itemid] = $csum->sum;
                 }
@@ -560,7 +560,7 @@ class grade_report_user extends grade_report {
             // This query returns a count of ungraded grades (NULL finalgrade OR no matching record in grade_grades table)
             // No join condition when joining grade_items and user to get a grade item row for every user
             // Then left join with grade_grades and look for rows with null final grade (which includes grade items with no grade_grade)
-            $SQL = "SELECT gi.id, COUNT(u.id) AS count
+            $sql = "SELECT gi.id, COUNT(u.id) AS count
                     FROM {grade_items} gi
                     JOIN {user} u
                     JOIN ($enrolledsql) je ON je.id = u.id
@@ -571,7 +571,7 @@ class grade_report_user extends grade_report {
                         $groupwheresql
                     GROUP BY gi.id";
 
-            $ungraded_counts = $DB->get_records_sql($SQL, $params);
+            $ungraded_counts = $DB->get_records_sql($sql, $params);
 
             foreach ($this->gtree->items as $itemid=>$unused) {
                 if (!empty($this->gtree->items[$itemid]->avg)) {
