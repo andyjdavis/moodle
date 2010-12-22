@@ -136,6 +136,9 @@ class grade_report_user extends grade_report {
 
         // no groups on this report - rank is from all course users
         $this->setup_table();
+        
+        //optionally calculate grade item averages
+        $this->calculate_averages();
     }
 
     function inject_rowspans(&$element) {
@@ -221,7 +224,7 @@ class grade_report_user extends grade_report {
     }
 
     private function fill_table_recursive(&$element) {
-        global $DB;
+        global $DB, $CFG;
 
         $type = $element['type'];
         $depth = $element['depth'];
@@ -397,7 +400,7 @@ class grade_report_user extends grade_report {
                 if ($this->showfeedback) {
                     if ($grade_grade->overridden > 0 AND ($type == 'categoryitem' OR $type == 'courseitem')) {
                     $data['feedback']['class'] = $class.' feedbacktext';
-                        $data['feedback']['content'] = 'OVERRIDDEN: ' . format_text($grade_grade->feedback, $grade_grade->feedbackformat);
+                        $data['feedback']['content'] = get_string('overridden', 'grades').': ' . format_text($grade_grade->feedback, $grade_grade->feedbackformat);
                     } else if (empty($grade_grade->feedback) or (!$this->canviewhidden and $grade_grade->is_hidden())) {
                         $data['feedback']['class'] = $class.' feedbacktext';
                     $data['feedback']['content'] = '&nbsp;';
@@ -502,7 +505,7 @@ class grade_report_user extends grade_report {
      * Builds the grade item averages.
      *
      */
-    function user_avg() {
+    function calculate_averages() {
         global $USER, $DB;
 
         $showaverages = $this->get_pref('user_showaverage');
@@ -531,17 +534,23 @@ class grade_report_user extends grade_report {
 
             $totalcount = $this->get_numusers(false);
             
+            //limit to users with a gradeable role ie students
+            list($gradebookrolessql, $gradebookrolesparams) = $DB->get_in_or_equal(explode(',', $this->gradebookroles), SQL_PARAMS_NAMED, 'grbr0');
+            
+            //limit to users with an active enrolment
             list($enrolledsql, $enrolledparams) = get_enrolled_sql($this->context);
 
-            $params = array_merge($this->groupwheresql_params, $enrolledparams);
-            
+            $params = array_merge($this->groupwheresql_params, $gradebookrolesparams, $enrolledparams);
+
             // find sums of all grade items in course
             $sql = "SELECT g.itemid, SUM(g.finalgrade) AS sum
-                    FROM {grade_items} gi
-                    JOIN {grade_grades} g ON g.itemid = gi.id
-                    JOIN ($enrolledsql) je ON je.id = g.userid
-                    $groupsql
+                        FROM {grade_items} gi
+                        JOIN {grade_grades} g ON g.itemid = gi.id
+                        JOIN ($enrolledsql) je ON je.id = g.userid
+                        JOIN {role_assignments} ra ON ra.userid = g.userid
+                        $groupsql
                     WHERE gi.courseid = $this->courseid
+                        AND ra.roleid $gradebookrolessql
                         AND g.finalgrade IS NOT NULL
                         $groupwheresql
                     GROUP BY g.itemid";
@@ -561,12 +570,14 @@ class grade_report_user extends grade_report {
             // No join condition when joining grade_items and user to get a grade item row for every user
             // Then left join with grade_grades and look for rows with null final grade (which includes grade items with no grade_grade)
             $sql = "SELECT gi.id, COUNT(u.id) AS count
-                    FROM {grade_items} gi
-                    JOIN {user} u
-                    JOIN ($enrolledsql) je ON je.id = u.id
-                    LEFT JOIN {grade_grades} gg ON (gg.itemid = gi.id AND gg.userid = u.id AND gg.finalgrade IS NOT NULL)
-                    $groupsql
+                        FROM {grade_items} gi
+                        JOIN {user} u
+                        JOIN ($enrolledsql) je ON je.id = u.id
+                        JOIN {role_assignments} ra ON ra.userid = u.id
+                        LEFT JOIN {grade_grades} gg ON (gg.itemid = gi.id AND gg.userid = u.id AND gg.finalgrade IS NOT NULL)
+                        $groupsql
                     WHERE gi.courseid = $this->courseid
+                        AND ra.roleid $gradebookrolessql
                         AND gg.finalgrade IS NULL
                         $groupwheresql
                     GROUP BY gi.id";

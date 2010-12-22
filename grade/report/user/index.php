@@ -109,7 +109,6 @@ if (has_capability('moodle/grade:viewall', $context)) { //Teachers will see all 
         while ($userdata = $gui->next_user()) {
             $user = $userdata->user;
             $report = new grade_report_user($courseid, $gpr, $context, $user->id);
-            $report->user_avg(); //calculate grade item averages
             echo $OUTPUT->heading(get_string('pluginname', 'gradereport_user'). ' - '.fullname($report->user));
 
             if ($report->fill_table()) {
@@ -120,7 +119,6 @@ if (has_capability('moodle/grade:viewall', $context)) { //Teachers will see all 
         $gui->close();
     } else { // Only show one user's report
         $report = new grade_report_user($courseid, $gpr, $context, $userid);
-        $report->user_avg(); //calculate grade item averages
         print_grade_page_head($courseid, 'report', 'user', get_string('pluginname', 'gradereport_user'). ' - '.fullname($report->user));
         groups_print_course_menu($course, $gpr->get_return_url('index.php?id='.$courseid, array('userid'=>0)));
 
@@ -142,7 +140,6 @@ if (has_capability('moodle/grade:viewall', $context)) { //Teachers will see all 
 
     // Create a report instance
     $report = new grade_report_user($courseid, $gpr, $context, $userid);
-    $report->user_avg(); //calculate grade item averages
 
     // print the page
     print_grade_page_head($courseid, 'report', 'user', get_string('pluginname', 'gradereport_user'). ' - '.fullname($report->user));
