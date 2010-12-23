@@ -508,9 +508,8 @@ class grade_report_user extends grade_report {
     function calculate_averages() {
         global $USER, $DB;
 
-        $showaverages = $this->get_pref('user_showaverage');
-
-        if ($showaverages) {
+        if ($this->showaverage) {
+            
             //this settings are actually grader report settings (not user report)
             //however we're using them as having two separate but identical settings the 
             //user would have to keep in sync would be annoying
@@ -544,15 +543,15 @@ class grade_report_user extends grade_report {
 
             // find sums of all grade items in course
             $sql = "SELECT g.itemid, SUM(g.finalgrade) AS sum
-                        FROM {grade_items} gi
-                        JOIN {grade_grades} g ON g.itemid = gi.id
-                        JOIN ($enrolledsql) je ON je.id = g.userid
-                        JOIN {role_assignments} ra ON ra.userid = g.userid
-                        $groupsql
+                      FROM {grade_items} gi
+                      JOIN {grade_grades} g ON g.itemid = gi.id
+                      JOIN ($enrolledsql) je ON je.id = g.userid
+                      JOIN {role_assignments} ra ON ra.userid = g.userid
+                      $groupsql
                     WHERE gi.courseid = $this->courseid
-                        AND ra.roleid $gradebookrolessql
-                        AND g.finalgrade IS NOT NULL
-                        $groupwheresql
+                          AND ra.roleid $gradebookrolessql
+                          AND g.finalgrade IS NOT NULL
+                          $groupwheresql
                     GROUP BY g.itemid";
             
             $sum_array = array();
@@ -570,16 +569,16 @@ class grade_report_user extends grade_report {
             // No join condition when joining grade_items and user to get a grade item row for every user
             // Then left join with grade_grades and look for rows with null final grade (which includes grade items with no grade_grade)
             $sql = "SELECT gi.id, COUNT(u.id) AS count
-                        FROM {grade_items} gi
-                        JOIN {user} u
-                        JOIN ($enrolledsql) je ON je.id = u.id
-                        JOIN {role_assignments} ra ON ra.userid = u.id
-                        LEFT JOIN {grade_grades} gg ON (gg.itemid = gi.id AND gg.userid = u.id AND gg.finalgrade IS NOT NULL)
-                        $groupsql
+                      FROM {grade_items} gi
+                      JOIN {user} u
+                      JOIN ($enrolledsql) je ON je.id = u.id
+                      JOIN {role_assignments} ra ON ra.userid = u.id
+                      LEFT JOIN {grade_grades} gg ON (gg.itemid = gi.id AND gg.userid = u.id AND gg.finalgrade IS NOT NULL)
+                      $groupsql
                     WHERE gi.courseid = $this->courseid
-                        AND ra.roleid $gradebookrolessql
-                        AND gg.finalgrade IS NULL
-                        $groupwheresql
+                          AND ra.roleid $gradebookrolessql
+                          AND gg.finalgrade IS NULL
+                          $groupwheresql
                     GROUP BY gi.id";
 
             $ungraded_counts = $DB->get_records_sql($sql, $params);
