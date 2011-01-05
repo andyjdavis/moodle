@@ -346,11 +346,11 @@ class grade_report_grader extends grade_report {
                            JOIN {role_assignments} ra ON ra.userid = u.id
                            $this->groupsql
                            LEFT JOIN {grade_grades} g ON (g.userid = u.id AND g.itemid = :gitemid)
-                      WHERE ra.roleid $usql AND u.deleted = 0
-                            $this->groupwheresql
-                            AND ra.contextid ".get_related_contexts_string($this->context)."
-                    GROUP BY $ufields
-                    ORDER BY $sort";
+                     WHERE ra.roleid $usql AND u.deleted = 0
+                           $this->groupwheresql
+                           AND ra.contextid ".get_related_contexts_string($this->context)."
+                  GROUP BY $ufields
+                  ORDER BY $sort";
 
         } else {
             switch($this->sortitemid) {
@@ -370,10 +370,10 @@ class grade_report_grader extends grade_report {
                       FROM {user} u
                            JOIN {role_assignments} ra ON u.id = ra.userid
                            $this->groupsql
-                    WHERE ra.roleid $usql AND u.deleted = 0
-                          $this->groupwheresql
-                          AND ra.contextid ".get_related_contexts_string($this->context)."
-                    ORDER BY $sort";
+                     WHERE ra.roleid $usql AND u.deleted = 0
+                           $this->groupwheresql
+                           AND ra.contextid ".get_related_contexts_string($this->context)."
+                  ORDER BY $sort";
         }
 
 
