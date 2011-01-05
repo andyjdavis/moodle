@@ -334,21 +334,21 @@ class grade_report_grader extends grade_report {
         global $CFG, $DB;
 
         list($usql, $gbrparams) = $DB->get_in_or_equal(explode(',', $this->gradebookroles), SQL_PARAMS_NAMED, 'grbr0');
-        
+
         if (is_numeric($this->sortitemid)) {
             $params = array_merge(array('gitemid'=>$this->sortitemid), $gbrparams, $this->groupwheresql_params);
             // the MAX() magic is required in order to please PG
             $sort = "MAX(g.finalgrade) $this->sortorder";
-            
+
             $ufields = user_picture::fields('u', array('idnumber'));
             $sql = "SELECT $ufields
                       FROM {user} u
-                      JOIN {role_assignments} ra ON ra.userid = u.id
-                      $this->groupsql
-                      LEFT JOIN {grade_grades} g ON (g.userid = u.id AND g.itemid = :gitemid)
+                           JOIN {role_assignments} ra ON ra.userid = u.id
+                           $this->groupsql
+                           LEFT JOIN {grade_grades} g ON (g.userid = u.id AND g.itemid = :gitemid)
                       WHERE ra.roleid $usql AND u.deleted = 0
-                      $this->groupwheresql
-                      AND ra.contextid ".get_related_contexts_string($this->context)."
+                            $this->groupwheresql
+                            AND ra.contextid ".get_related_contexts_string($this->context)."
                     GROUP BY $ufields
                     ORDER BY $sort";
 
@@ -368,11 +368,11 @@ class grade_report_grader extends grade_report {
             $userfields = user_picture::fields('u', array('idnumber'));
             $sql = "SELECT DISTINCT $userfields
                       FROM {user} u
-                      JOIN {role_assignments} ra ON u.id = ra.userid
-                      $this->groupsql
+                           JOIN {role_assignments} ra ON u.id = ra.userid
+                           $this->groupsql
                     WHERE ra.roleid $usql AND u.deleted = 0
-                      $this->groupwheresql
-                      AND ra.contextid ".get_related_contexts_string($this->context)."
+                          $this->groupwheresql
+                          AND ra.contextid ".get_related_contexts_string($this->context)."
                     ORDER BY $sort";
         }
 
