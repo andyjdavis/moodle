@@ -167,6 +167,7 @@ function get_unenrolled_users_in_import($importcode, $courseid) {
     list($gradebookrolessql, $gradebookrolesparams) = $DB->get_in_or_equal(explode(',', $CFG->gradebookroles), SQL_PARAMS_NAMED, 'grbr0');
 
     //enrolled users
+    $context = get_context_instance(CONTEXT_COURSE, $courseid);
     list($enrolledsql, $enrolledparams) = get_enrolled_sql($this->context);
 
     $sql = "SELECT giv.id, u.firstname, u.lastname, u.idnumber AS useridnumber,
@@ -175,7 +176,7 @@ function get_unenrolled_users_in_import($importcode, $courseid) {
                 {grade_import_values} giv
                 JOIN {user} u ON giv.userid = u.id
                 LEFT JOIN {grade_items} gi ON gi.id = giv.itemid
-                LEFT JOIN {grade_import_newitem} gin ON gin.id = giv.newgradeitem                
+                LEFT JOIN {grade_import_newitem} gin ON gin.id = giv.newgradeitem
                 LEFT JOIN ($enrolledsql) je ON je.id = u.id
                 LEFT JOIN {role_assignments} ra ON (giv.userid = ra.userid AND
                     ra.roleid $gradebookrolessql AND
