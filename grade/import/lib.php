@@ -184,9 +184,10 @@ function get_unenrolled_users_in_import($importcode, $courseid) {
                 WHERE giv.importcode = ?
                     AND (ra.id IS NULL OR je.id IS NULL)
                 ORDER BY gradeidnumber, u.lastname, u.firstname";
+    $params = array_merge($gradebookrolesparams, $enrolledparams);
     $params[] = $importcode;
 
-    return $DB->get_records_sql($sql, array_merge($gradebookrolesparams, $enrolledparams));
+    return $DB->get_records_sql($sql, $params);
 }
 
 /**
