@@ -168,7 +168,7 @@ function get_unenrolled_users_in_import($importcode, $courseid) {
 
     //enrolled users
     $context = get_context_instance(CONTEXT_COURSE, $courseid);
-    list($enrolledsql, $enrolledparams) = get_enrolled_sql($this->context);
+    list($enrolledsql, $enrolledparams) = get_enrolled_sql($context);
 
     $sql = "SELECT giv.id, u.firstname, u.lastname, u.idnumber AS useridnumber,
                 COALESCE(gi.idnumber, gin.itemname) AS gradeidnumber
