@@ -615,6 +615,7 @@ class grade_report_user extends grade_report {
             list($enrolledsql, $enrolledparams) = get_enrolled_sql($this->context);
 
             $params = array_merge($this->groupwheresql_params, $gradebookrolesparams, $enrolledparams);
+            $params['courseid'] = $this->courseid;
 
             // find sums of all grade items in course
             $sql = "SELECT g.itemid, SUM(g.finalgrade) AS sum
@@ -623,7 +624,7 @@ class grade_report_user extends grade_report {
                       JOIN ($enrolledsql) je ON je.id = g.userid
                       JOIN {role_assignments} ra ON ra.userid = g.userid
                       $groupsql
-                    WHERE gi.courseid = $this->courseid
+                    WHERE gi.courseid = :courseid
                           AND ra.roleid $gradebookrolessql
                           AND g.finalgrade IS NOT NULL
                           $groupwheresql
@@ -650,7 +651,7 @@ class grade_report_user extends grade_report {
                       JOIN {role_assignments} ra ON ra.userid = u.id
                       LEFT JOIN {grade_grades} gg ON (gg.itemid = gi.id AND gg.userid = u.id AND gg.finalgrade IS NOT NULL)
                       $groupsql
-                    WHERE gi.courseid = $this->courseid
+                    WHERE gi.courseid = :courseid
                           AND ra.roleid $gradebookrolessql
                           AND gg.finalgrade IS NULL
                           $groupwheresql
