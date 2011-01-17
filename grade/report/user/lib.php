@@ -47,7 +47,29 @@ class grade_report_user extends grade_report {
      */
     public $table;
 
-    var $gtree;
+    /**
+     * An array of table headers
+     * @var array
+     */
+    public $tableheaders = array();
+
+    /**
+     * An array of table columns
+     * @var array
+     */
+    public $tablecolumns = array();
+
+    /**
+     * An array containing rows of data for the table.
+     * @var type
+     */
+    public $tabledata = array();
+
+    /**
+     * The grade tree structure
+     * @var grade_tree
+     */
+    public $gtree;
 
     /**
      * Flat structure similar to grade tree
@@ -67,23 +89,65 @@ class grade_report_user extends grade_report {
     /**
      * Show range
      */
-    var $showrange;
+    public $showrange = true;
 
-    var $tableheaders;
-    var $tablecolumns;
+    /**
+     * Show grades in the report, default true
+     * @var bool
+     */
+    public $showgrade = true;
 
-    var $maxdepth;
-    var $evenodd;
+    /**
+     * Decimal points to use for values in the report, default 2
+     * @var int
+     */
+    public $decimals = 2;
 
-    var $tabledata;
-    var $canviewhidden;
+    /**
+     * The number of decimal places to round range to, default 0
+     * @var int
+     */
+    public $rangedecimals = 0;
 
-    var $switch;
+    /**
+     * Show grade feedback in the report, default true
+     * @var bool
+     */
+    public $showfeedback = true;
+
+    /**
+     * Show grade weighting in the report, default false
+     * @var bool
+     */
+    public $showweight = false;
+
+    /**
+     * Show letter grades in the report, default false
+     * @var bool
+     */
+    public $showlettergrade = false;
+
+    /**
+     * Show average grades in the report, default false.
+     * @var false
+     */
+    public $showaverage = false;
+
+    public $maxdepth;
+    public $evenodd;
+
+    public $canviewhidden;
+
+    public $switch;
 
     /**
      * Show hidden items even when user does not have required cap
      */
     public $showhiddenitems;
+    public $showtotalsifcontainhidden;
+
+    public $baseurl;
+    public $pbarurl;
 
     /**
      * Constructor. Sets local copies of user preferences and initialises grade_tree.
@@ -101,14 +165,26 @@ class grade_report_user extends grade_report {
         $this->showhiddenitems = grade_get_setting($this->courseid, 'report_user_showhiddenitems', $CFG->grade_report_user_showhiddenitems);
         $this->showtotalsifcontainhidden = grade_get_setting($this->courseid, 'report_user_showtotalsifcontainhidden', $CFG->grade_report_user_showtotalsifcontainhidden);
 
-        $this->showgrade       = grade_get_setting($this->courseid, 'report_user_showgrade', !empty($CFG->grade_report_user_showgrade));
-        $this->showrange       = grade_get_setting($this->courseid, 'report_user_showrange', !empty($CFG->grade_report_user_showrange));
-        $this->decimals        = grade_get_setting($this->courseid, 'decimalpoints', $CFG->grade_decimalpoints);
-        $this->rangedecimals   = grade_get_setting($this->courseid, 'report_user_rangedecimals', $CFG->grade_report_user_rangedecimals);
-        $this->showfeedback    = grade_get_setting($this->courseid, 'report_user_showfeedback', !empty($CFG->grade_report_user_showfeedback));
-        $this->showweight      = grade_get_setting($this->courseid, 'report_user_showweight', !empty($CFG->grade_report_user_showweight));
+        $this->showgrade       = grade_get_setting($this->courseid, 'report_user_showgrade',       !empty($CFG->grade_report_user_showgrade));
+        $this->showrange       = grade_get_setting($this->courseid, 'report_user_showrange',       !empty($CFG->grade_report_user_showrange));
+        $this->showfeedback    = grade_get_setting($this->courseid, 'report_user_showfeedback',    !empty($CFG->grade_report_user_showfeedback));
+        $this->showweight      = grade_get_setting($this->courseid, 'report_user_showweight',      !empty($CFG->grade_report_user_showweight));
         $this->showlettergrade = grade_get_setting($this->courseid, 'report_user_showlettergrade', !empty($CFG->grade_report_user_showlettergrade));
-        $this->showaverage     = grade_get_setting($this->courseid, 'report_user_showaverage', !empty($CFG->grade_report_user_showaverage));
+        $this->showaverage     = grade_get_setting($this->courseid, 'report_user_showaverage',     !empty($CFG->grade_report_user_showaverage));
+
+        // The default grade decimals is 2
+        $defaultdecimals = 2;
+        if (property_exists($CFG, 'grade_decimalpoints')) {
+            $defaultdecimals = $CFG->grade_decimalpoints;
+        }
+        $this->decimals = grade_get_setting($this->courseid, 'decimalpoints', $defaultdecimals);
+
+        // The default range decimals is 0
+        $defaultrangedecimals = 0;
+        if (property_exists($CFG, 'grade_report_user_rangedecimals')) {
+            $defaultrangedecimals = $CFG->grade_report_user_rangedecimals;
+        }
+        $this->rangedecimals = grade_get_setting($this->courseid, 'report_user_rangedecimals', $defaultrangedecimals);
 
         $this->switch = grade_get_setting($this->courseid, 'aggregationposition', $CFG->grade_aggregationposition);
 
@@ -136,7 +212,7 @@ class grade_report_user extends grade_report {
 
         // no groups on this report - rank is from all course users
         $this->setup_table();
-        
+
         //optionally calculate grade item averages
         $this->calculate_averages();
     }
@@ -333,7 +409,7 @@ class grade_report_user extends grade_report {
                     if ($grade_grade->grade_item->needsupdate) {
                         $data['percentage']['class'] = $class.' gradingerror';
                         $data['percentage']['content'] = get_string('error');
-                    } elseif ($grade_grade->is_hidden()) {
+                    } else if ($grade_grade->is_hidden()) {
                         $data['percentage']['class'] = $class.' hidden';
                         $data['percentage']['content'] = '-';
                     } else {
@@ -347,7 +423,7 @@ class grade_report_user extends grade_report {
                     if ($grade_grade->grade_item->needsupdate) {
                         $data['lettergrade']['class'] = $class.' gradingerror';
                         $data['lettergrade']['content'] = get_string('error');
-                    } elseif ($grade_grade->is_hidden()) {
+                    } else if ($grade_grade->is_hidden()) {
                         $data['lettergrade']['class'] = $class.' hidden';
                         if (!$this->canviewhidden) {
                             $data['lettergrade']['content'] = '-';
@@ -355,7 +431,7 @@ class grade_report_user extends grade_report {
                             $data['lettergrade']['content'] = grade_format_gradevalue($gradeval, $grade_grade->grade_item, true, GRADE_DISPLAY_TYPE_LETTER);
                         }
                     } else {
-                    	$data['lettergrade']['class'] = $class;
+                        $data['lettergrade']['class'] = $class;
                         $data['lettergrade']['content'] = grade_format_gradevalue($gradeval, $grade_grade->grade_item, true, GRADE_DISPLAY_TYPE_LETTER);
                     }
                 }
@@ -396,6 +472,7 @@ class grade_report_user extends grade_report {
                         $data['average']['content'] = '-';
                     }
                 }
+
                 // Feedback
                 if ($this->showfeedback) {
                     if ($grade_grade->overridden > 0 AND ($type == 'categoryitem' OR $type == 'courseitem')) {
@@ -403,12 +480,11 @@ class grade_report_user extends grade_report {
                         $data['feedback']['content'] = get_string('overridden', 'grades').': ' . format_text($grade_grade->feedback, $grade_grade->feedbackformat);
                     } else if (empty($grade_grade->feedback) or (!$this->canviewhidden and $grade_grade->is_hidden())) {
                         $data['feedback']['class'] = $class.' feedbacktext';
-                    $data['feedback']['content'] = '&nbsp;';
-
-                } else {
-                    $data['feedback']['class'] = $class.' feedbacktext';
+                        $data['feedback']['content'] = '&nbsp;';
+                    } else {
+                        $data['feedback']['class'] = $class.' feedbacktext';
                         $data['feedback']['content'] = format_text($grade_grade->feedback, $grade_grade->feedbackformat);
-                }
+                    }
                 }
             }
         }
@@ -509,10 +585,9 @@ class grade_report_user extends grade_report {
         global $USER, $DB;
 
         if ($this->showaverage) {
-            
-            //this settings are actually grader report settings (not user report)
-            //however we're using them as having two separate but identical settings the 
-            //user would have to keep in sync would be annoying
+            // this settings are actually grader report settings (not user report)
+            // however we're using them as having two separate but identical settings the
+            // user would have to keep in sync would be annoying
             $averagesdisplaytype   = $this->get_pref('averagesdisplaytype');
             $averagesdecimalpoints = $this->get_pref('averagesdecimalpoints');
             $meanselection         = $this->get_pref('meanselection');
@@ -522,7 +597,7 @@ class grade_report_user extends grade_report {
             $avgcssclass = 'avg';
 
             $straverage = get_string('overallaverage', 'grades');
-        
+
             $groupsql = $this->groupsql;
             $groupwheresql = $this->groupwheresql;
             //$groupwheresqlparams = ;
@@ -532,10 +607,10 @@ class grade_report_user extends grade_report {
             }
 
             $totalcount = $this->get_numusers(false);
-            
+
             //limit to users with a gradeable role ie students
             list($gradebookrolessql, $gradebookrolesparams) = $DB->get_in_or_equal(explode(',', $this->gradebookroles), SQL_PARAMS_NAMED, 'grbr0');
-            
+
             //limit to users with an active enrolment
             list($enrolledsql, $enrolledparams) = get_enrolled_sql($this->context);
 
@@ -553,7 +628,7 @@ class grade_report_user extends grade_report {
                           AND g.finalgrade IS NOT NULL
                           $groupwheresql
                     GROUP BY g.itemid";
-            
+
             $sum_array = array();
             if ($sums = $DB->get_recordset_sql($sql, $params)) {
                 foreach ($sums as $itemid => $csum) {
@@ -730,7 +805,6 @@ function grade_report_user_settings_definition(&$mform) {
         $options[-1] = $options[$CFG->grade_report_user_rangedecimals];
     }
     $mform->addElement('select', 'report_user_rangedecimals', get_string('rangedecimals', 'grades'), $options);
-    //MDL-20617 end
 
     $options = array(-1 => get_string('default', 'grades'),
                       0 => get_string('shownohidden', 'grades'),
