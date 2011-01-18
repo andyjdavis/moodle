@@ -273,13 +273,11 @@ class grade_report_user extends grade_report {
         }
 
         if ($this->showrank) {
-            // TODO: this is broken if hidden grades present!!
             $this->tablecolumns[] = 'rank';
             $this->tableheaders[] = $this->get_lang_string('rank', 'grades');
         }
 
         if ($this->showaverage) {
-            // TODO: this is broken if hidden grades present!!
             $this->tablecolumns[] = 'average';
             $this->tableheaders[] = $this->get_lang_string('average', 'grades');
         }
@@ -651,7 +649,7 @@ class grade_report_user extends grade_report {
                       JOIN {user} u
                       JOIN ($enrolledsql) je ON je.id = u.id
                       JOIN {role_assignments} ra ON ra.userid = u.id
-                      LEFT JOIN {grade_grades} gg ON (gg.itemid = gi.id AND gg.userid = u.id AND gg.finalgrade IS NOT NULL AND gg.hidden <> 1)
+                      LEFT JOIN {grade_grades} gg ON (gg.itemid = gi.id AND gg.userid = u.id AND gg.finalgrade IS NOT NULL AND gg.hidden = 0)
                       $groupsql
                     WHERE gi.courseid = :courseid
                           AND ra.roleid $gradebookrolessql
