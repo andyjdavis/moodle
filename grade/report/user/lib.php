@@ -618,17 +618,19 @@ class grade_report_user extends grade_report {
             $params['courseid'] = $this->courseid;
 
             // find sums of all grade items in course
-            $sql = "SELECT g.itemid, SUM(g.finalgrade) AS sum
+            $sql = "SELECT gg.itemid, SUM(gg.finalgrade) AS sum
                       FROM {grade_items} gi
-                      JOIN {grade_grades} g ON g.itemid = gi.id
-                      JOIN ($enrolledsql) je ON je.id = g.userid
-                      JOIN {role_assignments} ra ON ra.userid = g.userid
+                      JOIN {grade_grades} gg ON gg.itemid = gi.id
+                      JOIN ($enrolledsql) je ON je.id = gg.userid
+                      JOIN {role_assignments} ra ON ra.userid = gg.userid
                       $groupsql
-                    WHERE gi.courseid = :courseid
-                          AND ra.roleid $gradebookrolessql
-                          AND g.finalgrade IS NOT NULL
-                          $groupwheresql
-                    GROUP BY g.itemid";
+                     WHERE gi.courseid = :courseid
+                           AND ra.roleid $gradebookrolessql
+                           AND ra.contextid ".get_related_contexts_string($this->context)."
+                           AND gg.finalgrade IS NOT NULL
+                           AND gg.hidden = 0
+                           $groupwheresql
+                  GROUP BY gg.itemid";
 
             $sum_array = array();
             if ($sums = $DB->get_recordset_sql($sql, $params)) {
@@ -649,10 +651,11 @@ class grade_report_user extends grade_report {
                       JOIN {user} u
                       JOIN ($enrolledsql) je ON je.id = u.id
                       JOIN {role_assignments} ra ON ra.userid = u.id
-                      LEFT JOIN {grade_grades} gg ON (gg.itemid = gi.id AND gg.userid = u.id AND gg.finalgrade IS NOT NULL)
+                      LEFT JOIN {grade_grades} gg ON (gg.itemid = gi.id AND gg.userid = u.id AND gg.finalgrade IS NOT NULL AND gg.hidden <> 1)
                       $groupsql
                     WHERE gi.courseid = :courseid
                           AND ra.roleid $gradebookrolessql
+                          AND ra.contextid ".get_related_contexts_string($this->context)."
                           AND gg.finalgrade IS NULL
                           $groupwheresql
                     GROUP BY gi.id";
@@ -663,7 +666,7 @@ class grade_report_user extends grade_report {
                 if (!empty($this->gtree->items[$itemid]->avg)) {
                     continue;
                 }
-                $item =& $this->gtree->items[$itemid];
+                $item = $this->gtree->items[$itemid];
 
                 if ($item->needsupdate) {
                     $avghtml .= '<td class="cell c' . $columncount++.'"><span class="gradingerror">'.get_string('error').'</span></td>';
@@ -784,6 +787,7 @@ function grade_report_user_settings_definition(&$mform) {
     }
 
     $mform->addElement('select', 'report_user_showaverage', get_string('showaverage', 'grades'), $options);
+    $mform->addHelpButton('report_user_showaverage', 'showaverage', 'grades');
 
     if (empty($CFG->grade_report_user_showlettergrade)) {
         $options[-1] = get_string('defaultprev', 'grades', $options[0]);
