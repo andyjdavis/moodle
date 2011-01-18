@@ -436,7 +436,6 @@ class grade_report_user extends grade_report {
 
                 // Rank
                 if ($this->showrank) {
-                    // TODO: this is broken if hidden grades present!!
                     if ($grade_grade->grade_item->needsupdate) {
                         $data['rank']['class'] = $class.' gradingerror';
                         $data['rank']['content'] = get_string('error');
@@ -453,7 +452,8 @@ class grade_report_user extends grade_report {
                         $sql = "SELECT COUNT(DISTINCT(userid))
                                   FROM {grade_grades}
                                  WHERE finalgrade > ?
-                                       AND itemid = ?";
+                                       AND itemid = ?
+                                       AND hidden = 0";
                         $rank = $DB->count_records_sql($sql, array($grade_grade->finalgrade, $grade_grade->grade_item->id)) + 1;
 
                         $data['rank']['class'] = $class;
