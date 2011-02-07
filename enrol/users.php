@@ -64,7 +64,28 @@ if ($action) {
 
     switch ($action) {
         /**
-         * Unenrols a user from this course
+         * Suspend a user's enrolment from this course (preserves their grades)
+         */
+        case 'suspend':
+            //if $confirm is supplied suspend the user's enrolment
+            //otherwise drop through to 'unenrol' to display the confirmation screen
+            if ($confirm) {
+                $ue = $DB->get_record('user_enrolments', array('id'=>required_param('ue', PARAM_INT)), '*', MUST_EXIST);
+                list($instance, $plugin) = $manager->get_user_enrolment_components($ue);
+                if ($instance && $plugin && $plugin->allow_manage($instance) && has_capability("enrol/$instance->enrol:manage", $manager->get_context())) {
+                    //suspend user enrolment
+                    $data = new stdClass();
+                    $data->status = ENROL_USER_SUSPENDED;
+                    $data->timestart = $ue->timestart;
+                    $data->timeend = $ue->timeend;
+                    if ($manager->edit_enrolment($ue, $data)) {
+                        redirect($pageurl);
+                    }
+                }
+                break;
+            }
+        /**
+         * Unenrols a user from this course (including removing all of their grades)
          */
         case 'unenrol':
             $ue = $DB->get_record('user_enrolments', array('id'=>required_param('ue', PARAM_INT)), '*', MUST_EXIST);
@@ -74,10 +95,22 @@ if ($action) {
                     redirect($pageurl);
                 } else {
                     $user = $DB->get_record('user', array('id'=>$ue->userid), '*', MUST_EXIST);
-                    $yesurl = new moodle_url($pageurl, array('action'=>'unenrol', 'ue'=>$ue->id, 'confirm'=>1, 'sesskey'=>sesskey()));
+
+                    $suspendurl = new moodle_url($pageurl, array('action'=>'suspend', 'ue'=>$ue->id, 'confirm'=>1, 'sesskey'=>sesskey()));
+                    $deleteurl  = new moodle_url($pageurl, array('action'=>'unenrol', 'ue'=>$ue->id, 'confirm'=>1, 'sesskey'=>sesskey()));
+
                     $message = get_string('unenrolconfirm', 'enrol', array('user'=>fullname($user, true), 'course'=>format_string($course->fullname)));
                     $pagetitle = get_string('unenrol', 'enrol');
-                    $pagecontent = $OUTPUT->confirm($message, $yesurl, $pageurl);
+
+                    $suspendbutton = new single_button($suspendurl, get_string('enrolmentsuspend', 'enrol'));
+                    $deletebutton  = new single_button($deleteurl, get_string('enrolmentdelete', 'enrol'));
+                    $cancelbutton  = new single_button(new moodle_url($pageurl), get_string('cancel'), 'get');
+                    $buttons = $OUTPUT->render($suspendbutton) . $OUTPUT->render($deletebutton) . $OUTPUT->render($cancelbutton);
+
+                    $pagecontent = $OUTPUT->box_start('generalbox', 'notice');
+                    $pagecontent .= html_writer::tag('p', $message);
+                    $pagecontent .= html_writer::tag('div', $buttons, array('class' => 'buttons'));
+                    $pagecontent .= $OUTPUT->box_end();
                 }
                 $actiontaken = true;
             }
@@ -168,6 +201,8 @@ if ($action) {
          */
         case 'edit':
             $ue = $DB->get_record('user_enrolments', array('id'=>required_param('ue', PARAM_INT)), '*', MUST_EXIST);
+
+            //Only show the edit form if the user has the appropriate capability
             list($instance, $plugin) = $manager->get_user_enrolment_components($ue);
             if ($instance && $plugin && $plugin->allow_manage($instance) && has_capability("enrol/$instance->enrol:manage", $manager->get_context())) {
                 $user = $DB->get_record('user', array('id'=>$ue->userid), '*', MUST_EXIST);

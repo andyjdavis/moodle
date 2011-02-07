@@ -995,9 +995,10 @@ abstract class enrol_plugin {
      * @param int $timestart 0 means unknown
      * @param int $timeend 0 means forever
      * @param int $status default to ENROL_USER_ACTIVE for new enrolments, no change by default in updates
+     * @param bool $recovergrades attempt to reconstruct the user's grades from grade_grades_history?
      * @return void
      */
-    public function enrol_user(stdClass $instance, $userid, $roleid = NULL, $timestart = 0, $timeend = 0, $status = NULL) {
+    public function enrol_user(stdClass $instance, $userid, $roleid = NULL, $timestart = 0, $timeend = 0, $status = NULL, $recovergrades = false) {
         global $DB, $USER, $CFG; // CFG necessary!!!
 
         if ($instance->courseid == SITEID) {
@@ -1060,6 +1061,24 @@ abstract class enrol_plugin {
                 unset($USER->enrol['tempguest'][$courseid]);
                 $USER->access = remove_temp_roles($context, $USER->access);
             }
+        }
+
+        // recover grades from the grade grades history table?
+        if ($recovergrades) {
+            require_once("$CFG->libdir/grade/constants.php");
+            //Move old grades for this user from grade_grades_history into grade_grades
+            //Exclude grades for grade items that no longer exist
+            //We need to find the newest GRADE_HISTORY_INSERT event for each grade grade to get grade_grade::timecreated
+            $sql = "INSERT INTO {grade_grades} (itemid, userid, rawgrade, rawgrademax, rawgrademin, rawscaleid, usermodified, finalgrade, hidden, locked, locktime, exported, overridden, excluded, feedback, feedbackformat, information, informationformat, timemodified, timecreated)
+                    SELECT h.itemid, h.userid, h.rawgrade, h.rawgrademax, h.rawgrademin, h.rawscaleid, h.usermodified, h.finalgrade, h.hidden, h.locked, h.locktime, h.exported, h.overridden, h.excluded, h.feedback, h.feedbackformat, h.information, h.informationformat, h.timemodified, itemcreated.tm AS timecreated
+                      FROM {grade_grades_history} h
+                      JOIN (SELECT itemid, MAX(id) AS id FROM {grade_grades_history}
+                             WHERE userid = :userid1 GROUP BY itemid) maxquery ON h.id = maxquery.id AND h.itemid = maxquery.itemid
+                      JOIN {grade_items} gi ON gi.id = h.itemid
+                      JOIN (SELECT itemid, MAX(timemodified) AS tm FROM {grade_grades_history} WHERE userid = :userid2 AND action = :insertaction GROUP BY itemid) itemcreated ON itemcreated.itemid = h.itemid
+                     WHERE gi.courseid = :courseid";
+            $params = array('userid1' => $userid, 'userid2' => $userid , 'insertaction' => GRADE_HISTORY_INSERT, 'courseid' => $courseid);
+            $DB->execute($sql, $params);
         }
     }
 
