@@ -154,6 +154,7 @@ switch ($action) {
         $roleid = optional_param('role', null, PARAM_INT);
         $duration = optional_param('duration', 0, PARAM_INT);
         $startdate = optional_param('startdate', 0, PARAM_INT);
+        $recovergrades = optional_param('recovergrades', 0, PARAM_INT);
         if (empty($roleid)) {
             $roleid = null;
         }
@@ -185,6 +186,9 @@ switch ($action) {
         $plugin = $plugins[$instance->enrol];
         if ($plugin->allow_enrol($instance) && has_capability('enrol/'.$plugin->get_name().':enrol', $context)) {
             $plugin->enrol_user($instance, $user->id, $roleid, $timestart, $timeend);
+            if ($recovergrades) {
+                grade_recover_history_grades($userid, $courseid, $courseid);
+            }
         } else {
             throw new enrol_ajax_exception('enrolnotpermitted');
         }

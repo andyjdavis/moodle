@@ -661,6 +661,7 @@ class course_enrolment_users_table extends course_enrolment_table {
                 $control->class = 'singlebutton enrolusersbutton instance'.$count;
                 $control->formid = 'manuallyenrol_select_'+$count;
             }
+
             $course = $this->manager->get_course();
             $url = new moodle_url($this->pageurl, $this->manager->get_url_params()+$this->get_url_params());
             $timeformat = get_string('strftimedatefullshort');
@@ -688,7 +689,8 @@ class course_enrolment_users_table extends course_enrolment_table {
                     'unlimitedduration',
                     'startdatetoday',
                     'durationdays',
-                    'enrolperiod'), 'enrol');
+                    'enrolperiod',
+                    'recovergrades'), 'enrol');
                 $page->requires->string_for_js('assignroles', 'role');
                 $page->requires->string_for_js('startingfrom', 'moodle');
 

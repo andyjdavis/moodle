@@ -914,6 +914,40 @@ function grade_force_site_regrading() {
 }
 
 /**
+ * Recover a user's grades from grade_grades_history
+ * @param int $userid the user ID whose grades we want to recover
+ * @param int $courseid the relevant course
+ */
+function grade_recover_history_grades($userid, $courseid){
+    require_once("$CFG->libdir/grade/constants.php");
+
+    //Check for existing grades for this user for this course
+    //Recovering grades when the user already has grades can lead to duplicate indexes and bad data
+    //We could potentially move the existing grades to the history table then recover the grades from before then
+    $sql = "SELECT gg.id FROM {grade_grades} gg
+                    JOIN {grade_items} gi ON gi.id = gg.itemid
+                   WHERE gi.courseid = :courseid AND gg.userid = :userid";
+    $params = array('userid' => $userid, 'courseid' => $courseid);
+    if ($DB->record_exists_sql($sql, $params)) {
+        debugging('Attempting to recover the grades of a user who already has grades. Skipping recover.');
+    } else {
+        //Moves old grades for this user from grade_grades_history into grade_grades
+        //Exclude grades for grade items that no longer exist
+        //We need to find the newest GRADE_HISTORY_INSERT event for each grade grade to get grade_grade::timecreated
+        $sql = "INSERT INTO {grade_grades} (itemid, userid, rawgrade, rawgrademax, rawgrademin, rawscaleid, usermodified, finalgrade, hidden, locked, locktime, exported, overridden, excluded, feedback, feedbackformat, information, informationformat, timemodified, timecreated)
+                SELECT h.itemid, h.userid, h.rawgrade, h.rawgrademax, h.rawgrademin, h.rawscaleid, h.usermodified, h.finalgrade, h.hidden, h.locked, h.locktime, h.exported, h.overridden, h.excluded, h.feedback, h.feedbackformat, h.information, h.informationformat, h.timemodified, itemcreated.tm AS timecreated
+                  FROM {grade_grades_history} h
+                  JOIN (SELECT itemid, MAX(id) AS id FROM {grade_grades_history}
+                         WHERE userid = :userid1 GROUP BY itemid) maxquery ON h.id = maxquery.id AND h.itemid = maxquery.itemid
+                  JOIN {grade_items} gi ON gi.id = h.itemid
+                  JOIN (SELECT itemid, MAX(timemodified) AS tm FROM {grade_grades_history} WHERE userid = :userid2 AND action = :insertaction GROUP BY itemid) itemcreated ON itemcreated.itemid = h.itemid
+                 WHERE gi.courseid = :courseid";
+        $params = array('userid1' => $userid, 'userid2' => $userid , 'insertaction' => GRADE_HISTORY_INSERT, 'courseid' => $courseid);
+        $DB->execute($sql, $params);
+    }
+}
+
+/**
  * Updates all final grades in course.
  *
  * @param int $courseid

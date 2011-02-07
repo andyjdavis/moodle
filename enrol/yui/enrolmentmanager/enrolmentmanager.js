@@ -48,6 +48,8 @@ YUI.add('moodle-enrol-enrolmentmanager', function(Y) {
         ODD  : 'odd',
         EVEN : 'even',
         HIDDEN : 'hidden',
+        RECOVERGRADESCHECK : 'uep-recovergradescheck',
+        RECOVERGRADESCHECKTITLE : 'uep-recovergradeschecktitle',
         SEARCHOPTIONS : 'uep-searchoptions',
         COLLAPSIBLEHEADING : 'collapsibleheading',
         COLLAPSIBLEAREA : 'collapsiblearea',
@@ -79,6 +81,7 @@ YUI.add('moodle-enrol-enrolmentmanager', function(Y) {
                             .append(Y.Node.create('<div class="'+CSS.SEARCHOPTION+' '+CSS.ROLE+'">'+M.str.role.assignroles+'</div>')
                                     .append(Y.Node.create('<select><option value="">'+M.str.enrol.none+'</option></select>'))
                             )
+                            .append(Y.Node.create('<div class="'+CSS.RECOVERGRADESCHECK+'"><input type="checkbox" id="recovergrades" name="recovergrades" /><span class="'+CSS.RECOVERGRADESCHECKTITLE+'">'+M.str.enrol.recovergrades+'</span></div>'))
                             .append(Y.Node.create('<div class="'+CSS.SEARCHOPTIONS+'"></div>')
                                 .append(Y.Node.create('<div class="'+CSS.COLLAPSIBLEHEADING+'"><img alt="" />'+M.str.enrol.enrolmentoptions+'</div>'))
                                 .append(Y.Node.create('<div class="'+CSS.COLLAPSIBLEAREA+' '+CSS.HIDDEN+'"></div>')
@@ -362,6 +365,8 @@ YUI.add('moodle-enrol-enrolmentmanager', function(Y) {
             params['role'] = this.get(UEP.BASE).one('.'+CSS.SEARCHOPTION+'.'+CSS.ROLE+' select').get('value');
             params['startdate'] = this.get(UEP.BASE).one('.'+CSS.SEARCHOPTION+'.'+CSS.STARTDATE+' select').get('value');
             params['duration'] = this.get(UEP.BASE).one('.'+CSS.SEARCHOPTION+'.'+CSS.DURATION+' select').get('value');
+            params['recovergrades'] = this.get(UEP.BASE).one('#recovergrades').get('checked')?1:0;
+
             Y.io(M.cfg.wwwroot+this.get(UEP.AJAXURL), {
                 method:'POST',
                 data:build_querystring(params),
