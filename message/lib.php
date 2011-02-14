@@ -165,7 +165,7 @@ function message_print_contact_selector($countunreadtotal, $viewing, $user1, $us
 */
 function message_print_participants($context, $courseid, $contactselecturl=null, $showactionlinks=true, $titletodisplay=null, $page=0, $user2=null) {
     global $DB, $USER, $PAGE, $OUTPUT;
-    
+
     if (empty($titletodisplay)) {
         $titletodisplay = get_string('participants');
     }
@@ -673,23 +673,23 @@ function message_get_recent_conversations($user, $limitfrom=0, $limitto=100) {
     //This query retrieves the last message received from and sent to each user
     //It unions that data then, within that set, it finds the most recent message you've exchanged with each user over all
     //It then joins with some other tables to get some additional data we need
-    
+
     //message ID is used instead of timecreated as it should sort the same and will be much faster
-    
+
     //There is a separate query for read and unread queries as they are stored in different tables
     //They were originally retrieved in one query but it was so large that it was difficult to be confident in its correctness
     $sql = "SELECT $userfields, mr.id as mid, mr.smallmessage, mr.fullmessage, mr.timecreated, mc.id as contactlistid, mc.blocked
               FROM {message_read} mr
               JOIN (
-                    SELECT messages.uid AS uid, MAX(messages.mid) AS mid 
+                    SELECT messages.uid AS uid, MAX(messages.mid) AS mid
                       FROM (
-                           SELECT mr1.useridto AS uid, MAX(mr1.id) AS mid 
+                           SELECT mr1.useridto AS uid, MAX(mr1.id) AS mid
                              FROM {message_read} mr1
                             WHERE mr1.useridfrom = :userid1
                                   AND mr1.notification = 0
                          GROUP BY mr1.useridto
                                   UNION
-                           SELECT mr2.useridfrom AS uid, MAX(mr2.id) AS mid 
+                           SELECT mr2.useridfrom AS uid, MAX(mr2.id) AS mid
                              FROM {message_read} mr2
                             WHERE mr2.useridto = :userid2
                                   AND mr2.notification = 0
@@ -707,15 +707,15 @@ function message_get_recent_conversations($user, $limitfrom=0, $limitto=100) {
     $sql = "SELECT $userfields, m.id as mid, m.smallmessage, m.fullmessage, m.timecreated, mc.id as contactlistid, mc.blocked
               FROM {message} m
               JOIN (
-                    SELECT messages.uid AS uid, MAX(messages.mid) AS mid 
+                    SELECT messages.uid AS uid, MAX(messages.mid) AS mid
                       FROM (
-                           SELECT m1.useridto AS uid, MAX(m1.id) AS mid 
+                           SELECT m1.useridto AS uid, MAX(m1.id) AS mid
                              FROM {message} m1
                             WHERE m1.useridfrom = :userid1
                                   AND m1.notification = 0
                          GROUP BY m1.useridto
                                   UNION
-                           SELECT m2.useridfrom AS uid, MAX(m2.id) AS mid 
+                           SELECT m2.useridfrom AS uid, MAX(m2.id) AS mid
                              FROM {message} m2
                             WHERE m2.useridto = :userid2
                                   AND m2.notification = 0
@@ -741,7 +741,7 @@ function message_get_recent_conversations($user, $limitfrom=0, $limitto=100) {
             }
         }
     }
-    
+
     return $conversations;
 }
 
@@ -762,7 +762,7 @@ function message_get_recent_notifications($user, $limitfrom=0, $limitto=100) {
              WHERE mr.useridto = :userid1 AND u.deleted = '0' AND mr.notification = :notification
              ORDER BY mr.id DESC";//ordering by id should give the same result as ordering by timecreated but will be faster
     $params = array('userid1' => $user->id, 'notification' => 1);
-    
+
     $notifications =  $DB->get_records_sql($sql, $params, $limitfrom, $limitto);
     return $notifications;
 }
@@ -774,15 +774,15 @@ function message_get_recent_notifications($user, $limitfrom=0, $limitto=100) {
  */
 function message_print_recent_conversations($user=null, $showicontext=false) {
     global $USER;
-    
+
     echo html_writer::start_tag('p', array('class' => 'heading'));
     echo get_string('mostrecentconversations', 'message');
     echo html_writer::end_tag('p');
-    
+
     if (empty($user)) {
         $user = $USER;
     }
-    
+
     $conversations = message_get_recent_conversations($user);
 
     $showotheruser = true;
@@ -795,15 +795,15 @@ function message_print_recent_conversations($user=null, $showicontext=false) {
  */
 function message_print_recent_notifications($user=null) {
     global $USER;
-    
+
     echo html_writer::start_tag('p', array('class' => 'heading'));
     echo get_string('mostrecentnotifications', 'message');
     echo html_writer::end_tag('p');
-    
+
     if (empty($user)) {
         $user = $USER;
     }
-    
+
     $notifications = message_get_recent_notifications($user);
 
     $showicontext = false;
@@ -853,13 +853,13 @@ function message_print_recent_messages_table($messages, $user=null, $showotherus
             $strhistory = message_history_link($user->id, $message->id, true, '', '', $histicontext);
 
             echo html_writer::start_tag('span', array('class' => 'otheruser'));
-            
+
             echo html_writer::start_tag('span', array('class' => 'pix'));
             echo $OUTPUT->user_picture($message, array('size' => 20, 'courseid' => SITEID));
             echo html_writer::end_tag('span');
-            
+
             echo html_writer::start_tag('span', array('class' => 'contact'));
-            
+
             $link = new moodle_url("/message/index.php?id=$message->id");
             $action = null;
             echo $OUTPUT->action_link($link, fullname($message), $action, array('title' => get_string('sendmessageto', 'message', fullname($message))));
@@ -1025,7 +1025,7 @@ function message_print_search_results($frm, $showicontext=false, $user1=null) {
                 $strhistory = message_history_link($USER->id, $user->id, true, '', '', $histicontext);
 
                 echo html_writer::start_tag('tr');
-                
+
                 echo html_writer::start_tag('td', array('class' => 'pix'));
                 echo $OUTPUT->user_picture($user, array('size' => 20, 'courseid' => SITEID));
                 echo html_writer::end_tag('td');
@@ -1039,11 +1039,10 @@ function message_print_search_results($frm, $showicontext=false, $user1=null) {
                 echo html_writer::tag('td', $strcontact, array('class' => 'link'));
                 echo html_writer::tag('td', $strblock, array('class' => 'link'));
                 echo html_writer::tag('td', $strhistory, array('class' => 'link'));
-                
+
                 echo html_writer::end_tag('tr');
             }
             echo html_writer::end_tag('table');
-            
 
         } else {
             echo html_writer::start_tag('p', array('class' => 'heading searchresultcount'));
@@ -1199,9 +1198,9 @@ function message_print_search_results($frm, $showicontext=false, $user1=null) {
                                      $messagesearchstring, 'm'.$message->id, $strcontext);
                 echo html_writer::end_tag('div');
                 echo html_writer::end_tag('td');
-                
+
                 echo html_writer::tag('td', userdate($message->timecreated, $dateformat), array('class' => 'date'));
-                
+
                 echo html_writer::end_tag('tr');
             }
 
@@ -1853,7 +1852,7 @@ function message_print_message_history($user1,$user2,$search='',$messagelimit=0,
 
                 $tablecontents .= $OUTPUT->heading(userdate($message->timecreated, $blockdate), 4, 'mdl-align');
             }
-            
+
             $formatted_message = $side = null;
             if ($message->useridfrom == $user1->id) {
                 $formatted_message = message_format_message($message, $messagedate, $search, 'me');
@@ -2034,7 +2033,7 @@ function message_print_contactlist_user($contact, $incontactlist = true, $isbloc
     echo html_writer::start_tag('td', array('class' => 'pix'));
     echo $OUTPUT->user_picture($contact, array('size' => 20, 'courseid' => SITEID));
     echo html_writer::end_tag('td');
-    
+
     echo html_writer::start_tag('td', array('class' => 'contact'));
 
     $popupoptions = array(
