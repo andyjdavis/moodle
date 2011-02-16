@@ -918,7 +918,7 @@ function grade_force_site_regrading() {
  * @param int $userid the user ID whose grades we want to recover
  * @param int $courseid the relevant course
  */
-function grade_recover_history_grades($userid, $courseid){
+function grade_recover_history_grades($userid, $courseid) {
     require_once("$CFG->libdir/grade/constants.php");
 
     //Check for existing grades for this user for this course
