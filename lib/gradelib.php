@@ -74,6 +74,7 @@ function grade_update($source, $courseid, $itemtype, $itemmodule, $iteminstance,
 
     if (is_null($courseid) or is_null($itemtype)) {
         debugging('Missing courseid or itemtype');
+        var_dump('FAILEDDDD');die();
         return GRADE_UPDATE_FAILED;
     }
 
@@ -87,6 +88,7 @@ function grade_update($source, $courseid, $itemtype, $itemmodule, $iteminstance,
 
     } else {
         debugging('Found more than one grade item');
+        var_dump('MULTIPLE');die();
         return GRADE_UPDATE_MULTIPLE;
     }
 
@@ -122,6 +124,7 @@ function grade_update($source, $courseid, $itemtype, $itemmodule, $iteminstance,
                 }
                 if ($k == 'gradetype' and $v == GRADE_TYPE_NONE) {
                     // no grade item needed!
+var_dump('grade update ok gradetype');die();
                     return GRADE_UPDATE_OK;
                 }
                 $params[$k] = $v;
@@ -133,6 +136,7 @@ function grade_update($source, $courseid, $itemtype, $itemmodule, $iteminstance,
     } else {
         if ($grade_item->is_locked()) {
             // no notice() here, test returned value instead!
+var_dump('GRADE ITEM LOCKED');die();
             return GRADE_UPDATE_ITEM_LOCKED;
         }
 
@@ -172,11 +176,13 @@ function grade_update($source, $courseid, $itemtype, $itemmodule, $iteminstance,
 /// Some extra checks
     // do we use grading?
     if ($grade_item->gradetype == GRADE_TYPE_NONE) {
+var_dump('GRADE UPDATE OK');die();
         return GRADE_UPDATE_OK;
     }
 
     // no grade submitted
     if (empty($grades)) {
+var_dump('GRADES EMPTY');die();
         return GRADE_UPDATE_OK;
     }
 
@@ -203,6 +209,7 @@ function grade_update($source, $courseid, $itemtype, $itemmodule, $iteminstance,
     }
 
     if (empty($grades)) {
+        var_dump('NO GRADES');die();
         return GRADE_UPDATE_FAILED;
     }
 
@@ -919,6 +926,7 @@ function grade_force_site_regrading() {
  * @param int $courseid the relevant course
  */
 function grade_recover_history_grades($userid, $courseid) {
+    global $CFG, $DB;
     require_once("$CFG->libdir/grade/constants.php");
 
     //Check for existing grades for this user for this course
@@ -931,6 +939,7 @@ function grade_recover_history_grades($userid, $courseid) {
     if ($DB->record_exists_sql($sql, $params)) {
         debugging('Attempting to recover the grades of a user who already has grades. Skipping recover.');
     } else {
+        /*
         //Moves old grades for this user from grade_grades_history into grade_grades
         //Exclude grades for grade items that no longer exist
         //We need to find the newest GRADE_HISTORY_INSERT event for each grade grade to get grade_grade::timecreated
@@ -943,7 +952,41 @@ function grade_recover_history_grades($userid, $courseid) {
                   JOIN (SELECT itemid, MAX(timemodified) AS tm FROM {grade_grades_history} WHERE userid = :userid2 AND action = :insertaction GROUP BY itemid) itemcreated ON itemcreated.itemid = h.itemid
                  WHERE gi.courseid = :courseid";
         $params = array('userid1' => $userid, 'userid2' => $userid , 'insertaction' => GRADE_HISTORY_INSERT, 'courseid' => $courseid);
-        $DB->execute($sql, $params);
+        $DB->execute($sql, $params);*/
+        
+        $sql = "SELECT gi.itemtype, gi.itemmodule, gi.iteminstance as iteminstance, gi.itemnumber, h.source, h.itemid, h.userid, h.rawgrade, h.rawgrademax, h.rawgrademin, h.rawscaleid, h.usermodified, h.finalgrade, h.hidden, h.locked, h.locktime, h.exported, h.overridden, h.excluded, h.feedback, h.feedbackformat, h.information, h.informationformat, h.timemodified, itemcreated.tm AS timecreated
+                  FROM {grade_grades_history} h
+                  JOIN (SELECT itemid, MAX(id) AS id FROM {grade_grades_history}
+                         WHERE userid = :userid1 GROUP BY itemid) maxquery ON h.id = maxquery.id AND h.itemid = maxquery.itemid
+                  JOIN {grade_items} gi ON gi.id = h.itemid
+                  JOIN (SELECT itemid, MAX(timemodified) AS tm FROM {grade_grades_history} WHERE userid = :userid2 AND action = :insertaction GROUP BY itemid) itemcreated ON itemcreated.itemid = h.itemid
+                 WHERE gi.courseid = :courseid";
+        $params = array('userid1' => $userid, 'userid2' => $userid , 'insertaction' => GRADE_HISTORY_INSERT, 'courseid' => $courseid);
+        $oldgrades = $DB->get_records_sql($sql, $params);
+
+        foreach ($oldgrades as $oldgrade) {
+            $source = $oldgrade->source;
+            $itemtype = $oldgrade->itemtype;
+            $itemmodule = $oldgrade->itemmodule;
+            $iteminstance = $oldgrade->iteminstance;
+            $itemnumber = $oldgrade->itemnumber;
+
+            //h.itemid, h.userid, h.rawgrade, h.rawgrademax, h.rawgrademin, h.rawscaleid, h.usermodified, h.finalgrade, h.hidden, h.locked, h.locktime, h.exported, h.overridden, h.excluded, h.feedback, h.feedbackformat, h.information, h.informationformat, h.timemodified, itemcreated.tm AS timecreated
+            $grade = new stdClass();
+            $grade->userid   = $userid;
+            $grade->rawgrade = $oldgrade->rawgrade;
+            $grade->finalgrade = $oldgrade->finalgrade;
+            $grade->usermodified = $oldgrade->usermodified;
+            $grade->overridden = $oldgrade->overridden;
+            $grade->feedback = $oldgrade->feedback;
+            $grade->feedbackformat = $oldgrade->feedbackformat;
+            $grade->information = $oldgrade->information;
+            $grade->informationformat = $oldgrade->informationformat;
+            $grade->timemodified = $oldgrade->timemodified;
+            $grade->timecreated = $oldgrade->timecreated;
+            grade_update($source, $courseid, $itemtype, $itemmodule, $iteminstance, $itemnumber, $grade);
+        }
+        //grade_regrade_final_grades($courseid, $userid);
     }
 }
 
