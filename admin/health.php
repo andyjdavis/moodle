@@ -117,7 +117,7 @@ function health_find_problems() {
     for($i = 1; $i < 1000000; ++$i) {
         $classname = sprintf('problem_%06d', $i);
         if(!class_exists($classname)) {
-            break;
+            continue;//continue instead of breaking so that one missing problem doesnt end testing
         }
         $problem = new $classname;
         if($problem->exists()) {
