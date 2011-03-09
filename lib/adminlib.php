@@ -4587,6 +4587,21 @@ class admin_setting_special_registerauth extends admin_setting_configselect {
 
 
 /**
+ * General plugins manager
+ */
+class admin_page_pluginsoverview extends admin_externalpage {
+
+    /**
+     * Sets basic information about the external page
+     */
+    public function __construct() {
+        global $CFG;
+        parent::__construct('pluginsoverview', get_string('pluginsoverview', 'core_admin'),
+            "$CFG->wwwroot/$CFG->admin/plugins.php");
+    }
+}
+
+/**
  * Module manage page
  *
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
