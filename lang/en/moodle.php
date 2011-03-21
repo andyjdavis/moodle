@@ -1265,7 +1265,7 @@ $string['plugindeletefiles'] = 'All data associated with the plugin \'{$a->name}
 $string['plugincheck'] = 'Plugins check';
 $string['pluginchecknotice'] = 'The following tables show the modules, blocks and filters that have been detected in your current Moodle installation;
 They indicate which plugins are standard, and which are not. All non-standard plugins should be checked and upgraded to their most recent versions
-before continuing with this Moodle upgrade.';
+before continuing with this Moodle upgrade.'; // @deprecated in 2.1, replaced with [pluginchecknotice,core_plugin]
 $string['pluginsetup'] = 'Setting up plugin tables';
 $string['policyaccept'] = 'I understand and agree';
 $string['policyagree'] = 'You must agree to this policy to continue using this site.  Do you agree?';
