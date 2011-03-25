@@ -131,13 +131,13 @@ class graded_users_iterator {
                         FROM {user} u
                         JOIN ($enrolledsql) je ON je.id = u.id
                              $groupsql
-                       WHERE u.id IN (
+                        JOIN (
                                   SELECT DISTINCT ra.userid
                                     FROM {role_assignments} ra
                                    WHERE ra.roleid $gradebookroles_sql
                                      AND ra.contextid $relatedcontexts
-                             )
-                         AND u.deleted = 0
+                             ) rainner ON rainner.userid = u.id
+                         WHERE u.deleted = 0
                              $groupwheresql
                     ORDER BY $order";
         $this->users_rs = $DB->get_recordset_sql($users_sql, $params);
@@ -153,13 +153,13 @@ class graded_users_iterator {
                              JOIN {user} u ON g.userid = u.id
                              JOIN ($enrolledsql) je ON je.id = u.id
                                   $groupsql
-                            WHERE u.id IN (
+                             JOIN (
                                       SELECT DISTINCT ra.userid
                                         FROM {role_assignments} ra
                                        WHERE ra.roleid $gradebookroles_sql
                                          AND ra.contextid $relatedcontexts
-                                  )
-                              AND u.deleted = 0
+                                  ) rainnner ON rainner.userid = u.id
+                              WHERE u.deleted = 0
                               AND g.itemid $itemidsql
                               $groupwheresql
                          ORDER BY $order, g.itemid ASC";

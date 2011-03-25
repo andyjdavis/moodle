@@ -374,12 +374,12 @@ class grade_report_grader extends grade_report {
                   JOIN ($enrolledsql) je ON je.id = u.id
                        $this->groupsql
                        $sortjoin
-                 WHERE u.id IN (
+                  JOIN (
                            SELECT DISTINCT ra.userid
                              FROM {role_assignments} ra
                             WHERE ra.roleid IN ($this->gradebookroles)
                               AND ra.contextid " . get_related_contexts_string($this->context) . "
-                       )
+                       ) rainner ON rainner.userid = u.id
                    AND u.deleted = 0
                    $this->groupwheresql
               ORDER BY $sort";
@@ -1291,14 +1291,14 @@ class grade_report_grader extends grade_report {
                       JOIN {grade_grades} g ON g.itemid = gi.id
                       JOIN {user} u ON u.id = g.userid
                       JOIN ($enrolledsql) je ON je.id = u.id
-                      $groupsql
-                     WHERE gi.courseid = :courseid
-                       AND u.id IN (
+                      JOIN (
                                SELECT DISTINCT ra.userid
                                  FROM {role_assignments} ra
                                 WHERE ra.roleid $gradebookrolessql
                                   AND ra.contextid " . get_related_contexts_string($this->context) . "
-                           )
+                           ) rainner ON rainner.userid = u.id
+                      $groupsql
+                     WHERE gi.courseid = :courseid
                        AND u.deleted = 0
                        AND g.finalgrade IS NOT NULL
                        $groupwheresql
