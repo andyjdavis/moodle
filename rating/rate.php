@@ -65,6 +65,11 @@ if ($context->contextlevel==CONTEXT_MODULE) {
         //check the item exists and isn't owned by the current user
         $pluginrateallowed = $rm->check_item_and_owner($plugintype, $pluginname, $itemid);
     }
+} else {
+    //prevent submission of ratings in a context where we cannot check that the item ID is valid
+    $result->error = get_string('notinthiscontext', 'rating');
+    echo json_encode($result);
+    die();
 }
 
 if (!$pluginrateallowed || !has_capability('moodle/rating:rate',$context)) {
