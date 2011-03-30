@@ -279,7 +279,7 @@ abstract class grade_report {
         list($gradebookrolessql, $gradebookrolesparams) = $DB->get_in_or_equal(explode(',', $this->gradebookroles), SQL_PARAMS_NAMED, 'grbr0');
 
         //limit to users with an active enrollment
-        list($enrolledsql, $enrolledparams) = get_enrolled_sql($this->context);
+        list($enrolledsql, $enrolledparams) = get_enrolled_sql($this->context, '', 0, true);
 
         $params = array_merge($gradebookrolesparams, $enrolledparams);
 

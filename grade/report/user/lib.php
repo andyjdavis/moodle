@@ -610,7 +610,7 @@ class grade_report_user extends grade_report {
             list($gradebookrolessql, $gradebookrolesparams) = $DB->get_in_or_equal(explode(',', $this->gradebookroles), SQL_PARAMS_NAMED, 'grbr0');
 
             //limit to users with an active enrolment
-            list($enrolledsql, $enrolledparams) = get_enrolled_sql($this->context);
+            list($enrolledsql, $enrolledparams) = get_enrolled_sql($this->context, '', 0, true);
 
             $params = array_merge($this->groupwheresql_params, $gradebookrolesparams, $enrolledparams);
             $params['courseid'] = $this->courseid;
