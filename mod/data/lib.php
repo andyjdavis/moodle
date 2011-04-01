@@ -1369,11 +1369,52 @@ function data_rating_permissions($options) {
 }
 
 /**
- * Returns the names of the table and columns necessary to check items for ratings
- * @return array an array containing the item table, item id and user id columns
+ * Validates a submitted rating
+ * @param array $params submitted data
+ *            context => object the context in which the rated items exists [required]
+ *            itemid => int the ID of the object being rated
+ *            scaleid => int the scale from which the user can select a rating. Used for bounds checking. [required]
+ *            rating => int the submitted rating
+ *            rateduserid => int the id of the user whose items have been rated. NOT the user who submitted the ratings. 0 to update all. [required]
+ *            aggregation => int the aggregation method to apply when calculating grades ie RATING_AGGREGATE_AVERAGE [required]
+ * @return boolean true if the rating is valid
  */
-function data_rating_item_check_info() {
-    return array('data_records','id','userid');
+function data_rating_is_valid($params) {
+    global $DB, $USER;
+
+    if (!array_key_exists('itemid', $params) || !array_key_exists('context', $params)) {
+        return false;
+    }
+
+    $datasql = "SELECT d.id as did, r.userid as userid
+                  FROM {data_records} r
+                  JOIN {data} d ON r.dataid = d.id
+                 WHERE r.id = :itemid";
+    $dataparams = array('itemid'=>$params['itemid']);
+    if (!$info = $DB->get_record_sql($datasql, $dataparams)) {
+        //item id doesn't exist
+        return false;
+    }
+
+    if ($info->userid == $USER->id) {
+        //user is attempting to rate their own glossary entry
+        return false;
+    }
+
+    $dataid = $info->did;
+
+    $cm = get_coursemodule_from_instance('data', $dataid);
+    if (empty($cm)) {
+        return false;
+    }
+    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+
+    //if the supplied context doesnt match the item's context
+    if (empty($context) || $context->id != $params['context']->id) {
+        return false;
+    }
+
+    return true;
 }
 
 
