@@ -38,7 +38,7 @@ class moodle1_mod_resource_handler extends moodle1_mod_handler {
      * For each path returned, the corresponding conversion method must be
      * defined.
      *
-     * Note that the paths /MOODLE_BACKUP/COURSE/MODULES/MOD/FORUM do not
+     * Note that the paths /MOODLE_BACKUP/COURSE/MODULES/MOD/RESOURCE do not
      * actually exist in the file. The last element with the module name was
      * appended by the moodle1_converter class.
      *
@@ -64,68 +64,61 @@ class moodle1_mod_resource_handler extends moodle1_mod_handler {
      * Converts /MOODLE_BACKUP/COURSE/MODULES/MOD/RESOURCE data
      */
     public function process_resource($data) {
+        global $CFG;
+
+        switch ($data['type']) {
+            case 'text':
+            case 'html':
+                $handler = new moodle1_mod_page_handler($this->converter, $this->plugintype, $this->pluginname);
+                return $handler->process_page($data);
+            case 'directory':
+                $handler = new moodle1_mod_folder_handler($this->converter, $this->plugintype, $this->pluginname);
+                return $handler->process_folder($data);
+            case 'ims':
+                $handler = new moodle1_mod_imscp_handler($this->converter, $this->plugintype, $this->pluginname);
+                return $handler->process_imscp($data);
+        }
+
+        //only $data['type'] == "file" should get to here
+
+        unset($data['type']);
+        unset($data['reference']);
+        unset($data['alltext']);
+        unset($data['popup']);
+        unset($data['options']);
+
+        $data['tobemigrated'] = 0;
+        $data['mainfile'] = null;
+        $data['legacyfiles'] = 0;
+        $data['legacyfileslast'] = null;
+        $data['display'] = 0;
+        $data['displayoptions'] = null;
+        $data['filterfiles'] = 0;
+        $data['revision'] = 0;
+        unset($data['mainfile']);
+
         // get the course module id and context id
         $instanceid = $data['id'];
         $moduleid   = $this->get_moduleid($instanceid);
         $contextid  = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
 
-        //resources have been split into several different activity types
-        //doing field renaming here rather than in get_paths() as different activity types have had different modifications made
-        $activitytype = null;
-
-        switch ($data['type']) {
-            case 'text':
-                $data['intro']       = text_to_html($data['intro'], false, false, true);
-                $data['introformat'] = FORMAT_HTML;
-            case 'html':
-                $activitytype = 'page';
-                break;
-            case 'file':
-                $activitytype = 'resource';
-
-                unset($data['type']);
-                unset($data['reference']);
-                unset($data['alltext']);
-                unset($data['popup']);
-                unset($data['options']);
-
-                $data['tobemigrated'] = 0;
-                $data['mainfile'] = null;
-                $data['legacyfiles'] = 0;
-                $data['legacyfileslast'] = null;
-                $data['display'] = 0;
-                $data['displayoptions'] = null;
-                $data['filterfiles'] = 0;
-                $data['revision'] = 0;
-                unset($data['mainfile']);
-                break;
-            case 'directory':
-                $activitytype = 'folder';
-                break;
-            case 'ims':
-                $activitytype = 'imscp';
-                break;
-            default:
-                echo 'an unhandled type was received '.$data['type'];
-        }
-
         // we now have all information needed to start writing into the file
-        $this->open_xml_writer("activities/{$activitytype}_{$moduleid}/{$activitytype}.xml");
+        $this->open_xml_writer("activities/resource_{$moduleid}/resource.xml");
         $this->xmlwriter->begin_tag('activity', array('id' => $instanceid, 'moduleid' => $moduleid,
-            'modulename' => $activitytype, 'contextid' => $contextid));
-        $this->xmlwriter->begin_tag($activitytype, array('id' => $instanceid));
+            'modulename' => 'resource', 'contextid' => $contextid));
+        $this->xmlwriter->begin_tag('resource', array('id' => $instanceid));
 
         unset($data['id']); // we already write it as attribute, do not repeat it as child element
         foreach ($data as $field => $value) {
             $this->xmlwriter->full_tag($field, $value);
         }
 
-        $this->xmlwriter->end_tag($activitytype);
+        //doing this here at $this->xmlwriter is null by the time we reach on_resource_end()
+        $this->xmlwriter->end_tag('resource');
         $this->xmlwriter->end_tag('activity');
         $this->close_xml_writer();
     }
 
     public function on_resource_end() {
-        
     }
 }
