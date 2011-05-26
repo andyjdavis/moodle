@@ -44,10 +44,11 @@ class moodle1_mod_page_handler extends moodle1_mod_handler {
      * Converts /MOODLE_BACKUP/COURSE/MODULES/MOD/RESOURCE data
      * Called by moodle1_mod_resource_handler::process_resource()
      */
-    public function process_page($data) {
+    public function process_resource($data) {
         // get the course module id and context id
         $instanceid = $data['id'];
-        $moduleid   = $this->get_moduleid($instanceid);
+        $cminfo     = $this->get_cminfo($instanceid, 'resource');
+        $moduleid   = $cminfo['id'];
         $contextid  = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
 
         if ($data['type'] == 'text') {
@@ -67,7 +68,8 @@ class moodle1_mod_page_handler extends moodle1_mod_handler {
         }
     }
 
-    public function on_page_end() {
+    public function on_resource_end($data) {
+        // close page.xml
         $this->xmlwriter->end_tag('page');
         $this->xmlwriter->end_tag('activity');
         $this->close_xml_writer();

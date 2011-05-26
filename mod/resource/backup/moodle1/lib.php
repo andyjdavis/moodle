@@ -55,6 +55,9 @@ class moodle1_mod_resource_handler extends moodle1_mod_handler {
                     'newfields' => array(
                         'introformat' => 0,
                     ),
+                    'dropfields' => array(
+                        'modtype',
+                    ),
                 )
             )
         );
@@ -63,23 +66,80 @@ class moodle1_mod_resource_handler extends moodle1_mod_handler {
     /**
      * Converts /MOODLE_BACKUP/COURSE/MODULES/MOD/RESOURCE data
      */
-    public function process_resource($data) {
+    public function process_resource(array $data, array $raw) {
         global $CFG;
+        require_once("$CFG->libdir/resourcelib.php");
 
-        switch ($data['type']) {
-            case 'text':
-            case 'html':
-                $handler = new moodle1_mod_page_handler($this->converter, $this->plugintype, $this->pluginname);
-                return $handler->process_page($data);
-            case 'directory':
-                $handler = new moodle1_mod_folder_handler($this->converter, $this->plugintype, $this->pluginname);
-                return $handler->process_folder($data);
-            case 'ims':
-                $handler = new moodle1_mod_imscp_handler($this->converter, $this->plugintype, $this->pluginname);
-                return $handler->process_imscp($data);
+        //if this is a file or URL resource we need to deal with the options
+        //before possibly branching out to the URL successor
+        if ($data['type'] == 'file') {
+            $options = array('printheading'=>0, 'printintro'=>1);
+            if ($data['options'] == 'frame') {
+                $data['display'] = RESOURCELIB_DISPLAY_FRAME;
+
+            } else if ($data['options'] == 'objectframe') {
+                $data['display'] = RESOURCELIB_DISPLAY_EMBED;
+
+            } else if ($data['options'] == 'forcedownload') {
+                $data['display'] = RESOURCELIB_DISPLAY_DOWNLOAD;
+
+            } else if ($data['popup']) {
+                $data['display'] = RESOURCELIB_DISPLAY_POPUP;
+                if ($data['popup']) {
+                    $rawoptions = explode(',', $data['popup']);
+                    foreach ($rawoptions as $rawoption) {
+                        list($name, $value) = explode('=', trim($rawoption), 2);
+                        if ($value > 0 and ($name == 'width' or $name == 'height')) {
+                            $options['popup'.$name] = $value;
+                            continue;
+                        }
+                    }
+                }
+
+            } else {
+                $data['display'] = RESOURCELIB_DISPLAY_AUTO;
+            }
+            $data['displayoptions'] = serialize($options);
+            unset($data['popup']);
+        }
+
+        if ($successor = $this->get_successor($data['type'], $data['reference'])) {
+            // the instance id will be kept
+            $instanceid = $data['id'];
+
+            // move the instance from the resource's modinfo stash to the successor's
+            // modinfo stash
+            $resourcemodinfo  = $this->converter->get_stash('modinfo_resource');
+            $successormodinfo = $this->converter->get_stash('modinfo_'.$successor->get_modname());
+            $successormodinfo['instances'][$instanceid] = $resourcemodinfo['instances'][$instanceid];
+            unset($resourcemodinfo['instances'][$instanceid]);
+            $this->converter->set_stash('modinfo_resource', $resourcemodinfo);
+            $this->converter->set_stash('modinfo_'.$successor->get_modname(), $successormodinfo);
+
+            // get the course module information for the legacy resource module
+            $cminfo = $this->get_cminfo($instanceid);
+
+            // use the version of the successor instead of the current mod/resource
+            // beware - the version.php declares info via $module object, do not use
+            // a variable of such name here
+            include $CFG->dirroot.'/mod/'.$successor->get_modname().'/version.php';
+            $cminfo['version'] = $module->version;
+
+            // stash the new course module information for this successor
+            $cminfo['modulename'] = $successor->get_modname();
+            $this->converter->set_stash('cminfo_'.$cminfo['modulename'], $cminfo, $instanceid);
+
+            // delegate the processing to the successor handler
+            return $successor->process_resource($data, $raw);
         }
 
         //only $data['type'] == "file" should get to here
+
+        // get the course module id and context id
+        $instanceid = $data['id'];
+        $cminfo     = $this->get_cminfo($instanceid);
+        $moduleid   = $cminfo['id'];
+        $contextid  = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
 
         unset($data['type']);
         unset($data['reference']);
@@ -97,11 +157,6 @@ class moodle1_mod_resource_handler extends moodle1_mod_handler {
         $data['revision'] = 0;
         unset($data['mainfile']);
 
-        // get the course module id and context id
-        $instanceid = $data['id'];
-        $moduleid   = $this->get_moduleid($instanceid);
-        $contextid  = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
-
         // we now have all information needed to start writing into the file
         $this->open_xml_writer("activities/resource_{$moduleid}/resource.xml");
         $this->xmlwriter->begin_tag('activity', array('id' => $instanceid, 'moduleid' => $moduleid,
@@ -114,11 +169,76 @@ class moodle1_mod_resource_handler extends moodle1_mod_handler {
         }
 
         //doing this here at $this->xmlwriter is null by the time we reach on_resource_end()
-        $this->xmlwriter->end_tag('resource');
-        $this->xmlwriter->end_tag('activity');
-        $this->close_xml_writer();
+        
     }
 
-    public function on_resource_end() {
+    public function on_resource_end(array $data) {
+        if ($successor = $this->get_successor($data['type'], $data['reference'])) {
+            $successor->on_resource_end($data);
+        } else {
+            $this->xmlwriter->end_tag('resource');
+            $this->xmlwriter->end_tag('activity');
+            $this->close_xml_writer();
+        }
     }
+
+    /// internal implementation details follow /////////////////////////////////
+
+    /**
+     * Returns the handler of the new 2.0 mod type according the given type of the legacy 1.9 resource
+     *
+     * @param string $type the value of the 'type' field in 1.9 resource
+     * @param string $reference a file path. Necessary to differentiate files from web URLs
+     * @throws moodle1_convert_exception for the unknown types
+     * @return null|moodle1_mod_handler the instance of the handler, or null if the type does not have a successor
+     */
+    protected function get_successor($type, $reference) {
+        static $successors = array();
+
+        switch ($type) {
+            case 'text':
+            case 'html':
+                $name = 'page';
+                break;
+            case 'directory':
+                $name = 'folder';
+                break;
+            case 'ims':
+                $name = 'imscp';
+                break;
+            case 'file':
+                // if http:// https:// ftp:// OR starts with slash need to be converted to URL
+                if (strpos($reference, '://') or strpos($reference, '/') === 0) {
+                    $name = 'url';
+                } else {
+                    $name = null;
+                }
+                break;
+            default:
+                throw new moodle1_convert_exception('unknown_resource_successor', $type);
+        }
+
+        if (is_null($name)) {
+            return null;
+        }
+
+        if (!isset($successors[$name])) {
+            $class = 'moodle1_mod_'.$name.'_handler';
+            $successors[$name] = new $class($this->converter, 'mod', $name);
+
+            // add the successor into the modlist stash
+            $modnames = $this->converter->get_stash('modnameslist');
+            $modnames[] = $name;
+            $modnames = array_unique($modnames); // should not be needed but just in case
+            $this->converter->set_stash('modnameslist', $modnames);
+
+            // add the successor's modinfo stash
+            $modinfo = $this->converter->get_stash('modinfo_resource');
+            $modinfo['name'] = $name;
+            $modinfo['instances'] = array();
+            $this->converter->set_stash('modinfo_'.$name, $modinfo);
+        }
+
+        return $successors[$name];
+     }
 }
