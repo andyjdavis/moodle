@@ -44,10 +44,12 @@ class moodle1_mod_folder_handler extends moodle1_mod_handler {
      * Converts /MOODLE_BACKUP/COURSE/MODULES/MOD/RESOURCE data
      * Called by moodle1_mod_resource_handler::process_resource()
      */
-    public function process_folder($data) {
+    public function process_resource($data) {
+
         // get the course module id and context id
         $instanceid = $data['id'];
-        $moduleid   = $this->get_moduleid($instanceid);
+        $cminfo     = $this->get_cminfo($instanceid);
+        $moduleid   = $cminfo['id'];
         $contextid  = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
 
         // we now have all information needed to start writing into the file
@@ -62,7 +64,8 @@ class moodle1_mod_folder_handler extends moodle1_mod_handler {
         }
     }
 
-    public function on_folder_end() {
+    public function on_resource_end() {
+        // close folder.xml
         $this->xmlwriter->end_tag('folder');
         $this->xmlwriter->end_tag('activity');
         $this->close_xml_writer();

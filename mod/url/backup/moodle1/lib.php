@@ -19,7 +19,7 @@
  * Provides support for the conversion of moodle1 backup to the moodle2 format
  *
  * @package    mod
- * @subpackage imscp
+ * @subpackage url
  * @copyright  2011 Andrew Davis <andrew@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,9 +27,9 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * imscp conversion handler. This resource handler is called by moodle1_mod_resource_handler
+ * URL conversion handler. This resource handler is called by moodle1_mod_resource_handler
  */
-class moodle1_mod_imscp_handler extends moodle1_mod_handler {
+class moodle1_mod_url_handler extends moodle1_mod_handler {
 
     /**
      * Declare the paths in moodle.xml we are able to convert
@@ -45,19 +45,20 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
      * Called by moodle1_mod_resource_handler::process_resource()
      */
     public function process_resource($data) {
+        $data['externalurl'] = $data['reference'];
+        unset($data['reference']);
 
         // get the course module id and context id
         $instanceid = $data['id'];
-        $cminfo     = $this->get_cminfo($instanceid);
+        $cminfo     = $this->get_cminfo($instanceid, 'resource');
         $moduleid   = $cminfo['id'];
         $contextid  = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
 
         // we now have all information needed to start writing into the file
-
-        $this->open_xml_writer("activities/imscp_{$moduleid}/imscp.xml");
+        $this->open_xml_writer("activities/url_{$moduleid}/url.xml");
         $this->xmlwriter->begin_tag('activity', array('id' => $instanceid, 'moduleid' => $moduleid,
-            'modulename' => 'imscp', 'contextid' => $contextid));
-        $this->xmlwriter->begin_tag('imscp', array('id' => $instanceid));
+            'modulename' => 'url', 'contextid' => $contextid));
+        $this->xmlwriter->begin_tag('url', array('id' => $instanceid));
 
         unset($data['id']); // we already write it as attribute, do not repeat it as child element
         foreach ($data as $field => $value) {
@@ -66,8 +67,7 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
     }
 
     public function on_resource_end() {
-        //close imscp.xml
-        $this->xmlwriter->end_tag('imscp');
+        $this->xmlwriter->end_tag('url');
         $this->xmlwriter->end_tag('activity');
         $this->close_xml_writer();
     }
