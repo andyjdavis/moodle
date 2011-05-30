@@ -142,10 +142,10 @@ class moodle1_mod_resource_handler extends moodle1_mod_handler {
         $contextid  = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
 
         unset($data['type']);
-        unset($data['reference']);
         unset($data['alltext']);
         unset($data['popup']);
         unset($data['options']);
+        unset($data['reference']); //contains the file path
 
         $data['tobemigrated'] = 0;
         $data['mainfile'] = null;

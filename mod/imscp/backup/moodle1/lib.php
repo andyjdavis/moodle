@@ -45,14 +45,30 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
      * Called by moodle1_mod_resource_handler::process_resource()
      */
     public function process_resource($data) {
+        $instanceid          = $data['id'];
+        $this->currentcminfo = $this->get_cminfo($instanceid);
+        $moduleid            = $this->currentcminfo['id'];
+        $contextid           = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
 
-        // get the course module id and context id
-        $instanceid = $data['id'];
-        $cminfo     = $this->get_cminfo($instanceid);
-        $moduleid   = $cminfo['id'];
-        $contextid  = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
+        //migrate the imscp file itself. Its in the backup at course_files/filename.zip
+        $this->fileman = $this->converter->get_file_manager($contextid, 'mod_imscp', 'content');
+        $this->fileman->itemid = $data['id'];
+        $this->fileman->migrate_file('course_files/'.$data['reference']);
 
-        // we now have all information needed to start writing into the file
+        // write inforef.xml to declare our file
+        $this->open_xml_writer("activities/imscp_{$moduleid}/inforef.xml");
+        $this->xmlwriter->begin_tag('inforef');
+
+        $this->xmlwriter->begin_tag('fileref');
+        foreach ($this->fileman->get_fileids() as $fileid) {
+            $this->write_xml('file', array('id' => $fileid));
+        }
+        $this->xmlwriter->end_tag('fileref');
+
+        $this->xmlwriter->end_tag('inforef');
+        $this->close_xml_writer();
+
+        // we now have all information needed to start writing into the module file
 
         $this->open_xml_writer("activities/imscp_{$moduleid}/imscp.xml");
         $this->xmlwriter->begin_tag('activity', array('id' => $instanceid, 'moduleid' => $moduleid,
