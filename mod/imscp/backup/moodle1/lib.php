@@ -31,6 +31,12 @@ defined('MOODLE_INTERNAL') || die();
  */
 class moodle1_mod_imscp_handler extends moodle1_mod_handler {
 
+    /** @var array in-memory cache for the course module information for the current imscp  */
+    protected $currentcminfo = null;
+
+    /** @var moodle1_file_manager the file manager instance used for the current imscp instance */
+    protected $fileman = null;
+
     /**
      * Declare the paths in moodle.xml we are able to convert
      *
@@ -51,8 +57,7 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
         $contextid           = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
 
         //migrate the imscp file itself. Its in the backup at course_files/filename.zip
-        $this->fileman = $this->converter->get_file_manager($contextid, 'mod_imscp', 'content');
-        $this->fileman->itemid = $data['id'];
+        $this->fileman = $this->converter->get_file_manager($contextid, 'mod_imscp', 'content', 1);
         $this->fileman->migrate_file('course_files/'.$data['reference']);
 
         // write inforef.xml to declare our file

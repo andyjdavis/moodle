@@ -103,6 +103,14 @@ class moodle1_mod_resource_handler extends moodle1_mod_handler {
             unset($data['popup']);
         }
 
+        // fix invalid NULL popup and options data in old mysql databases
+        if (!array_key_exists ('popup', $data) || $data['popup'] === null) {
+            $data['popup'] = '';
+        }
+        if (!array_key_exists ('options', $data) || $data['options'] === null) {
+            $data['options'] = '';
+        }
+
         if ($successor = $this->get_successor($data['type'], $data['reference'])) {
             // the instance id will be kept
             $instanceid = $data['id'];
