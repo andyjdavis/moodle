@@ -30,6 +30,10 @@ defined('MOODLE_INTERNAL') || die();
  * Folder conversion handler. This resource handler is called by moodle1_mod_resource_handler
  */
 class moodle1_mod_folder_handler extends moodle1_mod_handler {
+    /** @var array in-memory cache for the course module information  */
+    protected $currentcminfo = null;
+    /** @var moodle1_file_manager instance for the current scorm */
+    protected $fileman = null;
 
     /**
      * Declare the paths in moodle.xml we are able to convert
@@ -45,12 +49,11 @@ class moodle1_mod_folder_handler extends moodle1_mod_handler {
      * Called by moodle1_mod_resource_handler::process_resource()
      */
     public function process_resource($data) {
-
         // get the course module id and context id
-        $instanceid = $data['id'];
-        $cminfo     = $this->get_cminfo($instanceid);
-        $moduleid   = $cminfo['id'];
-        $contextid  = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
+        $instanceid             = $data['id'];
+        $this->currentcminfo    = $this->get_cminfo($instanceid);
+        $moduleid               = $this->currentcminfo['id'];
+        $contextid              = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
 
         // we now have all information needed to start writing into the file
         $this->open_xml_writer("activities/folder_{$moduleid}/folder.xml");
@@ -62,12 +65,28 @@ class moodle1_mod_folder_handler extends moodle1_mod_handler {
         foreach ($data as $field => $value) {
             $this->xmlwriter->full_tag($field, $value);
         }
+
+        // prepare file manager for migrating the folder
+        $this->fileman = $this->converter->get_file_manager($contextid, 'mod_folder', 'content');
+        var_dump($data['reference']);
+        $this->fileman->migrate_directory('course_files/'.$data['reference']);
     }
 
     public function on_resource_end() {
         // close folder.xml
         $this->xmlwriter->end_tag('folder');
         $this->xmlwriter->end_tag('activity');
+        $this->close_xml_writer();
+
+        // write inforef.xml for migrated scorm zip file.
+        $this->open_xml_writer("activities/folder_{$this->currentcminfo['id']}/inforef.xml");
+        $this->xmlwriter->begin_tag('inforef');
+        $this->xmlwriter->begin_tag('fileref');
+        foreach ($this->fileman->get_fileids() as $fileid) {
+            $this->write_xml('file', array('id' => $fileid));
+        }
+        $this->xmlwriter->end_tag('fileref');
+        $this->xmlwriter->end_tag('inforef');
         $this->close_xml_writer();
     }
 }
