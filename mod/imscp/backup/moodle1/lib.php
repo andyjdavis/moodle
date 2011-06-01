@@ -35,11 +35,8 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
 
     //there are two file manager instances as we need to put files in two file areas
 
-    /** @var moodle1_file_manager the file manager instance used for the original zip file */
-    protected $filemanoriginalzip = null;
-
-    /** @var moodle1_file_manager the file manager instance used for the deployed files */
-    protected $filemandeployedfile = null;
+    /** @var moodle1_file_manager the file manager instance */
+    protected $fileman = null;
 
     /**
      * Declare the paths in moodle.xml we are able to convert
@@ -74,8 +71,7 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
         $data['keepold']  = 1;
 
         // parse manifest
-        //todo need to parse the structure similar to imscp_parse_structure()
-        $structure = '';
+        $structure = '';//todo need to parse the structure similar to imscp_parse_structure()
         $data['structure'] = is_array($structure) ? serialize($structure) : null;
 
         // we now have all information needed to start writing into the module file
@@ -90,15 +86,10 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
             $this->xmlwriter->full_tag($field, $value);
         }
 
-        // prepare file manager for migrating imscp package files
-        $this->filemanoriginalzip  = $this->converter->get_file_manager($contextid, 'mod_imscp', 'backup');
-        if (array_key_exists('reference', $data) && !empty($data['reference'])) {
-            //the original ims package zip file
-            $this->filemanoriginalzip->migrate_file('course_files/'.$data['reference']);
-        }
-        //the deployed package
-        $this->filemandeployedfile = $this->converter->get_file_manager($contextid, 'mod_imscp', 'content', $data['revision']);
-        $this->filemandeployedfile->migrate_directory('moddata/resource/'.$data['id']);
+        //Prepare to migrate the deployed package. Includes the original zip.
+        //Not bothering with the copy in course_files as it may have been removed and we don't need it
+        $this->fileman = $this->converter->get_file_manager($contextid, 'mod_imscp', 'content', $data['revision']);
+        $this->fileman->migrate_directory('moddata/resource/'.$data['id']);
     }
 
     public function on_resource_end() {
@@ -111,10 +102,7 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
         $this->open_xml_writer("activities/imscp_{$this->currentcminfo['id']}/inforef.xml");
         $this->xmlwriter->begin_tag('inforef');
         $this->xmlwriter->begin_tag('fileref');
-        foreach ($this->filemanoriginalzip->get_fileids() as $fileid) {
-            $this->write_xml('file', array('id' => $fileid));
-        }
-        foreach ($this->filemandeployedfile->get_fileids() as $fileid) {
+        foreach ($this->fileman->get_fileids() as $fileid) {
             $this->write_xml('file', array('id' => $fileid));
         }
         $this->xmlwriter->end_tag('fileref');
