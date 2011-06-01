@@ -32,7 +32,7 @@ defined('MOODLE_INTERNAL') || die();
 class moodle1_mod_folder_handler extends moodle1_mod_handler {
     /** @var array in-memory cache for the course module information  */
     protected $currentcminfo = null;
-    /** @var moodle1_file_manager instance for the current scorm */
+    /** @var moodle1_file_manager instance */
     protected $fileman = null;
 
     /**
@@ -68,7 +68,6 @@ class moodle1_mod_folder_handler extends moodle1_mod_handler {
 
         // prepare file manager for migrating the folder
         $this->fileman = $this->converter->get_file_manager($contextid, 'mod_folder', 'content');
-        var_dump($data['reference']);
         $this->fileman->migrate_directory('course_files/'.$data['reference']);
     }
 
@@ -78,7 +77,7 @@ class moodle1_mod_folder_handler extends moodle1_mod_handler {
         $this->xmlwriter->end_tag('activity');
         $this->close_xml_writer();
 
-        // write inforef.xml for migrated scorm zip file.
+        // write inforef.xml for migrated folder
         $this->open_xml_writer("activities/folder_{$this->currentcminfo['id']}/inforef.xml");
         $this->xmlwriter->begin_tag('inforef');
         $this->xmlwriter->begin_tag('fileref');
