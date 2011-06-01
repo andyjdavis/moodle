@@ -70,8 +70,8 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
             $data['introformat'] = FORMAT_MOODLE;
         }
 
-        $data['revision']    = 1;
-        $data['keepold']     = 1;
+        $data['revision'] = 1;
+        $data['keepold']  = 1;
 
         // parse manifest
         //todo need to parse the structure similar to imscp_parse_structure()
@@ -97,7 +97,7 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
             $this->filemanoriginalzip->migrate_file('course_files/'.$data['reference']);
         }
         //the deployed package
-        $this->filemandeployedfile = $this->converter->get_file_manager($contextid, 'mod_imscp', 'content');
+        $this->filemandeployedfile = $this->converter->get_file_manager($contextid, 'mod_imscp', 'content', $data['revision']);
         $this->filemandeployedfile->migrate_directory('moddata/resource/'.$data['id']);
     }
 

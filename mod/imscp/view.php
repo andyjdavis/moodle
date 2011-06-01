@@ -70,9 +70,17 @@ echo $OUTPUT->header();
 
 // verify imsmanifest was parsed properly
 if (!$imscp->structure) {
-    echo $OUTPUT->notification(get_string('deploymenterror', 'imscp'), 'notifyproblem');
-    echo $OUTPUT->footer();
-    die;
+    //last chance parse added for imscp instances restored from 1.9
+    $structure = imscp_parse_structure($imscp, $context);
+    $imscp->structure = is_array($structure) ? serialize($structure) : null;
+
+    if (!empty($imscp->structure)) {
+        $DB->update_record('imscp', $imscp);
+    } else {
+        echo $OUTPUT->notification(get_string('deploymenterror', 'imscp'), 'notifyproblem');
+        echo $OUTPUT->footer();
+        die;
+    }
 }
 
 imscp_print_content($imscp, $cm, $course);
