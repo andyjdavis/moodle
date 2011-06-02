@@ -90,20 +90,9 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
             $this->xmlwriter->full_tag($field, $value);
         }
 
-        /* TODO: we currently do not correctly handle undeployed IMS packages
+        /* We currently do not support undeployed IMS packages
          * They need to be deployed (unzipped) to the mod data area then have the ims structure figured out
-        $this->fileman->filearea = 'backup';
-        $this->fileman->migrate_file('course_files/'.$data['reference']);
-
-        //unpack the package zip file
-        if ($package = $mform->save_stored_file('package', $context->id, 'mod_imscp', 'backup', 1, '/', $data['reference'])) {
-            // extract package content
-            $packer = get_file_packer('application/zip');
-            //$package->extract_to_storage($packer, $context->id, 'mod_imscp', 'content', 1, '/');
-            $packer->extract_to_storage($archivefilepath, $context->id, 'mod_imscp', 'content', 1, '/');
-            $structure = imscp_parse_structure($imscp->revision, $context->id);
-            $data['structure'] = is_array($structure) ? serialize($structure) : null;
-        }*/
+        */
     }
 
     public function on_resource_end() {
@@ -140,6 +129,6 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
         }
 
         require_once($CFG->dirroot.'/mod/imscp/locallib.php');
-        return imscp_parse_structure(null, null, $manifestfilecontents);
+        return imscp_parse_manifestfile($manifestfilecontents);
     }
 }

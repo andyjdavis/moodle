@@ -79,25 +79,27 @@ function imscp_htmllize_item($item, $imscp, $cm) {
 }
 
 /**
- * Parse and IMS content package's manifest file to determine its structure
- * You can supply either the revision and context ID or just the manifest file contents
- * The ability to just supply the file contents is used by the 1.9 -> 2.1 restore as it must load the manifest from a temp directory
- * @param int $revision
- * @param int $contextid
- * @param string $manifestfilecontents As a short cut you can just provide the contents
- * @return <type>
+ * Parse an IMS content package's manifest file to determine its structure
+ * @param object $imscp
+ * @param object $context
+ * @return array
  */
-function imscp_parse_structure($revision = null, $contextid = null, $manifestfilecontents = null) {
+function imscp_parse_structure($imscp, $context) {
     $fs = get_file_storage();
 
-    if (empty($manifestfilecontents)) {
-        if (!$manifestfile = $fs->get_file($contextid, 'mod_imscp', 'content', $revision, '/', 'imsmanifest.xml')) {
-            return null;
-        }
-
-        $manifestfilecontents = $manifestfile->get_content();
+    if (!$manifestfile = $fs->get_file($context->id, 'mod_imscp', 'content', $imscp->revision, '/', 'imsmanifest.xml')) {
+        return null;
     }
 
+    imscp_parse_manifestfile($manifestfile->get_content());
+}
+
+/**
+ * Parse the contents of a IMS package's manifest file
+ * @param string $manifestfilecontents the contents of the manifest file
+ * @return array
+ */
+function imscp_parse_manifestfile($manifestfilecontents) {
     $doc = new DOMDocument();
     if (!$doc->loadXML($manifestfilecontents, LIBXML_NONET)) {
         return null;
