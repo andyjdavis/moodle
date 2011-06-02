@@ -30,6 +30,10 @@ defined('MOODLE_INTERNAL') || die();
  * Page conversion handler. This resource handler is called by moodle1_mod_resource_handler
  */
 class moodle1_mod_page_handler extends moodle1_mod_handler {
+    /** @var array in-memory cache for the course module information  */
+    protected $currentcminfo = null;
+    /** @var moodle1_file_manager instance */
+    protected $fileman = null;
 
     /**
      * Declare the paths in moodle.xml we are able to convert
@@ -45,16 +49,66 @@ class moodle1_mod_page_handler extends moodle1_mod_handler {
      * Called by moodle1_mod_resource_handler::process_resource()
      */
     public function process_resource($data) {
+        global $CFG;
+
         // get the course module id and context id
         $instanceid = $data['id'];
         $cminfo     = $this->get_cminfo($instanceid, 'resource');
         $moduleid   = $cminfo['id'];
         $contextid  = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
 
+        //we now only support html intros
         if ($data['type'] == 'text') {
             $data['intro']       = text_to_html($data['intro'], false, false, true);
             $data['introformat'] = FORMAT_HTML;
         }
+
+        $data['contentformat'] = (int)$data['reference'];
+        if ($data['contentformat'] < 0 || $data['contentformat'] > 4) {
+            $data['contentformat'] = FORMAT_MOODLE;
+        }
+
+        $data['content']      = $data['alltext'];
+        $data['revision']     = 1;
+        $data['timemodified'] = time();
+
+        // convert links to old course files
+        $originalcourseinfo = $this->converter->get_stash('original_course_info');
+        if (!empty($originalcourseinfo) && array_key_exists('original_course_id', $originalcourseinfo)) {
+            $courseid = $originalcourseinfo['original_course_id'];
+
+            $usedfiles = array("$CFG->wwwroot/file.php/$courseid/", "$CFG->wwwroot/file.php?file=/$courseid/");
+            $data['content'] = str_ireplace($usedfiles, '@@PLUGINFILE@@/', $data['content']);
+            if (strpos($data['content'], '@@PLUGINFILE@@/') === false) {
+                $data['legacyfiles'] = RESOURCELIB_LEGACYFILES_NO;
+            } else {
+                $data['legacyfiles'] = RESOURCELIB_LEGACYFILES_ACTIVE;
+            }
+        } else {
+            $data['legacyfiles'] = RESOURCELIB_LEGACYFILES_NO;
+        }
+
+        $options = array('printheading'=>0, 'printintro'=>0);
+        if ($data['popup']) {
+            $data['display'] = RESOURCELIB_DISPLAY_POPUP;
+            if ($data['popup']) {
+                $rawoptions = explode(',', $data['popup']);
+                foreach ($rawoptions as $rawoption) {
+                    list($name, $value) = explode('=', trim($rawoption), 2);
+                    if ($value > 0 and ($name == 'width' or $name == 'height')) {
+                        $options['popup'.$name] = $value;
+                        continue;
+                    }
+                }
+            }
+        } else {
+            $data['display'] = RESOURCELIB_DISPLAY_OPEN;
+        }
+        $data['displayoptions'] = serialize($options);
+
+        // prepare file manager for migrating the folder
+        $this->fileman = $this->converter->get_file_manager($contextid, 'mod_page', 'content', 0);
+        $this->fileman->migrate_directory('moddata/page/'.$data['id']);
 
         // we now have all information needed to start writing into the file
         $this->open_xml_writer("activities/page_{$moduleid}/page.xml");

@@ -108,7 +108,7 @@ function imscp_add_instance($data, $mform) {
             // extract package content
             $packer = get_file_packer('application/zip');
             $package->extract_to_storage($packer, $context->id, 'mod_imscp', 'content', 1, '/');
-            $structure = imscp_parse_structure($imscp, $context);
+            $structure = imscp_parse_structure($imscp->revision, $context->id);
             $imscp->structure = is_array($structure) ? serialize($structure) : null;
             $DB->update_record('imscp', $imscp);
         }
@@ -169,7 +169,7 @@ function imscp_update_instance($data, $mform) {
         }
     }
 
-    $structure = imscp_parse_structure($imscp, $context);
+    $structure = imscp_parse_structure($imscp->revision, $context->id);
     $imscp->structure = is_array($structure) ? serialize($structure) : null;
     $DB->update_record('imscp', $imscp);
 

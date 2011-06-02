@@ -126,7 +126,7 @@ function imscp_20_migrate() {
         unset($files);
 
         // parse manifest
-        $structure = imscp_parse_structure($imscp, $context);
+        $structure = imscp_parse_structure($imscp->revision, $context->id);
         $imscp->structure = is_array($structure) ? serialize($structure) : null;
         $DB->update_record('imscp', $imscp);
 

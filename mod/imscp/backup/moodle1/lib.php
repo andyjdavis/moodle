@@ -70,8 +70,12 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
         $data['revision'] = 1;
         $data['keepold']  = 1;
 
+        //Prepare to migrate the deployed (ie extracted) version of the content package
+        $this->fileman = $this->converter->get_file_manager($contextid, 'mod_imscp', 'content', $data['revision']);
+        $this->fileman->migrate_directory('moddata/resource/'.$data['id']);
+
         // parse manifest
-        $structure = '';//todo need to parse the structure similar to imscp_parse_structure()
+        $structure = $this->parse_structure($data, $contextid);
         $data['structure'] = is_array($structure) ? serialize($structure) : null;
 
         // we now have all information needed to start writing into the module file
@@ -86,10 +90,20 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
             $this->xmlwriter->full_tag($field, $value);
         }
 
-        //Prepare to migrate the deployed package. Includes the original zip.
-        //Not bothering with the copy in course_files as it may have been removed and we don't need it
-        $this->fileman = $this->converter->get_file_manager($contextid, 'mod_imscp', 'content', $data['revision']);
-        $this->fileman->migrate_directory('moddata/resource/'.$data['id']);
+        /* TODO: we currently do not correctly handle undeployed IMS packages
+         * They need to be deployed (unzipped) to the mod data area then have the ims structure figured out
+        $this->fileman->filearea = 'backup';
+        $this->fileman->migrate_file('course_files/'.$data['reference']);
+
+        //unpack the package zip file
+        if ($package = $mform->save_stored_file('package', $context->id, 'mod_imscp', 'backup', 1, '/', $data['reference'])) {
+            // extract package content
+            $packer = get_file_packer('application/zip');
+            //$package->extract_to_storage($packer, $context->id, 'mod_imscp', 'content', 1, '/');
+            $packer->extract_to_storage($archivefilepath, $context->id, 'mod_imscp', 'content', 1, '/');
+            $structure = imscp_parse_structure($imscp->revision, $context->id);
+            $data['structure'] = is_array($structure) ? serialize($structure) : null;
+        }*/
     }
 
     public function on_resource_end() {
@@ -108,5 +122,24 @@ class moodle1_mod_imscp_handler extends moodle1_mod_handler {
         $this->xmlwriter->end_tag('fileref');
         $this->xmlwriter->end_tag('inforef');
         $this->close_xml_writer();
+    }
+
+    /// internal implementation details follow /////////////////////////////////
+
+    /**
+     * Parse the IMS package structure for the $imscp->structure field
+     * @param array $data the array of ims package data
+     */
+    protected function parse_structure($data, $contextid) {
+        global $CFG;
+
+        $temppath = $this->converter->get_tempdir_path();
+        $manifestfilecontents = file_get_contents($temppath.'/moddata/resource/'.$data['id'].'/imsmanifest.xml');
+        if (empty($manifestfilecontents)) {
+            return null;
+        }
+
+        require_once($CFG->dirroot.'/mod/imscp/locallib.php');
+        return imscp_parse_structure(null, null, $manifestfilecontents);
     }
 }
