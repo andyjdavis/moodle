@@ -884,8 +884,13 @@ function tag_compute_correlations($mincorrelation = 2) {
     $rs->close();
 
     // Remove any correlations that weren't just identified
-    list($sql, $params) = $DB->get_in_or_equal($correlations, SQL_PARAMS_NAMED, 'param0000', false);
-    $DB->delete_records_select('tag_correlation', 'id '.$sql, $params);
+    if (empty($correlations)) {
+        //there are no tag correlations
+        $DB->delete_records('tag_correlation');
+    } else {
+        list($sql, $params) = $DB->get_in_or_equal($correlations, SQL_PARAMS_NAMED, 'param0000', false);
+        $DB->delete_records_select('tag_correlation', 'id '.$sql, $params);
+    }
 }
 
 /**
