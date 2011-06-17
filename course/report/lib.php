@@ -30,16 +30,17 @@
  * @param stdClass $parentcontext Block's parent context
  * @param stdClass $currentcontext Current context of block
  */
-function coursereport_pagetypelist($pagetype, $parentcontext, $currentcontext) {
-    $array = array('*'=>get_string('page-x', 'pagetype'),
-            'course-report-*'=>get_string('page-course-report-x', 'pagetype')
-        );
+function coursereport_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $array = array(
+        '*' => get_string('page-x', 'pagetype'),
+        'course-report-*' => get_string('page-course-report-x', 'pagetype')
+    );
 
     //extract course-report-outline from course-report-outline-index
     $bits = explode('-', $pagetype);
-    if (count($bits >= 3)) {
+    if (count($bits) > 2) {
         $report = array_slice($bits, 2, 1);
-        $array['course-report-'.$report[0].'-*'] = get_string('pluginpagetype',  'coursereport_'.$report);
+        $array['course-report-'.$report[0].'-*'] = get_string('pluginpagetype',  'coursereport_'.$report[0]);
     }
 
     return $array;
