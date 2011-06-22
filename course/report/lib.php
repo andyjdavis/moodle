@@ -30,7 +30,7 @@
  * @param stdClass $parentcontext Block's parent context
  * @param stdClass $currentcontext Current context of block
  */
-function coursereport_page_type_list($pagetype, $parentcontext, $currentcontext) {
+/*function coursereport_page_type_list($pagetype, $parentcontext, $currentcontext) {
     $array = array(
         '*' => get_string('page-x', 'pagetype'),
         'course-report-*' => get_string('page-course-report-x', 'pagetype')
@@ -44,4 +44,4 @@ function coursereport_page_type_list($pagetype, $parentcontext, $currentcontext)
     }
 
     return $array;
-}
+}*/

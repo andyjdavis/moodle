@@ -1563,57 +1563,110 @@ function generate_page_type_patterns($pagetype, $parentcontext = null, $currentc
 
     $bits = explode('-', $pagetype);
 
-    $function = 'default_page_type_list';
-
     $core = get_core_subsystems();
     $plugins = get_plugin_types();
 
     //progressively strip pieces off the page type looking for a match
-    //eg: for pagetype "course-report-outline-index" try coursereportoutlineindex
-    // then coursereportoutline then coursereport then course
     $componentarray = null;
     for ($i = count($bits); $i > 0; $i--) {
         $componentarray = array_slice($bits, 0, $i);
         $component = implode('', $componentarray);
-
-        // Look for special case components like course reports        
-        $libfile = $CFG->dirroot.'/'.implode('/', $componentarray).'/lib.php';
-        if (file_exists($libfile)) {
-            require_once($libfile);
-            if (function_exists($component.'_page_type_list')) {
-                $function = $component.'_page_type_list';
-                break;
-            }
-        }
 
         // Then check to see if the component is a core component
         if (array_key_exists($component, $core) && !empty($core[$component])) {
             $libfile = $CFG->dirroot.'/'.$core[$component].'/lib.php';
             if (file_exists($libfile)) {
                 require_once($libfile);
-                if (function_exists($component.'_page_type_list')) {
-                    $function = $component.'_page_type_list';
-                    break;
+                $function = $component.'_page_type_list';
+                if (function_exists($function)) {
+                    if ($patterns = $function($pagetype, $parentcontext, $currentcontext)) {
+                        break;
+                    }
                 }
             }
         }
 
-        // If its not a special or core component check to see if it is a plugin component
+        // check if it is a plugin component
         if (array_key_exists($component, $plugins) && !empty($plugins[$component])) {
-            $function = 'plugin_page_type_list';
-            if (function_exists($component.'_page_type_list')) {
-                $function = $component.'_page_type_list';
+            if ($patterns = plugin_page_type_list($pagetype, $parentcontext, $currentcontext)) {
                 break;
             }
         }
     }
 
-    // Call the most appropriate function we could determine
-    $patterns = $function($pagetype, $parentcontext, $currentcontext);
     if (empty($patterns)) {
-        // If there are no patterns default to just the current pattern.
-        $patterns = array($pagetype => $pagetype);
+        $patterns = default_page_type_list($pagetype, $parentcontext, $currentcontext);
+        if (empty($patterns)) {
+            // If there are no patterns just use the current pattern
+            $patterns = array($pagetype => $pagetype);
+        }
     }
+
+    return $patterns;
+}
+
+/**
+ * Generates a page type list for plugins
+ *
+ * @param string $pagetype
+ * @param stdClass $parentcontext
+ * @param stdClass $currentcontext
+ * @param array Array of strings name=>location from get_plugin_types()
+ * @return array
+ */
+function plugin_page_type_list($pagetype, $parentcontext = null, $currentcontext = null, $plugins = null) {
+    global $CFG;
+
+    $bits = explode('-', $pagetype);
+
+    if (empty($plugins)) {
+        $plugins = get_plugin_types();
+    }
+
+    $patterns = null;//array to return
+
+    //progressively strip pieces off the page type looking for a plugin type
+    //then backtrack one bit to look for a plugin name
+    $componentarray = null;
+    for ($i = count($bits); $i > 0; $i--) {
+        $componentarray = array_slice($bits, 0, $i);
+        $plugintype = implode('', $componentarray);
+
+        if (array_key_exists($plugintype, $plugins) && !empty($plugins[$plugintype])) {
+            //we've found a plugin type. Now look for a plugin name
+
+            $pluginnamearray = array_slice($bits, $i, 1);
+            $pluginname = $pluginnamearray[0];
+            $directory = get_plugin_directory($plugintype, $pluginname);
+
+            if (!empty($directory)) {
+                $libfile = $directory.'/lib.php';
+                if (file_exists($libfile)) {
+                    require_once($libfile);
+
+                    $function = $pluginname.'_page_type_list';
+                    if (function_exists($function)) {
+                        $patterns = $function($pagetype, $parentcontext, $currentcontext);
+                        break;
+                    }
+                }
+            } else {
+                //the plugin type may have a callback
+                $function = $plugintype.'_page_type_list';
+                if (function_exists($function)) {
+                    $patterns = $function($pagetype, $parentcontext, $currentcontext);
+                    break;
+                }
+            }
+        }
+    }
+
+    if (!empty($patterns) && $parentcontext->contextlevel == CONTEXT_COURSE) {
+        //allow selection of course page types if we're within a course
+        require_once("$CFG->dirroot/course/lib.php");
+        $patterns = array_merge(course_page_type_list($pagetype, $parentcontext, $currentcontext), $patterns);
+    }
+
     return $patterns;
 }
 
@@ -1642,40 +1695,6 @@ function default_page_type_list($pagetype, $parentcontext = null, $currentcontex
         array_pop($bits);
     }
     $patterns['*'] = get_string('page-x', 'pagetype');
-    return $patterns;
-}
-
-/**
- * Generates a page type list for plugins
- *
- * @param string $pagetype
- * @param stdClass $parentcontext
- * @param stdClass $currentcontext
- * @return array
- */
-function plugin_page_type_list($pagetype, $parentcontext = null, $currentcontext = null) {
-    global $CFG;
-
-    // for modules
-    $bits = explode('-', $pagetype);
-    $plugintype = $bits[0];
-    $pluginname = $bits[1];
-    $directory = get_plugin_directory($plugintype, $pluginname);
-    if (empty($directory)) {
-        return array();
-    }
-    $libfile = $directory.'/lib.php';
-    require_once($libfile);
-    $function = $pluginname.'_page_type_list';
-    if (!function_exists($function)) {
-        return array();
-    }
-    $patterns = $function($pagetype, $parentcontext, $currentcontext);
-    if ($parentcontext->contextlevel == CONTEXT_COURSE) {
-        // including course page type
-        require_once("$CFG->dirroot/course/lib.php");
-        $patterns = array_merge(course_page_type_list($pagetype, $parentcontext, $currentcontext), $patterns);
-    }
     return $patterns;
 }
 
