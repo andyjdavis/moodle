@@ -243,13 +243,12 @@ class graded_users_iterator {
      * @return void
      */
     function close() {
-        if ($this->users_rs) {
+        if ($this->users_rs->valid()) {
             $this->users_rs->close();
-            $this->users_rs = null;
         }
-        if ($this->grades_rs) {
+        //the grade recordset may be false or a recordset object
+        if ($this->grades_rs && $this->grades_rs->valid()) {
             $this->grades_rs->close();
-            $this->grades_rs = null;
         }
         $this->gradestack = array();
     }

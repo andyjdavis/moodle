@@ -289,7 +289,7 @@ function grade_update($source, $courseid, $itemtype, $itemmodule, $iteminstance,
         }
     }
 
-    if ($rs) {
+    if ($rs->valid()) {
         $rs->close();
     }
 
