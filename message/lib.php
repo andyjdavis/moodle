@@ -1943,11 +1943,20 @@ function message_format_message($message, $format='', $keywords='', $class='othe
     $options->para = false;
 
     //if supplied display small messages as fullmessage may contain boilerplate text that shouldnt appear in the messaging UI
+    $messagetext = null;
     if (!empty($message->smallmessage)) {
-        $messagetext = format_text(s($message->smallmessage), FORMAT_MOODLE, $options);
+        $messagetext = $message->smallmessage;
     } else {
-        $messagetext = format_text(s($message->fullmessage), $message->fullmessageformat, $options);
+        $messagetext = $message->fullmessage;
     }
+    if ($message->fullmessageformat == FORMAT_HTML) {
+        //dont escape html tags by calling s() if html format or they will display in the UI
+        //strip html tags to prevent tags in the message content messing up the page
+        $messagetext = strip_tags($messagetext);
+    } else {
+        $messagetext = s($messagetext);
+    }
+    $messagetext = format_text($messagetext, $message->fullmessageformat, $options);
 
     $messagetext .= message_format_contexturl($message);
 
