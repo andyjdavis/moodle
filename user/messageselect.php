@@ -32,8 +32,10 @@ $send = optional_param('send','',PARAM_BOOL);
 $preview = optional_param('preview','',PARAM_BOOL);
 $edit = optional_param('edit','',PARAM_BOOL);
 $returnto = optional_param('returnto','',PARAM_LOCALURL);
-$format = optional_param('format',FORMAT_MOODLE,PARAM_INT);
 $deluser = optional_param('deluser',0,PARAM_INT);
+
+//no longer allowing the user to select a format MDL-27823
+$format = FORMAT_MOODLE;
 
 $url = new moodle_url('/user/messageselect.php', array('id'=>$id));
 if ($messagebody !== '') {
@@ -50,9 +52,6 @@ if ($edit !== '') {
 }
 if ($returnto !== '') {
     $url->param('returnto', $returnto);
-}
-if ($format !== FORMAT_MOODLE) {
-    $url->param('format', $format);
 }
 if ($deluser !== 0) {
     $url->param('deluser', $deluser);
@@ -132,10 +131,8 @@ if (!empty($messagebody) && !$edit && !$deluser && ($preview || $send)) {
         if (!empty($preview)) {
             echo '<form method="post" action="messageselect.php" style="margin: 0 20px;">
 <input type="hidden" name="returnto" value="'.s($returnto).'" />
-<input type="hidden" name="id" value="'.$id.'" />
-<input type="hidden" name="format" value="'.$format.'" />
-';
-            echo "<h3>".get_string('previewhtml')."</h3><div class=\"messagepreview\">\n".format_text($messagebody,$format)."\n</div>\n";
+<input type="hidden" name="id" value="'.$id.'" />';
+            echo "<h3>".get_string('preview')."</h3><div class=\"messagepreview\">\n".format_text($messagebody,$format)."\n</div>\n";
             echo '<p align="center"><input type="submit" name="send" value="'.get_string('sendmessage', 'message').'" />'."\n";
             echo '<input type="submit" name="edit" value="'.get_string('update').'" /></p>';
             echo "\n</form>";
@@ -167,7 +164,7 @@ if ((!empty($send) || !empty($preview) || !empty($edit)) && (empty($messagebody)
 }
 
 if (count($SESSION->emailto[$id])) {
-    $usehtmleditor = can_use_html_editor();
+    $usehtmleditor = false;//no longer allow user to send html personal messages MDL-27823
     require("message.html");
 }
 
