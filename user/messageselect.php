@@ -33,9 +33,7 @@ $preview = optional_param('preview','',PARAM_BOOL);
 $edit = optional_param('edit','',PARAM_BOOL);
 $returnto = optional_param('returnto','',PARAM_LOCALURL);
 $deluser = optional_param('deluser',0,PARAM_INT);
-
 //no longer allowing the user to select a format MDL-27823
-$format = FORMAT_MOODLE;
 
 $url = new moodle_url('/user/messageselect.php', array('id'=>$id));
 if ($messagebody !== '') {
@@ -134,14 +132,14 @@ if (!empty($messagebody) && !$edit && !$deluser && ($preview || $send)) {
             echo '<form method="post" action="messageselect.php" style="margin: 0 20px;">
 <input type="hidden" name="returnto" value="'.s($returnto).'" />
 <input type="hidden" name="id" value="'.$id.'" />';
-            echo "<h3>".get_string('preview')."</h3><div class=\"messagepreview\">\n".format_text($messagebody,$format)."\n</div>\n";
+            echo "<h3>".get_string('preview')."</h3><div class=\"messagepreview\">\n".format_text($messagebody,FORMAT_MOODLE)."\n</div>\n";
             echo '<p align="center"><input type="submit" name="send" value="'.get_string('sendmessage', 'message').'" />'."\n";
             echo '<input type="submit" name="edit" value="'.get_string('update').'" /></p>';
             echo "\n</form>";
         } else if (!empty($send)) {
             $good = 1;
             foreach ($SESSION->emailto[$id] as $user) {
-                $good = $good && message_post_message($USER,$user,$messagebody,$format);
+                $good = $good && message_post_message($USER,$user,$messagebody,FORMAT_MOODLE);
             }
             if (!empty($good)) {
                 echo $OUTPUT->heading(get_string('messagedselectedusers'));
