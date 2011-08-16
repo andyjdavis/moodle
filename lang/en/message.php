@@ -44,6 +44,7 @@ $string['couldnotfindpreference'] = 'Could not load preference {$a}. Does the co
 $string['defaultmessageoutputs'] = 'Default message outputs';
 $string['defaults'] = 'Defaults';
 $string['deletemessagesdays'] = 'Number of days before old messages are automatically deleted';
+$string['disableall'] = 'Temporarily disable notifications';
 $string['disabled'] = 'Messaging is disabled on this site';
 $string['disallowed'] = 'Disallowed';
 $string['discussion'] = 'Discussion';

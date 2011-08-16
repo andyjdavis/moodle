@@ -212,7 +212,7 @@ class core_message_renderer extends plugin_renderer_base {
      * @param   mixed   $defaultpreferences array of objects containing site default preferences
      * @return  string                      The text to render
      */
-    public function manage_messagingoptions($processors, $providers, $preferences, $defaultpreferences) {
+    public function manage_messagingoptions($processors, $providers, $preferences, $defaultpreferences, $notificationsdisabled = false) {
         // Filter out enabled, available system_configured and user_configured processors only.
         $readyprocessors = array_filter($processors, create_function('$a', 'return $a->enabled && $a->configured && $a->object->is_user_configured();'));
 
@@ -316,6 +316,10 @@ class core_message_renderer extends plugin_renderer_base {
         $output .= html_writer::start_tag('div');
         $output .= html_writer::table($table);
         $output .= html_writer::end_tag('div');
+
+        $disableallcheckbox = html_writer::checkbox('disableall', 1, $notificationsdisabled, get_string('disableall', 'message'), array('class'=>'disableallcheckbox'));
+        $output .= html_writer::nonempty_tag('div', $disableallcheckbox, array('class'=>'disableall'));
+
         $output .= html_writer::end_tag('fieldset');
 
         foreach ($processors as $processor) {
