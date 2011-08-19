@@ -45,6 +45,7 @@ $string['defaultmessageoutputs'] = 'Default message outputs';
 $string['defaults'] = 'Defaults';
 $string['deletemessagesdays'] = 'Number of days before old messages are automatically deleted';
 $string['disableall'] = 'Temporarily disable notifications';
+$string['disableall_help'] = 'Temporarily disable all notifications except those marked as "forced" by the site administrator';
 $string['disabled'] = 'Messaging is disabled on this site';
 $string['disallowed'] = 'Disallowed';
 $string['discussion'] = 'Discussion';
