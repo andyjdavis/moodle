@@ -210,6 +210,8 @@ class core_message_renderer extends plugin_renderer_base {
      * @param   mixed   $providers          array of objects containing message providers
      * @param   mixed   $preferences        array of objects containing current preferences
      * @param   mixed   $defaultpreferences array of objects containing site default preferences
+     * $param   boolean $notificationsdisabled indicates whether the user's "emailstop" flag is
+     *                                      set so shouldn't receive any non-forced notifications
      * @return  string                      The text to render
      */
     public function manage_messagingoptions($processors, $providers, $preferences, $defaultpreferences, $notificationsdisabled = false) {
@@ -282,7 +284,10 @@ class core_message_renderer extends plugin_renderer_base {
                             $disabled['disabled'] = 1;
                         } else {
                             $checked = false;
-                            // See if hser has touched this preference
+                            if ($notificationsdisabled) {
+                                $disabled['disabled'] = 1;
+                            }
+                            // See if user has touched this preference
                             if (isset($preferences->{$preferencebase.'_'.$state})) {
                                 // User have some preferneces for this state in the database, use them
                                 $checked = isset($preferences->{$preferencebase.'_'.$state}[$processor->name]);
