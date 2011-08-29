@@ -310,7 +310,7 @@ class core_message_renderer extends plugin_renderer_base {
                         );
                         $label = get_string('sendingviawhen', 'message', $labelparams);
                         $cellcontent = html_writer::label($label, $elementname, true, array('class' => 'accesshide'));
-                        $cellcontent .= html_writer::checkbox($elementname, 1, $checked, '', array_merge(array('id' => $elementname), $disabled));
+                        $cellcontent .= html_writer::checkbox($elementname, 1, $checked, '', array_merge(array('id' => $elementname, 'class' => 'notificationpreference'), $disabled));
                         $optioncell = new html_table_cell($cellcontent);
                         $optioncell->attributes['class'] = 'mdl-align';
                     }
