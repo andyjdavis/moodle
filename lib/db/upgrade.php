@@ -6644,7 +6644,7 @@ FROM
         $DB->delete_records('user_preferences', array('name'=>'message_showmessagewindow'));
 
         //re-introducing emailstop. check that its turned off so people dont suddenly stop getting notifications
-        $DB->set_field('user', 'emailstop', 0);
+        $DB->set_field('user', 'emailstop', 0, array('emailstop' => 1));
 
         upgrade_main_savepoint(true, 2011082600.00);
     }
