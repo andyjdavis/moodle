@@ -476,7 +476,7 @@ class page_wiki_edit extends page_wiki {
                 $params = 'pageid=' . $this->page->id;
 
                 if ($this->section) {
-                    $params .= '&section=' . $this->section;
+                    $params .= '&section=' . urlencode($this->section);
                 }
 
                 $form = '<form method="post" action="' . $CFG->wwwroot . '/mod/wiki/overridelocks.php?' . $params . '">';
@@ -522,7 +522,7 @@ class page_wiki_edit extends page_wiki {
 
         $url = $CFG->wwwroot . '/mod/wiki/edit.php?pageid=' . $this->page->id;
         if (!empty($this->section)) {
-            $url .= "&section=" . $this->section;
+            $url .= "&section=" . urlencode($this->section);
         }
 
         $params = array('attachmentoptions' => page_wiki_edit::$attachmentoptions, 'format' => $version->contentformat, 'version' => $versionnumber, 'pagetitle'=>$this->page->title);
@@ -987,7 +987,7 @@ class page_wiki_preview extends page_wiki_edit {
 
         $url = $CFG->wwwroot . '/mod/wiki/edit.php?pageid=' . $this->page->id;
         if (!empty($this->section)) {
-            $url .= "&section=" . $this->section;
+            $url .= "&section=" . urlencode($this->section);
         }
         $params = array('attachmentoptions' => page_wiki_edit::$attachmentoptions, 'format' => $this->format, 'version' => $this->versionnumber);
 
@@ -1906,7 +1906,7 @@ class page_wiki_save extends page_wiki_edit {
 
         $url = $CFG->wwwroot . '/mod/wiki/edit.php?pageid=' . $this->page->id;
         if (!empty($this->section)) {
-            $url .= "&section=" . $this->section;
+            $url .= "&section=" . urlencode($this->section);
         }
 
         $params = array('attachmentoptions' => page_wiki_edit::$attachmentoptions, 'format' => $this->format, 'version' => $this->versionnumber);
@@ -2231,7 +2231,7 @@ class page_wiki_overridelocks extends page_wiki_edit {
         $args = "pageid=" . $this->page->id;
 
         if (!empty($this->section)) {
-            $args .= "&section=" . $this->section;
+            $args .= "&section=" . urlencode($this->section);
         }
 
         redirect($CFG->wwwroot . '/mod/wiki/edit.php?' . $args, get_string('overridinglocks', 'wiki'), 2);
@@ -2260,7 +2260,7 @@ class page_wiki_overridelocks extends page_wiki_edit {
         $args = "pageid=" . $this->page->id;
 
         if (!empty($this->section)) {
-            $args .= "&section=" . $this->section;
+            $args .= "&section=" . urlencode($this->section);
         }
 
         redirect($CFG->wwwroot . '/mod/wiki/edit.php?' . $args, get_string('overridinglocks', 'wiki'), 2);
