@@ -6746,6 +6746,21 @@ FROM
         upgrade_main_savepoint(true, 2011091300.00);
     }
 
+    if ($oldversion < 2011092300.00) {
+        // remove the decimals field from the grade_items_history table
+        // It still exists in some upgraded databases somehow
+
+        // Define field guest to be dropped from course
+        $table = new xmldb_table('grade_items_history');
+        $field = new xmldb_field('decimals');
+
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        upgrade_main_savepoint(true, 2011092300.00);
+    }
+
     return true;
 }
 
