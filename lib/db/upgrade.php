@@ -6728,6 +6728,43 @@ FROM
         upgrade_main_savepoint(true, 2011091600.01);
     }
 
+    if ($oldversion < 2011092600.00) {
+        // Check for potential missing columns in the grade history tables
+
+        $table = new xmldb_table('grade_items_history');
+        $field = new xmldb_field('display');
+        if (!$dbman->field_exists($table, $field)) {
+            //int(10) signed not null default 0
+            $field->set_attributes(XMLDB_TYPE_INTEGER, '10', XMLDB_TYPE_INTEGER, XMLDB_NOTNULL, null, 0, 'sortorder');
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('decimals');
+        if (!$dbman->field_exists($table, $field)) {
+            //int(1) unsigned
+            $field->set_attributes(XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, null, null, null, 'display');
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('grade_categories');
+        $field = new xmldb_field('hidden');
+        if (!$dbman->field_exists($table, $field)) {
+            //int(1) unsigned not null default 0
+            $field->set_attributes(XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, 0, 'timemodified');
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('grade_outcomes');
+        $field = new xmldb_field('descriptionformat');
+        if (!$dbman->field_exists($table, $field)) {
+            //int(2) unsigned not null default 0
+            $field->set_attributes(XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, 0, 'description');
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011092600.00);
+    }
+
     return true;
 }
 
