@@ -659,7 +659,7 @@ if ($showactivity) {
                     $baseurl .= 'filter=1&';
                 }
                 if (!empty($page)) {
-                    $baseurl .= 'page=' . $page . '&';
+                    $baseurl .= 'page=' . $page;
                 }
                 echo $OUTPUT->paging_bar($totalcount, $page, $nowperpage, $baseurl);
 
