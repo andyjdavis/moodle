@@ -58,6 +58,14 @@ class message_output_email extends message_output {
         } else {
             $recipient = $eventdata->userto;
         }
+
+        //email_to_user() may revert to sending plain text even if html is supplied
+        //also, when sending html emails it uses the plain text to set $mail->AltBody
+        //We need to supply both plain and html versions if we're intending to send html
+        if (!empty($eventdata->fullmessagehtml) && empty($eventdata->fullmessage)) {
+            $eventdata->fullmessage = html_to_text($eventdata->fullmessagehtml);
+        }
+
         $result = email_to_user($recipient, $eventdata->userfrom, $eventdata->subject, $eventdata->fullmessage, $eventdata->fullmessagehtml);
 
         return $result;
