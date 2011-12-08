@@ -51,7 +51,10 @@ class message_output_email extends message_output {
 
         //check if the recipient has a different email address specified in their messaging preferences Vs their user profile
         $emailmessagingpreference = get_user_preferences('message_processor_email_email', null, $eventdata->userto);
-        if (!empty($emailmessagingpreference)) {
+
+        // If the recipient has set an email address in their preferences use that instead of the one in their profile
+        // but only if overriding the notification email address is allowed
+        if (!empty($emailmessagingpreference) && !empty($CFG->messagingallowemailoverride)) {
             //clone to avoid altering the actual user object
             $recipient = clone($eventdata->userto);
             $recipient->email = $emailmessagingpreference;
@@ -68,7 +71,12 @@ class message_output_email extends message_output {
      * @param object $mform preferences form class
      */
     function config_form($preferences){
-        global $USER;
+        global $USER, $CFG;
+
+        if (empty($CFG->messagingallowemailoverride)) {
+            return null;
+        }
+
         $string = get_string('email','message_email').': <input size="30" name="email_email" value="'.$preferences->email_email.'" />';
 
         if (empty($preferences->email_email) && !empty($preferences->userdefaultemail)) {
