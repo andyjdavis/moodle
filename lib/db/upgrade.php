@@ -6948,6 +6948,22 @@ FROM
         upgrade_main_savepoint(true, 2011111800.01);
     }
 
+    if ($oldversion < 2011120900.00) {
+        $columns = $DB->get_columns('user_preferences');
+
+        // Check if we need to fix the user_preferences value field
+        if (array_key_exists('value', $columns) && strpos($columns['value']->type, 'text') === false) {
+            // value should be text
+            $table = new xmldb_table('user_preferences');
+            $field = new xmldb_field('value', XMLDB_TYPE_TEXT, 'small', null, null, null, null, 'name');
+            if ($dbman->field_exists($table, $field)) {
+                $dbman->change_field_type($table, $field);
+            }
+        }
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011120900.00);
+    }
+
     return true;
 }
 
