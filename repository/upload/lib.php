@@ -234,4 +234,10 @@ class repository_upload extends repository {
     public function supported_returntypes() {
         return FILE_INTERNAL;
     }
+
+    public function set_option($options = array()) {
+        $options['limit_file_size'] = true;
+        $ret = parent::set_option($options);
+        return $ret;
+    }
 }

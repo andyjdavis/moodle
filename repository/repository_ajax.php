@@ -228,6 +228,12 @@ switch ($action) {
                 die(json_encode($err));
             }
 
+            // Check if the maxbytes limit should be enforced
+            // Its not for repos like filesystem (the file is already uploaded. Enforcing PHP's upload limit makes no sense)
+            if ($repo->get_option('limit_file_size') !== true) {
+                $maxbytes = -1;
+            }
+
             // check if exceed maxbytes
             if (($maxbytes!==-1) && (filesize($file['path']) > $maxbytes)) {
                 throw new file_exception('maxbytes');
