@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -18,9 +17,9 @@
 /**
  * Library functions for messaging
  *
- * @copyright Luis Rodrigues
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @package message
+ * @package   core_message
+ * @copyright 2008 Luis Rodrigues
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once($CFG->libdir.'/eventslib.php');

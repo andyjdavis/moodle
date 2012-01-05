@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -19,9 +18,9 @@
  * This file was replaced by index.php in Moodle 2.0
  * It now simply redirects to index.php
  *
- * @author Luis Rodrigues and Martin Dougiamas
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @package message
+ * @package    core_message
+ * @copyright  2005 Luis Rodrigues and Martin Dougiamas
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
     require(dirname(dirname(__FILE__)) . '/config.php');

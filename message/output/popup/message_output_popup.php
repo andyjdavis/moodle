@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Popup message processor - stores the message to be shown using the message popup
+ * Popup message processor, stores messages to be shown using the message popup
  *
- * @copyright Luis Rodrigues
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v2 or later
- * @package message
+ * @package   core_message_output_popup
+ * @copyright 2008 Luis Rodrigues
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v2 or later
  */
 
 require_once(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php'); //included from messagelib (how to fix?)

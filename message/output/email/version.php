@@ -17,9 +17,8 @@
 /**
  * Email processor version information
  *
- * @package    message
- * @subpackage email
- * @author     Luis Rodrigues
+ * @package    core_message_output_email
+ * @author     2008 Luis Rodrigues
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

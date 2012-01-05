@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -18,7 +17,7 @@
 /**
  * External message API
  *
- * @package    moodlecore
+ * @package    core
  * @subpackage message
  * @copyright  2011 Moodle Pty Ltd (http://moodle.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -27,6 +26,10 @@ require_once("$CFG->libdir/externallib.php");
 
 /**
  * Message functions
+ *
+ * @package    core_message
+ * @copyright  2011 Moodle Pty Ltd (http://moodle.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later  (6)
  */
 class core_message_external extends external_api {
 
