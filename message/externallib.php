@@ -17,8 +17,7 @@
 /**
  * External message API
  *
- * @package    core
- * @subpackage message
+ * @package    core_message
  * @copyright  2011 Moodle Pty Ltd (http://moodle.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

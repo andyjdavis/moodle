@@ -19,7 +19,6 @@
  * Functions for interacting with the message system
  *
  * @package   core_message
- * @category  message
  * @copyright 2008 Luis Rodrigues and Martin Dougiamas
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -46,6 +45,7 @@ require_once(dirname(dirname(__FILE__)) . '/message/lib.php');
  *  contexturl - if this is a notification then you can specify a url to view the event. For example the forum post the user is being notified of.
  *  contexturlname - the display text for contexturl
  *
+ * @category message
  * @param object $eventdata information about the message (component, userfrom, userto, ...)
  * @return mixed the integer ID of the new message or false if there was a problem with a processor
  */
@@ -204,7 +204,7 @@ function message_send($eventdata) {
 /**
  * Updates the message_providers table with the current set of message providers
  *
- * @param $component For example 'moodle', 'mod_forum' or 'block_quiz_results'
+ * @param string $component For example 'moodle', 'mod_forum' or 'block_quiz_results'
  * @return boolean True on success
  */
 function message_update_providers($component='moodle') {

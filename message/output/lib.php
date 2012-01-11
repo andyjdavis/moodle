@@ -18,7 +18,6 @@
  * Base message processor class for extension by message processors
  *
  * @package   core_message_output
- * @category  message
  * @copyright 2008 Luis Rodrigues
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -64,7 +63,7 @@ abstract class message_output {
     /**
      * Are the message processor's user specific settings set up?
      *
-     * @param  object $user the user object, defaults to $USER.
+     * @param  stdClass $user the user object, defaults to $USER.
      * @return bool True if the user has all necessary settings in their messaging preferences
      */
     public function is_user_configured($user = null) {
