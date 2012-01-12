@@ -17,7 +17,7 @@
 /**
  * Jabber configuration page
  *
- * @package    core_message_output_jabber
+ * @package    core_message_jabber
  * @copyright  2011 Lancaster University Network Services Limited
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

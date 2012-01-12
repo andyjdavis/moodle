@@ -17,7 +17,7 @@
 /**
  * Jabber message processor installation code
  *
- * @package    core_message_output_jabber
+ * @package    core_message_jabber
  * @copyright  2009 Dongsheng Cai <dongsheng@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

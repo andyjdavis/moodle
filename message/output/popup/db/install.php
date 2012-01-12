@@ -17,7 +17,7 @@
 /**
  * Installation code for the popup message processor
  *
- * @package   core_message_output_popup
+ * @package   core_message_popup
  * @copyright 2009 Dongsheng Cai <dongsheng@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

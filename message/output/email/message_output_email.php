@@ -17,7 +17,7 @@
 /**
  * Contains the definiton of the email message processors (sends messages to users via email)
  *
- * @package    core_message_output_email
+ * @package    core_message_email
  * @copyright  2008 Luis Rodrigues and Martin Dougiamas
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

@@ -17,7 +17,7 @@
 /**
  * Strings for component 'message_jabber', language 'en'
  *
- * @package    core_message_output_jabber
+ * @package    core_message_jabber
  * @copyright  1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

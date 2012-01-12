@@ -17,7 +17,7 @@
 /**
  * Upgrade code for jabber message processor
  *
- * @package    core_message_output_jabber
+ * @package    core_message_jabber
  * @copyright  2008 Luis Rodrigues
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

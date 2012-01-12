@@ -17,7 +17,7 @@
 /**
  * Email configuration page
  *
- * @package    core_message_output_email
+ * @package    core_message_email
  * @copyright  2011 Lancaster University Network Services Limited
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

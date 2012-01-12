@@ -17,7 +17,7 @@
 /**
  * Base message processor class for extension by message processors
  *
- * @package   core_message_output
+ * @package   core_message
  * @copyright 2008 Luis Rodrigues
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

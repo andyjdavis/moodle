@@ -17,7 +17,7 @@
 /**
  * Popup message processor version information
  *
- * @package   core_message_output_popup
+ * @package   core_message_popup
  * @copyright 2008 Luis Rodrigues
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

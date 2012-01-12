@@ -17,7 +17,7 @@
 /**
  * Upgrade code for email message processor
  *
- * @package    core_message_output_email
+ * @package    core_message_email
  * @copyright  2008 Luis Rodrigues
  * @license    http://www.gnu.org/copyleft/gpl.html GNU Public License
  */

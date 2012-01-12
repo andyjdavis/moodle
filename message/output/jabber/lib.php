@@ -17,7 +17,7 @@
 /**
  * Jabber message processor - lib file
  *
- * @package    core_message_output_jabber
+ * @package    core_message_jabber
  * @copyright  2008 Luis Rodrigues
  * @license    http://www.gnu.org/copyleft/gpl.html GNU Public License
  */

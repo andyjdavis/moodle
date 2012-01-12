@@ -17,7 +17,7 @@
 /**
  * External message API
  *
- * @package    core_message_output_email
+ * @package    core_message_email
  * @copyright  2009 Moodle Pty Ltd (http://moodle.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
