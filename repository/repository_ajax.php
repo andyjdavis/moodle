@@ -228,11 +228,6 @@ switch ($action) {
                 die(json_encode($err));
             }
 
-            // check if exceed maxbytes
-            if (($maxbytes!==-1) && (filesize($file['path']) > $maxbytes)) {
-                throw new file_exception('maxbytes');
-            }
-
             $record = new stdClass();
             $record->filepath = $saveas_path;
             $record->filename = $saveas_filename;
