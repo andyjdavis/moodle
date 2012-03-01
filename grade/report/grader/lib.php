@@ -137,7 +137,7 @@ class grade_report_grader extends grade_report {
 
         $this->baseurl = new moodle_url('index.php', array('id' => $this->courseid));
 
-        $studentsperpage = $this->get_pref('studentsperpage');
+        $studentsperpage = $this->get_students_per_page();
         if (!empty($studentsperpage)) {
             $this->baseurl->params(array('perpage' => $studentsperpage, 'page' => $this->page));
         }
@@ -387,7 +387,8 @@ class grade_report_grader extends grade_report {
                    $this->groupwheresql
               ORDER BY $sort";
 
-        $this->users = $DB->get_records_sql($sql, $params, $this->get_pref('studentsperpage') * $this->page, $this->get_pref('studentsperpage'));
+        $studentsperpage = $this->get_students_per_page();
+        $this->users = $DB->get_records_sql($sql, $params, $studentsperpage * $this->page, $studentsperpage);
 
         if (empty($this->users)) {
             $this->userselect = '';
@@ -1033,7 +1034,7 @@ class grade_report_grader extends grade_report {
         }
         $jsarguments['cfg']['isediting'] = (bool)$USER->gradeediting[$this->courseid];
         $jsarguments['cfg']['courseid'] =  $this->courseid;
-        $jsarguments['cfg']['studentsperpage'] =  $this->get_pref('studentsperpage');
+        $jsarguments['cfg']['studentsperpage'] =  $this->get_students_per_page();
         $jsarguments['cfg']['showquickfeedback'] =  (bool)$this->get_pref('showquickfeedback');
 
         $module = array(
@@ -1642,6 +1643,56 @@ class grade_report_grader extends grade_report {
         }
 
         return $arrows;
+    }
+
+    /**
+     * Returns the number of students to be displayed on each page
+     *
+     * Takes into account the 'studentsperpage' user preference and the 'max_input_vars'
+     * PHP setting. Too many fields is only a problem when submitting grades but
+     * we respect 'max_input_vars' even when viewing grades to prevent students disappearing
+     * when toggling editing on and off.
+     *
+     * @return int The number of students to display per page
+     */
+    private function get_students_per_page() {
+        global $USER;
+        static $studentsperpage = null;
+
+        if ($studentsperpage === null) {
+            $studentsperpage = $this->get_pref('studentsperpage');
+
+            // Will this number of students result in more fields that we are allowed?
+            $maxinputvars = ini_get('max_input_vars');
+            if ($maxinputvars !== false) {
+                $fieldspergradeitem = 0; // The number of fields output per grade item for each student
+
+                if ($this->get_pref('quickgrading')) {
+                    // One visible grade field and hidden "oldgrade" field
+                    $fieldspergradeitem += 2;
+                }
+                if ($this->get_pref('showquickfeedback')) {
+                    // One visible feedback field and hidden "oldfeedback" field
+                    $fieldspergradeitem += 2;
+                }
+
+                $fieldsperstudent = $fieldspergradeitem * count($this->gtree->get_items());
+                $fieldsrequired = $studentsperpage * $fieldsperstudent;
+
+                if ($fieldsrequired > $maxinputvars) {
+                    $studentsperpage = floor($maxinputvars / $fieldsperstudent);
+                    if ($studentsperpage<1) {
+                        // Make sure students per page doesn't fall below 1
+                        // PHP max_input_vars could potentially be reached with 1 student
+                        // if there are >250 grade items and quickgrading and showquickfeedback are on
+                        $studentsperpage = 1;
+                    }
+                    debugging(get_string('studentsperpagereduced', 'grades'));
+                }
+            }
+        }
+
+        return $studentsperpage;
     }
 }
 
