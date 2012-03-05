@@ -125,6 +125,12 @@ abstract class base_step implements executable, loggable {
 class base_step_exception extends moodle_exception {
 
     public function __construct($errorcode, $a=NULL, $debuginfo=null) {
+        if (empty($debuginfo)) {
+            // MDL-30434 - Not all backup/restore exceptions have strings
+            // The exception strings are rarely seen so aren't worth translating
+            // Instead, construct a debugging string from $a in case this exception has no string
+            $debuginfo = print_r($a, true);
+        }
         parent::__construct($errorcode, '', '', $a, $debuginfo);
     }
 }
