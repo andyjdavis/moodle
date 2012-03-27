@@ -888,6 +888,9 @@ class grade_report_grader extends grade_report {
                 } else {
                     $gradeval = $grade->finalgrade;
                 }
+                if (!empty($grade->finalgrade)) {
+                    $jsarguments['grades'][] = array('user'=>$userid, 'item'=>$itemid, $grade->finalgrade);
+                }
 
                 // MDL-11274
                 // Hide grades in the grader report if the current grader doesn't have 'moodle/grade:viewhidden'
@@ -1052,8 +1055,7 @@ class grade_report_grader extends grade_report {
             }
             $jsarguments['cfg']['feedbacktrunclength'] =  $this->feedback_trunc_length;
 
-            //feedbacks are now being stored in $jsarguments['feedback'] in get_right_rows()
-            //$jsarguments['cfg']['feedback'] =  $this->feedbacks;
+            // Student grades and feedback are already at $jsarguments['feedback'] and $jsarguments['grades']
         }
         $jsarguments['cfg']['isediting'] = (bool)$USER->gradeediting[$this->courseid];
         $jsarguments['cfg']['courseid'] =  $this->courseid;
@@ -1063,7 +1065,7 @@ class grade_report_grader extends grade_report {
         $module = array(
             'name'      => 'gradereport_grader',
             'fullpath'  => '/grade/report/grader/module.js',
-            'requires'  => array('base', 'dom', 'event', 'event-mouseenter', 'event-key', 'io-base', 'json-parse', 'overlay')
+            'requires'  => array('base', 'dom', 'event', 'event-mouseenter', 'event-key', 'io-queue', 'json-parse', 'overlay')
         );
         $PAGE->requires->js_init_call('M.gradereport_grader.init_report', $jsarguments, false, $module);
         $PAGE->requires->strings_for_js(array('addfeedback','feedback', 'grade'), 'grades');

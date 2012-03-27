@@ -26,7 +26,7 @@ M.gradereport_grader = {
      * @param {Array} An array of users on the report
      * @param {Array} An array of feedback objects
      */
-    init_report : function(Y, id, cfg, items, users, feedback) {
+    init_report : function(Y, id, cfg, items, users, feedback, grades) {
         this.tooltip = this.tooltip || {
             overlay : null, // Y.Overlay instance
             /**
@@ -94,12 +94,17 @@ M.gradereport_grader = {
             }
         };
         // Create the actual report
-        this.reports[id] = new this.classes.report(Y, id, cfg, items, users, feedback);
+        this.reports[id] = new this.classes.report(Y, id, cfg, items, users, feedback, grades);
     }
 };
 
 /**
  * Initialises the JavaScript for the gradebook grader report
+ *
+ * The functions fall into 3 groups:
+ * M.gradereport_grader.classes.ajax Used when editing is off and fields are dynamically added and removed
+ * M.gradereport_grader.classes.existingfield Used when editing is on meaning all fields are already displayed
+ * M.gradereport_grader.classes.report Common to both of the above
  *
  * @class report
  * @constructor
@@ -111,7 +116,7 @@ M.gradereport_grader = {
  * @param {Array} users An array containing user information
  * @param {Array} feedback An array containing feedback information
  */
-M.gradereport_grader.classes.report = function(Y, id, cfg, items, users, feedback) {
+M.gradereport_grader.classes.report = function(Y, id, cfg, items, users, feedback, grades) {
     this.Y = Y;
     this.isediting = (cfg.isediting);
     this.ajaxenabled = (cfg.ajaxenabled);
@@ -119,6 +124,7 @@ M.gradereport_grader.classes.report = function(Y, id, cfg, items, users, feedbac
     this.users = users;
     this.feedback = feedback;
     this.table = Y.one('#user-grades');
+    this.grades = grades;
 
     // Alias this so that we can use the correct scope in the coming
     // node iteration
@@ -203,7 +209,7 @@ M.gradereport_grader.classes.report.prototype.get_cell_info = function(arg) {
 
     var userid= null;
     var itemid = null;
-    var feedback = null;
+    var feedback = ''; // Don't default feedback to null or string comparisons become error prone
     var cell = null;
     var i = null;
 
@@ -283,9 +289,10 @@ M.gradereport_grader.classes.ajax = function(report, cfg) {
     this.scales = cfg.scales || null;
     this.existingfields = [];
 
-    if (!M.gradereport_grader.isediting) {
+    if (!report.isediting) {
         report.table.all('.cell.grade').on('makeditable|click', this.make_editable, this);
     } else {
+    alert("bingo");
         for (var userid in report.users) {
             if (!this.existingfields[userid]) {
                 this.existingfields[userid] = [];
@@ -518,7 +525,7 @@ M.gradereport_grader.classes.ajax.prototype.get_below_cell = function(cell) {
  * @param {Object} values Object containing old + new values
  */
 M.gradereport_grader.classes.ajax.prototype.submit = function(properties, values) {
-
+alert("submit called");
     // Stop the IO queue so we can add to it
     this.report.Y.io.queue.stop();
     // If the grade has changed add an IO transaction to update it to the queue
@@ -700,7 +707,8 @@ M.gradereport_grader.classes.existingfield = function(report, userid, itemid) {
     this.itemid = itemid;
     this.editfeedback = M.gradereport_grader.ajax.showquickfeedback;
     this.grade = report.Y.one('#grade_'+userid+'_'+itemid);
-    this.oldgrade = report.Y.one('#oldgrade_'+userid+'_'+itemid);
+    alert('looking for oldgrade_ in M.gradereport_grader.classes.existingfield');
+    //this.oldgrade = report.Y.one('#oldgrade_'+userid+'_'+itemid);
 
     // On blur save any changes in the grade field
     this.grade.on('blur', this.submit, this);
@@ -746,6 +754,7 @@ M.gradereport_grader.classes.existingfield.prototype.keyevents = [];
  * @param {Event} e
  */
 M.gradereport_grader.classes.existingfield.prototype.keypress_enter = function(e) {
+    alert('submitting existing field');
     this.submit();
 };
 /**
@@ -757,6 +766,7 @@ M.gradereport_grader.classes.existingfield.prototype.keypress_enter = function(e
  * @param {Bool} ignoreshift
  */
 M.gradereport_grader.classes.existingfield.prototype.keypress_tab = function(e, ignoreshift) {
+alert('tab in existingfield');
     e.preventDefault();
     var next = null;
     if (e.shiftKey) {
@@ -822,6 +832,8 @@ M.gradereport_grader.classes.existingfield.prototype.move_focus = function(node)
  * @return {Bool}
  */
 M.gradereport_grader.classes.existingfield.prototype.has_changed = function() {
+    alert("called existingfield has_changed which looks for oldgrade");
+    alert(this.oldgrade);
     if (this.editfeedback) {
         return (this.grade.get('value') !== this.oldgrade.get('value') || this.feedback.get('value') !== this.oldfeedback.get('value'));
     }
@@ -834,6 +846,7 @@ M.gradereport_grader.classes.existingfield.prototype.has_changed = function() {
  * @this {M.gradereport_grader.classes.existingfield}
  */
 M.gradereport_grader.classes.existingfield.prototype.submit = function() {
+alert("existingfield submit called which looks for oldgrade");
     if (!this.has_changed()) {
         return;
     }
@@ -1043,7 +1056,9 @@ M.gradereport_grader.classes.textfield.prototype.has_changed = function() {
     // If feedback is being edited then it has changed if either grade or feedback have changed
     if (this.editfeedback) {
         var properties = this.report.get_cell_info(this.node);
-        return (this.get_grade() != this.gradespan.get('innerHTML') || this.get_feedback() != properties.feedback);
+        if (this.get_feedback() != properties.feedback) {
+            return true;
+        }
     }
     return (this.get_grade() != this.gradespan.get('innerHTML'));
 };
