@@ -369,6 +369,7 @@ $string['noblocks'] = 'No blocks found!';
 $string['nocapabilitytousethisservice'] = 'The user hasn\'t the required capability to use this service';
 $string['nocategorydelete'] = 'Category \'{$a}\' cannot be deleted!';
 $string['nocontext'] = 'Sorry, but that course is not a valid context';
+$string['nocourseid'] = 'Course not found';
 $string['nodata'] = 'No data';
 $string['noexistingcategory'] = 'No existing category';
 $string['nofile'] = 'File not specified';
