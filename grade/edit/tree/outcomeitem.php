@@ -37,7 +37,7 @@ if ($id !== 0) {
 $PAGE->set_url($url);
 
 if (!$course = $DB->get_record('course', array('id' => $courseid))) {
-    print_error('nocourseid');
+    print_error('unknowncourseidnumber', 'error', '', $courseid);
 }
 
 require_login($course);

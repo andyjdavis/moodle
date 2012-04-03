@@ -34,7 +34,7 @@ $PAGE->set_url(new moodle_url('/grade/report/overview/index.php', array('id'=>$c
 
 /// basic access checks
 if (!$course = $DB->get_record('course', array('id' => $courseid))) {
-    print_error('nocourseid');
+    print_error('unknowncourseidnumber', 'error', '', $courseid);
 }
 require_login($course);
 

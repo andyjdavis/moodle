@@ -34,7 +34,7 @@ $PAGE->set_url('/grade/edit/scale/index.php', array('id' => $courseid));
 /// Make sure they can even access this course
 if ($courseid) {
     if (!$course = $DB->get_record('course', array('id' => $courseid))) {
-        print_error('nocourseid');
+        print_error('unknowncourseidnumber', 'error', '', $courseid);
     }
     require_login($course);
     $context = get_context_instance(CONTEXT_COURSE, $course->id);

@@ -33,7 +33,7 @@ $PAGE->set_url('/grade/edit/settings/index.php', array('id'=>$courseid));
 $PAGE->set_pagelayout('admin');
 
 if (!$course = $DB->get_record('course', array('id' => $courseid))) {
-    print_error('nocourseid');
+    print_error('unknowncourseidnumber', 'error', '', $courseid);
 }
 require_login($course);
 $context = get_context_instance(CONTEXT_COURSE, $course->id);

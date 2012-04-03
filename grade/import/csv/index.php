@@ -37,7 +37,7 @@ $PAGE->set_url($url);
 define('GRADE_CSV_LINE_LENGTH', 4096);
 
 if (!$course = $DB->get_record('course', array('id'=>$id))) {
-    print_error('nocourseid');
+    print_error('unknowncourseidnumber', 'error', '', $courseid);
 }
 
 require_login($course);
