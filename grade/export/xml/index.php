@@ -24,7 +24,7 @@ $id = required_param('id', PARAM_INT); // course id
 $PAGE->set_url('/grade/export/xml/index.php', array('id'=>$id));
 
 if (!$course = $DB->get_record('course', array('id'=>$id))) {
-    print_error('unknowncourseidnumber', 'error', '', $courseid);
+    print_error('unknowncourseidnumber', 'error', '', $id);
 }
 
 require_login($course);

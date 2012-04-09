@@ -29,7 +29,7 @@ $displaytype       = optional_param('displaytype', $CFG->grade_export_displaytyp
 $decimalpoints     = optional_param('decimalpoints', $CFG->grade_export_decimalpoints, PARAM_INT);
 
 if (!$course = $DB->get_record('course', array('id'=>$id))) {
-    print_error('unknowncourseidnumber', 'error', '', $courseid);
+    print_error('unknowncourseidnumber', 'error', '', $id);
 }
 
 require_login($course);

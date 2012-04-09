@@ -30,7 +30,7 @@ if ($feedback !== 0) {
 $PAGE->set_url($url);
 
 if (!$course = $DB->get_record('course', array('id'=>$id))) {
-    print_error('unknowncourseidnumber', 'error', '', $courseid);
+    print_error('unknowncourseidnumber', 'error', '', $id);
 }
 
 require_login($course);
