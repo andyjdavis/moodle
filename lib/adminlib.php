@@ -5808,6 +5808,7 @@ function admin_externalpage_setup($section, $extrabutton = '', array $extraurlpa
     $adminroot = admin_get_root(false, false); // settings not required for external pages
     $extpage = $adminroot->locate($section, true);
 
+    // The section won't be found if it doesn't exist or if the user has inadequate capabilities to see it
     if (empty($extpage) or !($extpage instanceof admin_externalpage)) {
         print_error('sectionerror', 'admin', "$CFG->wwwroot/$CFG->admin/");
         die;
