@@ -1502,6 +1502,7 @@ class grade_item extends grade_object {
         // changed grade?
         if ($finalgrade !== false) {
             if ($this->is_overridable_item()) {
+                // Not calling set_overridden() to avoid multiple DB writes
                 $grade->overridden = time();
             }
 
@@ -1512,6 +1513,7 @@ class grade_item extends grade_object {
         if ($feedback !== false) {
             if ($this->is_overridable_item_feedback()) {
                 // external items (modules, plugins) may have own feedback
+                // Not calling set_overridden() to avoid multiple DB writes
                 $grade->overridden = time();
             }
 
