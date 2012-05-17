@@ -40,6 +40,7 @@ class grade_export_txt extends grade_export {
         $export_tracking = $this->track_exports();
 
         $strgrades = get_string('grades');
+	$profilefields = get_user_profile_fields();
 
         switch ($this->separator) {
             case 'comma':
@@ -66,12 +67,11 @@ class grade_export_txt extends grade_export {
         header("Content-Disposition: attachment; filename=\"$downloadfilename.txt\"");
 
 /// Print names of all the fields
-        echo get_string("firstname").$separator.
-             get_string("lastname").$separator.
-             get_string("idnumber").$separator.
-             get_string("institution").$separator.
-             get_string("department").$separator.
-             get_string("email");
+	$fieldfullnames = array();
+	foreach ($profilefields as $field) {
+	    $fieldfullnames[] = $field->fullname;
+	}
+	echo implode($separator, $fieldfullnames);
 
         foreach ($this->columns as $grade_item) {
             echo $separator.$this->format_column_name($grade_item);
@@ -92,7 +92,11 @@ class grade_export_txt extends grade_export {
 
             $user = $userdata->user;
 
-            echo $user->firstname.$separator.$user->lastname.$separator.$user->idnumber.$separator.$user->institution.$separator.$user->department.$separator.$user->email;
+            $items = array();
+	    foreach ($profilefields as $field) {
+	        $items[] = $user->{$field->shortname};
+	    }
+	    echo implode($separator, $items);
 
             foreach ($userdata->grades as $itemid => $grade) {
                 if ($export_tracking) {

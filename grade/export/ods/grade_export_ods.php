@@ -44,13 +44,11 @@ class grade_export_ods extends grade_export {
         $myxls =& $workbook->add_worksheet($strgrades);
 
     /// Print names of all the fields
-        $myxls->write_string(0,0,get_string("firstname"));
-        $myxls->write_string(0,1,get_string("lastname"));
-        $myxls->write_string(0,2,get_string("idnumber"));
-        $myxls->write_string(0,3,get_string("institution"));
-        $myxls->write_string(0,4,get_string("department"));
-        $myxls->write_string(0,5,get_string("email"));
-        $pos=6;
+	$profilefields = get_user_profile_fields();
+	foreach ($profilefields as $id => $field) {
+	    $myxls->write_string(0,$id,$field->fullname);
+	}
+	$pos = count($profilefields);
         foreach ($this->columns as $grade_item) {
             $myxls->write_string(0, $pos++, $this->format_column_name($grade_item));
 
@@ -69,14 +67,10 @@ class grade_export_ods extends grade_export {
         while ($userdata = $gui->next_user()) {
             $i++;
             $user = $userdata->user;
-
-            $myxls->write_string($i,0,$user->firstname);
-            $myxls->write_string($i,1,$user->lastname);
-            $myxls->write_string($i,2,$user->idnumber);
-            $myxls->write_string($i,3,$user->institution);
-            $myxls->write_string($i,4,$user->department);
-            $myxls->write_string($i,5,$user->email);
-            $j=6;
+	    foreach($profilefields as $id => $field) {
+	    	$myxls->write_string($i,$id,$user->{$field->shortname});
+	    }
+            $j=count($profilefields);
             foreach ($userdata->grades as $itemid => $grade) {
                 if ($export_tracking) {
                     $status = $geub->track($grade);
