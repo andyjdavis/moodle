@@ -474,7 +474,7 @@ if ($showactivity) {
         $advtables       = '';
         $advparams       = array();
 
-    /// Find the field we are sorting on
+        // Find the field we are sorting on
         if ($sort <= 0 or !$sortfield = data_get_field_from_id($sort, $data)) {
 
             switch ($sort) {
@@ -498,11 +498,10 @@ if ($showactivity) {
 
             $what = ' DISTINCT r.id, r.approved, r.timecreated, r.timemodified, r.userid, u.firstname, u.lastname';
             $count = ' COUNT(DISTINCT c.recordid) ';
-            $tables = '{data_content} c,{data_records} r, {data_content} cs, {user} u ';
+            $tables = '{data_content} c, {data_records} r, {user} u ';
             $where =  'WHERE c.recordid = r.id
                          AND r.dataid = :dataid
-                         AND r.userid = u.id
-                         AND cs.recordid = r.id ';
+                         AND r.userid = u.id ';
             $params['dataid'] = $data->id;
             $sortorder = ' ORDER BY '.$ordering.', r.id ASC ';
             $searchselect = '';
@@ -543,12 +542,11 @@ if ($showactivity) {
 
             $what = ' DISTINCT r.id, r.approved, r.timecreated, r.timemodified, r.userid, u.firstname, u.lastname, ' . $sortcontentfull . ' AS sortorder ';
             $count = ' COUNT(DISTINCT c.recordid) ';
-            $tables = '{data_content} c, {data_records} r, {data_content} cs, {user} u ';
+            $tables = '{data_content} c, {data_records} r, {user} u ';
             $where =  'WHERE c.recordid = r.id
                          AND c.fieldid = :sort
                          AND r.dataid = :dataid
-                         AND r.userid = u.id
-                         AND cs.recordid = r.id ';
+                         AND r.userid = u.id ';
             $params['dataid'] = $data->id;
             $params['sort'] = $sort;
             $sortorder = ' ORDER BY sortorder '.$order.' , r.id ASC ';
@@ -583,8 +581,7 @@ if ($showactivity) {
             }
         }
 
-    /// To actually fetch the records
-
+        // To actually fetch the records
         $fromsql    = "FROM $tables $advtables $where $advwhere $groupselect $approveselect $searchselect $advsearchselect";
         $sqlcount   = "SELECT $count $fromsql";   // Total number of records when searching
         $sqlmax     = "SELECT $count FROM $tables $where $groupselect $approveselect"; // number of all recoirds user may see
