@@ -34,21 +34,21 @@ class grade_export_ods extends grade_export {
 
         $shortname = format_string($this->course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $this->course->id)));
 
-    /// Calculate file name
+        // Calculate file name
         $downloadfilename = clean_filename("$shortname $strgrades.ods");
-    /// Creating a workbook
+        // Creating a workbook
         $workbook = new MoodleODSWorkbook("-");
-    /// Sending HTTP headers
+        // Sending HTTP headers
         $workbook->send($downloadfilename);
-    /// Adding the worksheet
+        // Adding the worksheet
         $myxls =& $workbook->add_worksheet($strgrades);
 
-    /// Print names of all the fields
-	$profilefields = get_user_profile_fields();
-	foreach ($profilefields as $id => $field) {
-	    $myxls->write_string(0,$id,$field->fullname);
-	}
-	$pos = count($profilefields);
+        // Print names of all the fields
+	    $profilefields = get_user_profile_fields();
+	    foreach ($profilefields as $id => $field) {
+	        $myxls->write_string(0,$id,$field->fullname);
+	    }
+	    $pos = count($profilefields);
         foreach ($this->columns as $grade_item) {
             $myxls->write_string(0, $pos++, $this->format_column_name($grade_item));
 
@@ -58,7 +58,7 @@ class grade_export_ods extends grade_export {
             }
         }
 
-    /// Print all the lines of data.
+        // Print all the lines of data.
         $i = 0;
         $geub = new grade_export_update_buffer();
         $gui = new graded_users_iterator($this->course, $this->columns, $this->groupid);
@@ -67,10 +67,12 @@ class grade_export_ods extends grade_export {
         while ($userdata = $gui->next_user()) {
             $i++;
             $user = $userdata->user;
-	    foreach($profilefields as $id => $field) {
-	    	$myxls->write_string($i,$id,$user->{$field->shortname});
-	    }
+
+	        foreach($profilefields as $id => $field) {
+	        	$myxls->write_string($i,$id,$user->{$field->shortname});
+	        }
             $j=count($profilefields);
+
             foreach ($userdata->grades as $itemid => $grade) {
                 if ($export_tracking) {
                     $status = $geub->track($grade);
@@ -93,7 +95,7 @@ class grade_export_ods extends grade_export {
         $gui->close();
         $geub->close();
 
-    /// Close the workbook
+        // Close the workbook
         $workbook->close();
 
         exit;

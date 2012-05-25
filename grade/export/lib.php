@@ -209,9 +209,9 @@ abstract class grade_export {
 
         echo '<table>';
         echo '<tr>';
-	foreach (get_user_profile_fields() as $field) {
-	    echo '<th>' . $field->fullname . '</th>';
-	}
+	    foreach (get_user_profile_fields() as $field) {
+            echo '<th>' . $field->fullname . '</th>';
+	    }
         foreach ($this->columns as $grade_item) {
             echo '<th>'.$this->format_column_name($grade_item).'</th>';
 
@@ -266,9 +266,9 @@ abstract class grade_export {
             }
 
             echo '<tr>';
-	    foreach (get_user_profile_fields() as $field) {
-	    	echo '<td>' . $user->{$field->shortname} . '</td>';
-	    }
+            foreach (get_user_profile_fields() as $field) {
+                echo '<td>' . $user->{$field->shortname} . '</td>';
+            }
             echo $rowstr;
             echo "</tr>";
 

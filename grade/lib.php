@@ -128,20 +128,20 @@ class graded_users_iterator {
             }
         }
 
-	$userfields = 'u.*';
-	$customfieldssql = '';
-	if ($CFG->grade_export_customprofilefields) {
-	    $customfieldcount = 0;
-	    foreach (get_user_profile_fields() as $field) {
-	    	if ($field->customid) {
-		    $customfieldssql .= "
-		    		LEFT JOIN (SELECT * FROM {user_info_data} WHERE fieldid=$field->customid) cf$customfieldcount
-				ON u.id = cf$customfieldcount.userid";
-		    $userfields .= ", cf$customfieldcount.data AS $field->shortname";
-		    $customfieldcount++;
-		}
+	    $userfields = 'u.*';
+	    $customfieldssql = '';
+	    if ($CFG->grade_export_customprofilefields) {
+	        $customfieldcount = 0;
+	        foreach (get_user_profile_fields() as $field) {
+	        	if ($field->customid) {
+		            $customfieldssql .= "
+		            		LEFT JOIN (SELECT * FROM {user_info_data} WHERE fieldid=$field->customid) cf$customfieldcount
+				        ON u.id = cf$customfieldcount.userid";
+		            $userfields .= ", cf$customfieldcount.data AS $field->shortname";
+		            $customfieldcount++;
+		        }
+	        }
 	    }
-	}
 
         // $params contents: gradebookroles and groupid (for $groupwheresql)
         $users_sql = "SELECT $userfields $ofields
@@ -2642,8 +2642,9 @@ abstract class grade_helper {
 }
 
 /**
- * Returns array of user profile fields included in export
- * @return array
+ * Returns an array of user profile fields to be included in export
+ *
+ * @return array An array of stdClass instances with customid, shortname and fullname fields
  */
 function get_user_profile_fields() {
     global $CFG, $DB;
@@ -2675,4 +2676,3 @@ function get_user_profile_fields() {
 
     return $fields;
 }
-
