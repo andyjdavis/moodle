@@ -5860,10 +5860,9 @@ function get_user_max_upload_file_size($context, $sitebytes=0, $coursebytes=0, $
         $user = $USER;
     }
 
-    // Temp. commenting this until MDL-27156 fixes it!
-    // if (has_capability('moodle/course:ignorefilesizelimits', $context, $user)) {
-    //     return -1;
-    // }
+    if (has_capability('moodle/course:ignorefilesizelimits', $context, $user)) {
+        return -1;
+    }
 
     return get_max_upload_file_size($sitebytes, $coursebytes, $modulebytes);
 }
@@ -6044,6 +6043,10 @@ function get_directory_size($rootdir, $excludefile='') {
 function display_size($size) {
 
     static $gb, $mb, $kb, $b;
+
+    if ($size === -1) {
+        return 'Unlimited';
+    }
 
     if (empty($gb)) {
         $gb = get_string('sizegb');
