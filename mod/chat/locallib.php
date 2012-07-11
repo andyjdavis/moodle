@@ -154,3 +154,6 @@ class chat_portfolio_caller extends portfolio_module_caller_base {
                 : '');
     }
 }
+
+class user_message implements renderable {
+}

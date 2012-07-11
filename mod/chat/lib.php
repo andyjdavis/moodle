@@ -875,7 +875,8 @@ function chat_format_message($message, $courseid, $currentuser, $chat_lastrow=NU
  * @return bool|string Returns HTML or false
  */
 function chat_format_message_theme ($message, $chatuser, $currentuser, $groupingid, $theme = 'bubble') {
-    global $CFG, $USER, $OUTPUT, $COURSE, $DB;
+    global $CFG, $USER, $OUTPUT, $COURSE, $DB, $PAGE;
+    require_once('locallib.php');
 
     static $users;     // Cache user lookups
 
@@ -1016,7 +1017,7 @@ function chat_format_message_theme ($message, $chatuser, $currentuser, $grouping
     $replacements[] = $outmain;
     $replacements[] = $ismymessage;
     $replacements[] = $rightalign;
-    if (!empty($chattheme_cfg->avatar) and !empty($chattheme_cfg->align)) {
+    /*if (!empty($chattheme_cfg->avatar) and !empty($chattheme_cfg->align)) {
         if (!empty($ismymessage)) {
             $result->html = str_replace($patterns, $replacements, $chattheme_cfg->user_message_right);
         } else {
@@ -1024,7 +1025,17 @@ function chat_format_message_theme ($message, $chatuser, $currentuser, $grouping
         }
     } else {
         $result->html = str_replace($patterns, $replacements, $chattheme_cfg->user_message);
-    }
+    }*/
+    $usermessage = new user_message();
+    $usermessage->ismymessage = $sender->id == $USER->id;
+    $usermessage->message = $outmain;
+    $usermessage->avatar = $message->picture;
+    $usermessage->time = $outtime;
+    $usermessage->sender = fullname($sender);
+    //$usermessage->senderprofile = $CFG->wwwroot.'/user/view.php?id='.$sender->id.'&amp;course='.$courseid;
+
+    $output = $PAGE->get_renderer('mod_chat');
+    $result->html = $output->render($usermessage);
 
     //When user beeps other user, then don't show any timestamp to other users in chat.
     if (('' === $outmain) && $special) {

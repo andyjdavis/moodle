@@ -10,64 +10,22 @@ $chattheme_cfg->event_message = <<<TEMPLATE
 </div>
 TEMPLATE;
 $chattheme_cfg->user_message_left = <<<TEMPLATE
-<table class='chat-message'___tablealign___><tr>
-<td class="picture" valign="middle" width="32px">
-___avatar___
-</td>
-<td class="text">
-    <table cellspacing="0" cellpadding="0" border="0" ___mymessageclass___>
-    <tbody>
-        <tr><td class="topleft"></td><td class="top"></td><td class="topright"></td></tr>
-        <tr>
-            <td class="left"></td>
-            <td class="conmts">
-            ___message___
-            </td>
-            <td class="right"></td>
-        </tr>
-        <tr>
-            <td class="bottomleft"></td>
-            <td class="bottom"></td>
-            <td class="bottomright"></td>
-        </tr>
-    </tbody>
-    </table>
-</td>
-<tr>
-<td colspan="2"___align___>
+<div class='chat-message' ___tablealign___>
+    <span class="picture" style="vertical-align:middle;">___avatar___</span>
+    <span class="triangle-isosceles left">___message___</span>
+</div>
+<div ___tablealign___ class="sendertime">
     <span class="time">___time___</span>
     <span class="user">___sender___</span>
-</td>
-</tr>
+</div>
 TEMPLATE;
 $chattheme_cfg->user_message_right = <<<TEMPLATE
-<table class='chat-message'___tablealign___><tr>
-<td class="text">
-    <table cellspacing="0" cellpadding="0" border="0" ___mymessageclass___>
-    <tbody>
-        <tr><td class="topleft"></td><td class="top"></td><td class="topright"></td></tr>
-        <tr>
-            <td class="left"></td>
-            <td class="conmts">
-            ___message___
-            </td>
-            <td class="right"></td>
-        </tr>
-        <tr>
-            <td class="bottomleft"></td>
-            <td class="bottom"></td>
-            <td class="bottomright"></td>
-        </tr>
-    </tbody>
-    </table>
-</td>
-<td class="picture" valign="middle" width="32px">
-___avatar___
-</td>
-<tr>
-<td colspan="2" ___tablealign___>
+<div class='chat-message' ___tablealign___>
+    <span class="triangle-isosceles right">___message___</span>
+    <span class="picture" style="vertical-align:middle;">___avatar___</span>
+</div>
+<div ___tablealign___ class="sendertime">
     <span class="time">___time___</span>
     <span class="user">___sender___</span>
-</td>
-</tr>
+</div>
 TEMPLATE;
