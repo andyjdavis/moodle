@@ -155,5 +155,39 @@ class chat_portfolio_caller extends portfolio_module_caller_base {
     }
 }
 
+class event_message implements renderable {
+    /** @var string The URL of the profile of the user who caused the event */
+    public $senderprofile;
+
+    /** @var string The ready to display name of the user who caused the event */
+    public $sendername;
+
+    /** @var string Ready to display event time */
+    public $time;
+
+    /** @var string Event description */
+    public $event;
+
+    function __construct($senderprofile, $sendername, $time, $event) {
+        $this->senderprofile = $senderprofile;
+        $this->sendername = $sendername;
+        $this->time = $time;
+        $this->event = $event;
+    }
+}
+
 class user_message implements renderable {
+    public $sendername;
+    public $avatar;
+    public $ismymessage;
+    public $time;
+    public $message;
+
+    function __construct($sendername, $avatar, $ismymessage, $time, $message) {
+        $this->sendername = $sendername;
+        $this->avatar = $avatar;
+        $this->ismymessage = $ismymessage;
+        $this->time = $time;
+        $this->message = $message;
+    }
 }

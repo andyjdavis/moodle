@@ -866,7 +866,6 @@ function chat_format_message($message, $courseid, $currentuser, $chat_lastrow=NU
 }
 
 /**
- * @global object
  * @param object $message message to be displayed.
  * @param mixed $chatuser user chat data
  * @param object $currentuser current user for whom the message should be displayed.
@@ -913,9 +912,9 @@ function chat_format_message_theme ($message, $chatuser, $currentuser, $grouping
     if(!empty($message->system)) {
         $result->type = 'system';
 
-        $userlink = new moodle_url('/user/view.php', array('id'=>$message->userid,'course'=>$courseid));
+        //$userlink = new moodle_url('/user/view.php', array('id'=>$message->userid,'course'=>$courseid));
 
-        $patterns = array();
+        /*$patterns = array();
         $replacements = array();
         $patterns[] = '___senderprofile___';
         $patterns[] = '___sender___';
@@ -925,7 +924,15 @@ function chat_format_message_theme ($message, $chatuser, $currentuser, $grouping
         $replacements[] = fullname($sender);
         $replacements[] = $message->strtime;
         $replacements[] = get_string('message'.$message->message, 'chat', fullname($sender));
-        $result->html = str_replace($patterns, $replacements, $chattheme_cfg->event_message);
+        $result->html = str_replace($patterns, $replacements, $chattheme_cfg->event_message);*/
+        $senderprofile = $CFG->wwwroot.'/user/view.php?id='.$sender->id.'&amp;course='.$courseid;
+        $event = get_string('message'.$message->message, 'chat', fullname($sender));
+
+        $eventmessage = new event_message($senderprofile, fullname($sender), $message->strtime, $event);
+
+        $output = $PAGE->get_renderer('mod_chat');
+        $result->html = $output->render($eventmessage);
+
         return $result;
     }
 
@@ -1001,7 +1008,7 @@ function chat_format_message_theme ($message, $chatuser, $currentuser, $grouping
         $ismymessage = ' class="mymessage"';
         $rightalign = ' align="right"';
     }
-    $patterns = array();
+/*    $patterns = array();
     $replacements = array();
     $patterns[] = '___avatar___';
     $patterns[] = '___sender___';
@@ -1016,22 +1023,9 @@ function chat_format_message_theme ($message, $chatuser, $currentuser, $grouping
     $replacements[] = $outtime;
     $replacements[] = $outmain;
     $replacements[] = $ismymessage;
-    $replacements[] = $rightalign;
-    /*if (!empty($chattheme_cfg->avatar) and !empty($chattheme_cfg->align)) {
-        if (!empty($ismymessage)) {
-            $result->html = str_replace($patterns, $replacements, $chattheme_cfg->user_message_right);
-        } else {
-            $result->html = str_replace($patterns, $replacements, $chattheme_cfg->user_message_left);
-        }
-    } else {
-        $result->html = str_replace($patterns, $replacements, $chattheme_cfg->user_message);
-    }*/
-    $usermessage = new user_message();
-    $usermessage->ismymessage = $sender->id == $USER->id;
-    $usermessage->message = $outmain;
-    $usermessage->avatar = $message->picture;
-    $usermessage->time = $outtime;
-    $usermessage->sender = fullname($sender);
+    $replacements[] = $rightalign;*/
+
+    $usermessage = new user_message(fullname($sender), $message->picture, $sender->id == $USER->id, $outtime, $outmain);
     //$usermessage->senderprofile = $CFG->wwwroot.'/user/view.php?id='.$sender->id.'&amp;course='.$courseid;
 
     $output = $PAGE->get_renderer('mod_chat');
