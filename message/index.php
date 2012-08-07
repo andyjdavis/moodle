@@ -24,6 +24,7 @@
 
 require_once('../config.php');
 require_once('lib.php');
+require_once('locallib.php');
 require_once('send_form.php');
 
 require_login(0, false);
@@ -197,7 +198,7 @@ echo $OUTPUT->header();
 echo $OUTPUT->box_start('message');
 
 $countunread = 0; //count of unread messages from $user2
-$countunreadtotal = 0; //count of unread messages from all users
+$unreadcount = 0; //count of unread messages from all users
 
 //we're dealing with unread messages early so the contact list will accurately reflect what is read/unread
 $viewingnewmessages = false;
@@ -212,9 +213,9 @@ if (!empty($user2)) {
          }
     }
 }
-$countunreadtotal = message_count_unread_messages($user1);
+$unreadcount = message_count_unread_messages($user1);
 
-if ($countunreadtotal == 0 && $viewing == MESSAGE_VIEW_UNREAD_MESSAGES && empty($user2)) {
+if ($unreadcount == 0 && $viewing == MESSAGE_VIEW_UNREAD_MESSAGES && empty($user2)) {
     //default to showing the search
     $viewing = MESSAGE_VIEW_SEARCH;
 }
@@ -224,7 +225,12 @@ $countblocked = count($blockedusers);
 
 list($onlinecontacts, $offlinecontacts, $strangers) = message_get_contacts($user1, $user2);
 
-message_print_contact_selector($countunreadtotal, $viewing, $user1, $user2, $blockedusers, $onlinecontacts, $offlinecontacts, $strangers, $showcontactactionlinks, $page);
+$contactselector = new message_contact_selector($viewing, $user1, $user2, $blockedusers, $onlinecontacts, $offlinecontacts, $strangers, $unreadcount,$showcontactactionlinks, $page);
+$contactselector->courses = enrol_get_users_courses($contactselector->user1->id, true);
+$contactselector->coursecontexts = message_get_course_contexts($contactselector->courses);
+
+$renderer = $PAGE->get_renderer('core', 'message');
+echo $renderer->render($contactselector);
 
 echo html_writer::start_tag('div', array('class' => 'messagearea mdl-align'));
     if (!empty($user2)) {
@@ -280,7 +286,8 @@ echo html_writer::start_tag('div', array('class' => 'messagearea mdl-align'));
 
             $messagehistorylink .= html_writer::end_tag('div');
 
-            message_print_message_history($user1, $user2, $search, $displaycount, $messagehistorylink, $viewingnewmessages);
+            $messagehistory = new message_history($user1, $user2, $search, $displaycount, $messagehistorylink, $viewingnewmessages);
+            echo $renderer->render($messagehistory);
         echo html_writer::end_tag('div');
 
         //send message form
@@ -311,11 +318,12 @@ echo html_writer::start_tag('div', array('class' => 'messagearea mdl-align'));
             echo html_writer::end_tag('div');
         }
     } else if ($viewing == MESSAGE_VIEW_SEARCH) {
-        message_print_search($advancedsearch, $user1);
+        //echo $renderer->search($advancedsearch, $user1);
+        echo message_print_search($advancedsearch, $user1);
     } else if ($viewing == MESSAGE_VIEW_RECENT_CONVERSATIONS) {
-        message_print_recent_conversations($user1);
+        echo $renderer->recent_conversations($user1);
     } else if ($viewing == MESSAGE_VIEW_RECENT_NOTIFICATIONS) {
-        message_print_recent_notifications($user1);
+        echo $renderer->recent_notifications($user1);
     }
 echo html_writer::end_tag('div');
 
