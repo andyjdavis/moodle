@@ -490,7 +490,7 @@ function message_get_providers_for_user($userid) {
 
             SELECT DISTINCT rc.capability, 1
 
-              JOIN {role_capabilities} rc
+              FROM {role_capabilities} rc
               JOIN {context} cctx ON cctx.id = rc.contextid
 
              WHERE rc.roleid = :frontpageroleid
