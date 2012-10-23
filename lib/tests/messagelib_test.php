@@ -40,7 +40,7 @@ class messagelib_testcase extends advanced_testcase {
         $user = $generator->create_user();
 
         $coursecontext = context_course::instance($course->id);
-        $quizcontext = context_module::instance($assign->cmid);
+        $quizcontext = context_module::instance($quiz->cmid);
         $frontpagecontext = context_course::instance(SITEID);
 
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
@@ -51,10 +51,10 @@ class messagelib_testcase extends advanced_testcase {
         assign_capability('mod/quiz:emailconfirmsubmission', CAP_ALLOW, $studentrole->id, $quizcontext->id);
 
         // Give this message type to the front page role.
-        assign_capability('mod/quiz:emailwarnoverdue', CAP_ALLOW, $defaultfrontpageroleid->id, $frontpagecontext->id);
+        assign_capability('mod/quiz:emailwarnoverdue', CAP_ALLOW, $CFG->defaultfrontpageroleid, $frontpagecontext->id);
 
         $providers = message_get_providers_for_user($user->id);
-        $this->assertTrue($this->message_type_present('mod_forum', 'post', $providers));
+        $this->assertTrue($this->message_type_present('mod_forum', 'posts', $providers));
         $this->assertTrue($this->message_type_present('mod_quiz', 'confirmation', $providers));
         $this->assertTrue($this->message_type_present('mod_quiz', 'attempt_overdue', $providers));
         $this->assertFalse($this->message_type_present('mod_quiz', 'submission', $providers));
@@ -63,16 +63,17 @@ class messagelib_testcase extends advanced_testcase {
         $course2 = $generator->create_course(array('category' => $cat->id));
         $user2 = $generator->create_user();
         $coursecontext2 = context_course::instance($course2->id);
-        role_assign($studentrole->id, $user2->id, $coursecontext->id);
+        role_assign($studentrole->id, $user2->id, $coursecontext2->id);
         accesslib_clear_all_caches_for_unit_testing();
-        $providers = message_get_providers_for_user($user->id);
-        $this->assertTrue($this->message_type_present('mod_forum', 'post', $providers));
+        $providers = message_get_providers_for_user($user2->id);
+        $this->assertTrue($this->message_type_present('mod_forum', 'posts', $providers));
         $this->assertFalse($this->message_type_present('mod_quiz', 'confirmation', $providers));
 
         // Now remove the frontpage role id, and attempt_overdue message should go away.
         unset_config('defaultfrontpageroleid');
         accesslib_clear_all_caches_for_unit_testing();
 
+        $providers = message_get_providers_for_user($user->id);
         $this->assertTrue($this->message_type_present('mod_quiz', 'confirmation', $providers));
         $this->assertFalse($this->message_type_present('mod_quiz', 'attempt_overdue', $providers));
         $this->assertFalse($this->message_type_present('mod_quiz', 'submission', $providers));
@@ -136,7 +137,7 @@ class messagelib_testcase extends advanced_testcase {
         $providers = message_get_providers_for_user($teacher->id);
         // Actually, handling PROHIBITs would be too expensive. We do not
         // care if users with PROHIBITs see a few more preferences than they should.
-        // $this->assertTrue($this->message_type_present('moodle', 'backup', $providers));
+        // $this->assertFalse($this->message_type_present('moodle', 'backup', $providers));
     }
 
     /**
