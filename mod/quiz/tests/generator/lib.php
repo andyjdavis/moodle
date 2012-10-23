@@ -16,8 +16,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-
 /**
  * Quiz module test data generator class
  *
@@ -35,7 +33,7 @@ class mod_quiz_generator extends phpunit_module_generator {
      */
     public function create_instance($record = null, array $options = null) {
         global $CFG;
-        require_once("$CFG->dirroot/mod/quiz/lib.php");
+        require_once("$CFG->dirroot/mod/quiz/locallib.php");
 
         $this->instancecount++;
         $i = $this->instancecount;
