@@ -83,7 +83,7 @@ class mod_quiz_generator extends phpunit_module_generator {
             'timelimit'              => 0,
             'overduehandling'        => 'autoabandon',
             'graceperiod'            => 86400,
-            'password'               => '',
+            'quizpassword'           => '',
             'subnet'                 => '',
             'browsersecurity'        => '',
             'delay1'                 => 0,

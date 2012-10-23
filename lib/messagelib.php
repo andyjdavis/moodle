@@ -494,7 +494,7 @@ function message_get_providers_for_user($userid) {
               JOIN {context} cctx ON cctx.id = rc.contextid
 
              WHERE rc.roleid = :frontpageroleid
-               AND rc.capability $capcondition
+               AND rc.capability $capcondition2
                AND rc.permission > 0
                AND CONCAT(cctx.path, '/') LIKE :frontpagepathpattern";
     }
