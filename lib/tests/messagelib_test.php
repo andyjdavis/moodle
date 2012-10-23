@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 class messagelib_testcase extends advanced_testcase {
 
     public function test_message_get_providers_for_user() {
-        global $DB;
+        global $CFG, $DB;
 
         $this->resetAfterTest(true);
 

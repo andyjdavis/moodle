@@ -100,7 +100,7 @@ class mod_quiz_generator extends phpunit_module_generator {
         }
 
         $record->coursemodule = $this->precreate_course_module($record->course, $options);
-        $id = assign_add_instance($record, null);
+        $id = quiz_add_instance($record);
         return $this->post_add_instance($id, $record->coursemodule);
     }
 }
