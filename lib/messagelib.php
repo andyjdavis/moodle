@@ -497,8 +497,6 @@ function message_get_providers_for_user($userid) {
                AND rc.capability $capcondition
                AND rc.permission > 0
                AND CONCAT(cctx.path, '/') LIKE :frontpagepathpattern";
-
-        $param['frontpageroleid'] = $CFG->frontpageroleid;
     }
 
     $relevantcapabilities = $DB->get_records_sql_menu($sql, $params);

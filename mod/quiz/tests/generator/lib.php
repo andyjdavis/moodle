@@ -16,6 +16,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+
 /**
  * Quiz module test data generator class
  *
@@ -50,6 +52,9 @@ class mod_quiz_generator extends phpunit_module_generator {
             $record->cmidnumber = '';
         }
 
+        $alwaysvisible = mod_quiz_display_options::DURING | mod_quiz_display_options::IMMEDIATELY_AFTER |
+                mod_quiz_display_options::LATER_WHILE_OPEN | mod_quiz_display_options::AFTER_CLOSE;
+
         $defaultquizsettings = array(
             'name'                   => get_string('pluginname', 'data').' '.$i,
             'intro'                  => 'Test quiz ' . $i,
@@ -62,13 +67,13 @@ class mod_quiz_generator extends phpunit_module_generator {
             'grademethod'            => QUIZ_GRADEHIGHEST,
             'decimalpoints'          => 2,
             'questiondecimalpoints'  => -1,
-            'reviewattempt'          => DURING | IMMEDIATELY_AFTER | LATER_WHILE_OPEN | AFTER_CLOSE,
-            'reviewcorrectness'      => DURING | IMMEDIATELY_AFTER | LATER_WHILE_OPEN | AFTER_CLOSE,
-            'reviewmarks'            => DURING | IMMEDIATELY_AFTER | LATER_WHILE_OPEN | AFTER_CLOSE,
-            'reviewspecificfeedback' => DURING | IMMEDIATELY_AFTER | LATER_WHILE_OPEN | AFTER_CLOSE,
-            'reviewgeneralfeedback'  => DURING | IMMEDIATELY_AFTER | LATER_WHILE_OPEN | AFTER_CLOSE,
-            'reviewrightanswer'      => DURING | IMMEDIATELY_AFTER | LATER_WHILE_OPEN | AFTER_CLOSE,
-            'reviewoverallfeedback'  => DURING | IMMEDIATELY_AFTER | LATER_WHILE_OPEN | AFTER_CLOSE,
+            'reviewattempt'          => $alwaysvisible,
+            'reviewcorrectness'      => $alwaysvisible,
+            'reviewmarks'            => $alwaysvisible,
+            'reviewspecificfeedback' => $alwaysvisible,
+            'reviewgeneralfeedback'  => $alwaysvisible,
+            'reviewrightanswer'      => $alwaysvisible,
+            'reviewoverallfeedback'  => $alwaysvisible,
             'questionsperpage'       => 1,
             'shufflequestions'       => 0,
             'shuffleanswers'         => 1,
