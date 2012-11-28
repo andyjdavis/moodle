@@ -85,8 +85,8 @@ class grade_base_testcase extends advanced_testcase {
     }
 
     private function load_modules() {
-        $this->activities[0] = $this->getDataGenerator()->create_module('assignment', array('course'=>$this->course->id));
-        $this->course_module[0] = get_coursemodule_from_instance('assignment', $this->activities[0]->id);
+        $this->activities[0] = $this->getDataGenerator()->create_module('assign', array('course'=>$this->course->id));
+        $this->course_module[0] = get_coursemodule_from_instance('assign', $this->activities[0]->id);
 
         $this->activities[1] = $this->getDataGenerator()->create_module('assignment', array('course'=>$this->course->id));
         $this->course_module[1] = get_coursemodule_from_instance('assignment', $this->activities[1]->id);

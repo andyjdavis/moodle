@@ -494,6 +494,7 @@ class grade_item extends grade_object {
         if ($lockedstate) {
         /// setting lock
             if ($this->needsupdate) {
+                echo 'HERE';
                 return false; // can not lock grade without first having final grade
             }
 
@@ -1430,6 +1431,7 @@ class grade_item extends grade_object {
         if ($this->itemtype == 'mod') {
             if ($this->is_outcome_item()) {
                 //nothing to do
+                echo 'outcome item detected!!';
                 return true;
             }
 
@@ -1448,7 +1450,7 @@ class grade_item extends grade_object {
 
             return grade_update_mod_grades($activity, $userid);
         }
-
+        echo 'NOT A MOD';
         return true;
     }
 

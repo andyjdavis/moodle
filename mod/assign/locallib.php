@@ -4937,6 +4937,7 @@ class assign {
         global $DB, $CFG;
         $grades = array();
         $assignmentid = $this->get_instance()->id;
+        echo "get_user_grades_for_gradebook() called\r\n";
 
         $adminconfig = $this->get_admin_config();
         $gradebookpluginname = $adminconfig->feedback_plugin_for_gradebook;

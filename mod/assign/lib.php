@@ -922,7 +922,7 @@ function assign_get_user_grades($assign, $userid=0) {
     global $CFG;
 
     require_once($CFG->dirroot . '/mod/assign/locallib.php');
-
+    echo 'assign_get_user_grades() called\r\n';
     $cm = get_coursemodule_from_instance('assign', $assign->id, 0, false, MUST_EXIST);
     $context = context_module::instance($cm->id);
     $assignment = new assign($context, null, null);
@@ -942,6 +942,7 @@ function assign_update_grades($assign, $userid=0, $nullifnone=true) {
     require_once($CFG->libdir.'/gradelib.php');
 
     if ($assign->grade == 0) {
+        echo 'assign grade == 0\r\n';
         assign_grade_item_update($assign);
 
     } else if ($grades = assign_get_user_grades($assign, $userid)) {
@@ -953,6 +954,7 @@ function assign_update_grades($assign, $userid=0, $nullifnone=true) {
         assign_grade_item_update($assign, $grades);
 
     } else {
+        echo "no grades found\r\n";
         assign_grade_item_update($assign);
     }
 }

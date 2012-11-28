@@ -484,7 +484,12 @@ class grade_item_testcase extends grade_base_testcase {
         $this->assertEquals($res, $deps);
     }
 
+    /**
+     * Tests refresh_grades() which transfers grades from modules to the gradebook
+     */
     protected function sub_test_refresh_grades() {
+        global $DB;
+
         // Testing with the grade item for a mod_assignment instance.
         $grade_item = new grade_item($this->grade_items[0], false);
         $this->assertTrue(method_exists($grade_item, 'refresh_grades'));
@@ -494,6 +499,190 @@ class grade_item_testcase extends grade_base_testcase {
         $grade_item->iteminstance = 123456789;
         $this->assertFalse($grade_item->refresh_grades());
         $this->assertDebuggingCalled();
+
+        // Create an assignment module for further testing.
+        $assign = $this->getDataGenerator()->create_module('assign', array('course' => $this->course->id));
+        $assigncm = get_coursemodule_from_instance('assign', $assign->id);
+        $assign->cmidnumber = $assigncm->id;
+
+        $grade_item = grade_item::fetch(
+            array(
+                'courseid' => $this->course->id,
+                'itemtype' => 'mod',
+                'itemmodule' => 'assign',
+                'iteminstance' => $assign->id)
+        );
+
+        // Test with multiple users and check all grades are loaded into the gradebook.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+
+        $user1grade = 4;
+        $user2grade = 5;
+
+        // Add assignment submissions and grades for the 2 users
+        // Later retrieval of grades from the module requires submissions and grades to be present.
+        // See /mod/assign/locallib.php get_user_grades_for_gradebook().
+
+        // Surely there is a better way to do this rather than directly inserting into the DB.
+        $submission = new stdClass();
+        $submission->userid = $user1->id;
+        $submission->assignment = $assign->id;
+        $DB->insert_record('assign_submission', $submission);
+
+        $submission = new stdClass();
+        $submission->userid = $user2->id;
+        $submission->assignment = $assign->id;
+        $DB->insert_record('assign_submission', $submission);
+
+        $assigngrade = new stdClass();
+        $assigngrade->userid = $user1->id;
+        $assigngrade->assignment = $assign->id;
+        $assigngrade->grade = $user1grade;
+        $assigngrade->timemodified = time();
+        $assigngrade->grader = $user1->id;
+        $DB->insert_record('assign_grades', $assigngrade);
+
+        $assigngrade = new stdClass();
+        $assigngrade->userid = $user2->id;
+        $assigngrade->assignment = $assign->id;
+        $assigngrade->grade = $user2grade;
+        $assigngrade->timemodified = time();
+        $assigngrade->grader = $user1->id;
+        $DB->insert_record('assign_grades', $assigngrade);
+
+        $grades = array();
+        /*$grades[$user1->id] = array('userid' => $user1->id, 'rawgrade' => $user1grade);
+        $grades[$user2->id] = array('userid' => $user2->id, 'rawgrade' => $user2grade);
+        assign_grade_item_update($assign, $grades);*/
+
+        // Check the grades are what we expect.
+        $gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        $this->assertEquals($user1grade, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        $this->assertEquals($user2grade, $gradebookgrades->items[0]->grades[$user2->id]->grade);
+
+        // Lock the grade items
+        $this->assertTrue(grade_regrade_final_grades($this->course->id));
+        $grade_item->update_from_db();
+        $this->assertTrue($grade_item->set_locked(1));
+
+        // Update the activity grade in the module.
+        $user1changedgrade = 9;
+        $user2changedgrade = 13;
+        $grades[$user1->id] = array('userid' => $user1->id, 'rawgrade' => $user1changedgrade);
+        $grades[$user2->id] = array('userid' => $user2->id, 'rawgrade' => $user2changedgrade);
+        //assign_grade_item_update() is actually just wrapping the GB and is NOT using the assign tables
+        assign_grade_item_update($assign, $grades);
+
+        // Check the gradebook grades are unchanged.
+        $gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        $this->assertEquals($user1grade, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        $this->assertEquals($user2grade, $gradebookgrades->items[0]->grades[$user2->id]->grade);
+
+        // Unlock the grade item but don't refresh
+        $grade_item->set_locked(0, false, false);
+
+        // Refresh a single user's grade
+        /*$this->assertTrue($grade_item->refresh_grades($user1->id));
+        //$this->assertTrue(grade_regrade_final_grades($this->course->id));
+
+        // Check that only $user1's grade is changed.
+        $gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        $this->assertEquals($user1changedgrade, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        $this->assertEquals($user2grade, $gradebookgrades->items[0]->grades[$user2->id]->grade);
+*/
+        // Refresh all user's grades
+        echo "--------------------------------------------\r\n";
+        $this->assertTrue($grade_item->refresh_grades());
+        echo "--------------------------------------------\r\n";
+
+        // Check that all user's grades are changed.
+        $gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        $this->assertEquals($user1changedgrade, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        $this->assertEquals($user2changedgrade, $gradebookgrades->items[0]->grades[$user2->id]->grade);
+/*
+        // Manually delete the grades from the gradebook.
+        $DB->delete_records('grade_grades', array('userid' => $user1->id));
+        $DB->delete_records('grade_grades', array('userid' => $user2->id));
+        // Check the grades are really gone.
+        $gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        $this->assertEquals(null, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        $this->assertEquals(null, $gradebookgrades->items[0]->grades[$user2->id]->grade);
+
+        // Check that refresh_grades() fixes them.
+        $this->assertTrue($grade_item->refresh_grades());
+        $gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        $this->assertEquals($user1grade, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        $this->assertEquals($user2grade, $gradebookgrades->items[0]->grades[$user2->id]->grade);
+
+        // Delete the grades again.
+        $DB->delete_records('grade_grades', array('userid' => $user1->id));
+        $DB->delete_records('grade_grades', array('userid' => $user2->id));
+        // Check the grades are really gone.
+        $gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        $this->assertEquals(null, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        $this->assertEquals(null, $gradebookgrades->items[0]->grades[$user2->id]->grade);
+
+        // Call refresh_grades() but only refresh a single student's grades.
+        $this->assertTrue($grade_item->refresh_grades($user1->id));
+        $gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        $this->assertEquals($user1grade, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        $this->assertEquals(null, $gradebookgrades->items[0]->grades[$user2->id]->grade);
+*/
+        // Alter the grades in the module.
+        //$alteredgrade = 99;
+        //$grades[$user1->id] = array('userid' => $user1->id, 'rawgrade' => $alteredgrade);
+        //$grades[$user2->id] = array('userid' => $user2->id, 'rawgrade' => $alteredgrade);
+        //$this->assertEquals(GRADE_UPDATE_OK, grade_update('mod/assign', $this->course->id, 'mod', 'assign', $assign->id, 0, $grades));
+        //assign_grade_item_update($assign, $grades);
+
+        
+        //$gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        //$this->assertEquals($alteredgrade, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        //$this->assertEquals($alteredgrade, $gradebookgrades->items[0]->grades[$user2->id]->grade);
+
+        // This should cause user 1's grade to revert to the value in the module.
+        //$grade_item->refresh_grades($user1->id);
+
+        //$gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        //$this->assertEquals($user1grade, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        //$this->assertEquals($alteredgrade, $gradebookgrades->items[0]->grades[$user2->id]->grade);
+/*
+        Does this not work because the grade in the GB is marked as overriden?
+        // Alter the grades in the gradebook.
+        $alteredgrade = 99;
+        $grades[$user1->id] = array('userid' => $user1->id, 'rawgrade' => $alteredgrade);
+        $grades[$user2->id] = array('userid' => $user2->id, 'rawgrade' => $alteredgrade);
+        $this->assertEquals(GRADE_UPDATE_OK, grade_update('mod/assign', $this->course->id, 'mod', 'assign', $assign->id, 0, $grades));
+
+        $gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        $this->assertEquals($alteredgrade, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        $this->assertEquals($alteredgrade, $gradebookgrades->items[0]->grades[$user2->id]->grade);
+
+        // This should cause user 1's grade to revert to the value in the module.
+        $grade_item->refresh_grades($user1->id);
+
+        $gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        $this->assertEquals($user1grade, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        $this->assertEquals($alteredgrade, $gradebookgrades->items[0]->grades[$user2->id]->grade);
+*/
+/*
+        // Change both grades in the module but supply a single user ID to refresh_grades().
+        // Check that only the specified user's grades are shifted to the gradebook.
+        $user1grade = 7;
+
+        $olduser2grade = $user2grade;
+        $user2grade = 9;
+
+        $grades = array();
+        $grades[$user1->id] = array('userid' => $user1->id, 'rawgrade' => $user1grade);
+        $grades[$user2->id] = array('userid' => $user2->id, 'rawgrade' => $user2grade);
+        assign_grade_item_update($assign, $grades);
+        $grade_item->refresh_grades($user1->id);
+
+        $gradebookgrades = grade_get_grades($this->course->id, 'mod', 'assign', $assign->id, array($user1->id, $user2->id));
+        $this->assertEquals($user1grade, $gradebookgrades->items[0]->grades[$user1->id]->grade);
+        $this->assertEquals($olduser2grade, $gradebookgrades->items[0]->grades[$user2->id]->grade);*/
     }
 
     protected function sub_test_grade_item_is_calculated() {

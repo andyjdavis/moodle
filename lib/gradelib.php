@@ -1186,6 +1186,7 @@ function grade_update_mod_grades($modinstance, $userid=0) {
 
     if (function_exists($updategradesfunc) and function_exists($updateitemfunc)) {
         //new grading supported, force updating of grades
+        echo "   calling funcs!!!!!!!\r\n";
         $updateitemfunc($modinstance);
         $updategradesfunc($modinstance, $userid);
 
