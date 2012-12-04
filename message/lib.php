@@ -240,7 +240,9 @@ function message_get_blocked_users($user1=null, $user2=null) {
     $blockeduserssql = "SELECT $userfields, COUNT(m.id) AS messagecount
                           FROM {message_contacts} mc
                           JOIN {user} u ON u.id = mc.contactid
-                          LEFT OUTER JOIN {message} m ON m.useridfrom = mc.contactid AND m.useridto = :user1id1
+                          LEFT OUTER JOIN {message} m ON m.useridfrom = mc.contactid
+                                                       AND m.useridto = :user1id1
+                                                       AND m.timeread = 0
                          WHERE mc.userid = :user1id2 AND mc.blocked = 1
                       GROUP BY $userfields
                       ORDER BY u.firstname ASC";
@@ -333,11 +335,13 @@ function message_get_contacts($user1=null, $user2=null) {
     $userfields = user_picture::fields('u', array('lastaccess'));
 
     // get all in our contactlist who are not blocked in our contact list
-    // and count messages we have waiting from each of them
+    // and count unread messages from each of them
     $contactsql = "SELECT $userfields, COUNT(m.id) AS messagecount
                      FROM {message_contacts} mc
                      JOIN {user} u ON u.id = mc.contactid
-                     LEFT OUTER JOIN {message} m ON m.useridfrom = mc.contactid AND m.useridto = ?
+                     LEFT OUTER JOIN {message} m ON m.useridfrom = mc.contactid
+                                                  AND m.useridto = ?
+                                                  AND m.timeread = 0
                     WHERE mc.userid = ? AND mc.blocked = 0
                  GROUP BY $userfields
                  ORDER BY u.firstname ASC";
@@ -359,12 +363,15 @@ function message_get_contacts($user1=null, $user2=null) {
     $rs->close();
 
     // get messages from anyone who isn't in our contact list and count the number
-    // of messages we have from each of them
+    // of unread messages we have from each of them
     $strangersql = "SELECT $userfields, count(m.id) as messagecount
                       FROM {message} m
                       JOIN {user} u  ON u.id = m.useridfrom
-                      LEFT OUTER JOIN {message_contacts} mc ON mc.contactid = m.useridfrom AND mc.userid = m.useridto
-                     WHERE mc.id IS NULL AND m.useridto = ?
+                      LEFT OUTER JOIN {message_contacts} mc ON mc.contactid = m.useridfrom
+                                                           AND mc.userid = m.useridto
+                     WHERE mc.id IS NULL
+                       AND m.useridto = ?
+                       AND m.timeread = 0
                   GROUP BY $userfields
                   ORDER BY u.firstname ASC";
 
@@ -569,7 +576,7 @@ function message_count_messages($messagearray, $field='', $value='') {
 }
 
 /**
- * Returns the count of unread messages for user. Either from a specific user or from all users.
+ * Returns the count of unread messages for a single user, between two users or for all users.
  *
  * @param object $user1 the first user. Defaults to $USER
  * @param object $user2 the second user. If null this function will count all of user 1's unread messages.
@@ -583,10 +590,10 @@ function message_count_unread_messages($user1=null, $user2=null) {
     }
 
     if (!empty($user2)) {
-        return $DB->count_records_select('message', "useridto = ? AND useridfrom = ?",
+        return $DB->count_records_select('message', "useridto = ? AND useridfrom = ? AND timeread = 0",
             array($user1->id, $user2->id), "COUNT('id')");
     } else {
-        return $DB->count_records_select('message', "useridto = ?",
+        return $DB->count_records_select('message', "useridto = ? AND timeread = 0",
             array($user1->id), "COUNT('id')");
     }
 }
@@ -686,37 +693,7 @@ function message_get_recent_conversations($user, $limitfrom=0, $limitto=100) {
     //This query retrieves the last message received from and sent to each user
     //It unions that data then, within that set, it finds the most recent message you've exchanged with each user over all
     //It then joins with some other tables to get some additional data we need
-
-    //message ID is used instead of timecreated as it should sort the same and will be much faster
-
-    //There is a separate query for read and unread queries as they are stored in different tables
-    //They were originally retrieved in one query but it was so large that it was difficult to be confident in its correctness
-    $sql = "SELECT $userfields, mr.id as mid, mr.smallmessage, mr.fullmessage, mr.timecreated, mc.id as contactlistid, mc.blocked
-              FROM {message_read} mr
-              JOIN (
-                    SELECT messages.userid AS userid, MAX(messages.mid) AS mid
-                      FROM (
-                           SELECT mr1.useridto AS userid, MAX(mr1.id) AS mid
-                             FROM {message_read} mr1
-                            WHERE mr1.useridfrom = :userid1
-                                  AND mr1.notification = 0
-                         GROUP BY mr1.useridto
-                                  UNION
-                           SELECT mr2.useridfrom AS userid, MAX(mr2.id) AS mid
-                             FROM {message_read} mr2
-                            WHERE mr2.useridto = :userid2
-                                  AND mr2.notification = 0
-                         GROUP BY mr2.useridfrom
-                           ) messages
-                  GROUP BY messages.userid
-                   ) messages2 ON mr.id = messages2.mid AND (mr.useridto = messages2.userid OR mr.useridfrom = messages2.userid)
-              JOIN {user} u ON u.id = messages2.userid
-         LEFT JOIN {message_contacts} mc ON mc.userid = :userid3 AND mc.contactid = u.id
-             WHERE u.deleted = '0'
-          ORDER BY mr.id DESC";
-    $params = array('userid1' => $user->id, 'userid2' => $user->id, 'userid3' => $user->id);
-    $read =  $DB->get_records_sql($sql, $params, $limitfrom, $limitto);
-
+    
     $sql = "SELECT $userfields, m.id as mid, m.smallmessage, m.fullmessage, m.timecreated, mc.id as contactlistid, mc.blocked
               FROM {message} m
               JOIN (
@@ -739,29 +716,10 @@ function message_get_recent_conversations($user, $limitfrom=0, $limitto=100) {
               JOIN {user} u ON u.id = messages2.userid
          LEFT JOIN {message_contacts} mc ON mc.userid = :userid3 AND mc.contactid = u.id
              WHERE u.deleted = '0'
-             ORDER BY m.id DESC";
-    $unread =  $DB->get_records_sql($sql, $params, $limitfrom, $limitto);
-
-    $conversations = array();
-
-    //Union the 2 result sets together looking for the message with the most recent timecreated for each other user
-    //$conversation->id (the array key) is the other user's ID
-    $conversation_arrays = array($unread, $read);
-    foreach ($conversation_arrays as $conversation_array) {
-        foreach ($conversation_array as $conversation) {
-            if (empty($conversations[$conversation->id]) || $conversations[$conversation->id]->timecreated < $conversation->timecreated ) {
-                $conversations[$conversation->id] = $conversation;
-            }
-        }
-    }
-
-    // Sort the conversations by $conversation->timecreated, newest to oldest
-    // There may be multiple conversations with the same timecreated
-    // The conversations array contains both read and unread messages (different tables) so sorting by ID won't work
-    $result = collatorlib::asort_objects_by_property($conversations, 'timecreated', collatorlib::SORT_NUMERIC);
-    $conversations = array_reverse($conversations);
-
-    return $conversations;
+             ORDER BY m.timecreated DESC";
+             
+    $params = array('userid1' => $user->id, 'userid2' => $user->id, 'userid3' => $user->id);
+    return $DB->get_records_sql($sql, $params, $limitfrom, $limitto);
 }
 
 /**
@@ -776,11 +734,11 @@ function message_get_recent_notifications($user, $limitfrom=0, $limitto=100) {
     global $DB;
 
     $userfields = user_picture::fields('u', array('lastaccess'));
-    $sql = "SELECT mr.id AS message_read_id, $userfields, mr.smallmessage, mr.fullmessage, mr.timecreated as timecreated, mr.contexturl, mr.contexturlname
-              FROM {message_read} mr
-                   JOIN {user} u ON u.id=mr.useridfrom
-             WHERE mr.useridto = :userid1 AND u.deleted = '0' AND mr.notification = :notification
-             ORDER BY mr.id DESC";//ordering by id should give the same result as ordering by timecreated but will be faster
+    $sql = "SELECT m.id, $userfields, m.smallmessage, m.fullmessage, m.timecreated as timecreated, m.contexturl, m.contexturlname
+              FROM {message} m
+                   JOIN {user} u ON u.id = m.useridfrom
+             WHERE m.useridto = :userid1 AND u.deleted = '0' AND m.notification = :notification
+             ORDER BY m.timecreated DESC";
     $params = array('userid1' => $user->id, 'notification' => 1);
 
     $notifications =  $DB->get_records_sql($sql, $params, $limitfrom, $limitto);
@@ -1618,18 +1576,14 @@ function message_search($searchterms, $fromme=true, $tome=true, $courseid='none'
     ///    b.  Messages to user
     ///    c.  Messages to and from user
 
-    if ($courseid == SITEID) { /// admin is searching all messages
-        $m_read   = $DB->get_records_sql("SELECT m.id, m.useridto, m.useridfrom, m.smallmessage, m.fullmessage, m.timecreated
-                                            FROM {message_read} m
-                                           WHERE $searchcond", $params, 0, MESSAGE_SEARCH_MAX_RESULTS);
-        $m_unread = $DB->get_records_sql("SELECT m.id, m.useridto, m.useridfrom, m.smallmessage, m.fullmessage, m.timecreated
+    if ($courseid == SITEID) { // Admin is searching all messages.
+        $messages = $DB->get_records_sql("SELECT m.id, m.useridto, m.useridfrom, m.smallmessage, m.fullmessage, m.timecreated
                                             FROM {message} m
                                            WHERE $searchcond", $params, 0, MESSAGE_SEARCH_MAX_RESULTS);
 
     } else if ($courseid !== 'none') {
         /// This has not been implemented due to security concerns
-        $m_read   = array();
-        $m_unread = array();
+        $messages = array();
 
     } else {
 
@@ -1647,23 +1601,9 @@ function message_search($searchterms, $fromme=true, $tome=true, $courseid='none'
             $params['userid'] = $userid;
         }
 
-        $m_read   = $DB->get_records_sql("SELECT m.id, m.useridto, m.useridfrom, m.smallmessage, m.fullmessage, m.timecreated
-                                            FROM {message_read} m
-                                           WHERE $searchcond", $params, 0, MESSAGE_SEARCH_MAX_RESULTS);
-        $m_unread = $DB->get_records_sql("SELECT m.id, m.useridto, m.useridfrom, m.smallmessage, m.fullmessage, m.timecreated
+        $messages = $DB->get_records_sql("SELECT m.id, m.useridto, m.useridfrom, m.smallmessage, m.fullmessage, m.timecreated
                                             FROM {message} m
                                            WHERE $searchcond", $params, 0, MESSAGE_SEARCH_MAX_RESULTS);
-
-    }
-
-    /// The keys may be duplicated in $m_read and $m_unread so we can't
-    /// do a simple concatenation
-    $messages = array();
-    foreach ($m_read as $m) {
-        $messages[] = $m;
-    }
-    foreach ($m_unread as $m) {
-        $messages[] = $m;
     }
 
     return (empty($messages)) ? false : $messages;
@@ -1791,43 +1731,24 @@ function message_get_history($user1, $user2, $limitnum=0, $viewingnewmessages=fa
     //we want messages sorted oldest to newest but if getting a subset of messages we need to sort
     //desc to get the last $limitnum messages then flip the order in php
     $sort = 'asc';
-    if ($limitnum>0) {
+    if ($limitnum > 0) {
         $sort = 'desc';
     }
 
     $notificationswhere = null;
-    //we have just moved new messages to read. If theyre here to see new messages dont hide notifications
+    // If they're wanting both read and unread message check if we should hide read notifications.
     if (!$viewingnewmessages && $CFG->messaginghidereadnotifications) {
-        $notificationswhere = 'AND notification=0';
+        $notificationswhere = 'AND (notification = 0 OR timeread = 0)';
     }
 
-    //prevent notifications of your own actions appearing in your own message history
-    $ownnotificationwhere = ' AND NOT (useridfrom=? AND notification=1)';
-
-    if ($messages_read = $DB->get_records_select('message_read', "((useridto = ? AND useridfrom = ?) OR
-                                                    (useridto = ? AND useridfrom = ?)) $notificationswhere $ownnotificationwhere",
-                                                    array($user1->id, $user2->id, $user2->id, $user1->id, $user1->id),
-                                                    "timecreated $sort", '*', 0, $limitnum)) {
-        foreach ($messages_read as $message) {
-            $messages[] = $message;
-        }
-    }
-    if ($messages_new =  $DB->get_records_select('message', "((useridto = ? AND useridfrom = ?) OR
-                                                    (useridto = ? AND useridfrom = ?)) $ownnotificationwhere",
-                                                    array($user1->id, $user2->id, $user2->id, $user1->id, $user1->id),
-                                                    "timecreated $sort", '*', 0, $limitnum)) {
-        foreach ($messages_new as $message) {
-            $messages[] = $message;
-        }
-    }
-
-    $result = collatorlib::asort_objects_by_property($messages, 'timecreated', collatorlib::SORT_NUMERIC);
-
-    //if we only want the last $limitnum messages
-    $messagecount = count($messages);
-    if ($limitnum > 0 && $messagecount > $limitnum) {
-        $messages = array_slice($messages, $messagecount - $limitnum, $limitnum, true);
-    }
+    // Get the message history between two users.
+    // Prevents notifications of your own actions appearing in your own message history.
+    $messages = $DB->get_records_select('message', "((useridto = ? AND useridfrom = ?) OR
+                                                        (useridto = ? AND useridfrom = ?)) 
+                                                        $notificationswhere
+                                                        AND NOT (useridfrom = ? AND notification = 1)",
+                                                   array($user1->id, $user2->id, $user2->id, $user1->id, $user1->id),
+                                                   "timecreated $sort", '*', 0, $limitnum);
 
     return $messages;
 }
@@ -2178,7 +2099,7 @@ function message_get_contact_block_link($incontactlist, $isblocked, $contact, $s
 }
 
 /**
- * Moves messages from a particular user from the message table (unread messages) to message_read
+ * Marks all of a user's messages as read
  * This is typically only used when a user is deleted
  *
  * @param object $userid User id
@@ -2187,7 +2108,6 @@ function message_get_contact_block_link($incontactlist, $isblocked, $contact, $s
 function message_move_userfrom_unread2read($userid) {
     global $DB;
 
-    // move all unread messages from message table to message_read
     if ($messages = $DB->get_records_select('message', 'useridfrom = ?', array($userid), 'timecreated')) {
         foreach ($messages as $message) {
             message_mark_message_read($message, 0); //set timeread to 0 as the message was never read
@@ -2197,48 +2117,42 @@ function message_move_userfrom_unread2read($userid) {
 }
 
 /**
- * marks ALL messages being sent from $fromuserid to $touserid as read
+ * Marks all messages being sent from $fromuserid to $touserid as read.
  *
  * @param int $touserid the id of the message recipient
  * @param int $fromuserid the id of the message sender
  * @return void
  */
-function message_mark_messages_read($touserid, $fromuserid){
+function message_mark_messages_read($touserid, $fromuserid) {
     global $DB;
 
-    $sql = 'SELECT m.* FROM {message} m WHERE m.useridto=:useridto AND m.useridfrom=:useridfrom';
-    $messages = $DB->get_recordset_sql($sql, array('useridto' => $touserid,'useridfrom' => $fromuserid));
-
-    foreach ($messages as $message) {
-        message_mark_message_read($message, time());
-    }
-
-    $messages->close();
+    $sql = 'UPDATE {message} SET timeread = :time WHERE useridto=:useridto AND useridfrom=:useridfrom';
+    $params = array('time' => time(), 'useridto' => $touserid, 'useridfrom' => $fromuserid);
+    $DB->execute($sql, $params);
 }
 
 /**
- * Mark a single message as read
+ * Mark a single message as read.
  *
  * @param stdClass $message An object with an object property ie $message->id which is an id in the message table
  * @param int $timeread the timestamp for when the message should be marked read. Usually time().
  * @param bool $messageworkingempty Is the message_working table already confirmed empty for this message?
- * @return int the ID of the message in the message_read table
+ * @return int the ID of the message
  */
 function message_mark_message_read($message, $timeread, $messageworkingempty=false) {
     global $DB;
 
-    $message->timeread = $timeread;
-
-    $messageid = $message->id;
-    unset($message->id);//unset because it will get a new id on insert into message_read
-
-    //If any processors have pending actions abort them
+    // If any processors have pending actions abort them.
     if (!$messageworkingempty) {
-        $DB->delete_records('message_working', array('unreadmessageid' => $messageid));
+        $DB->delete_records('message_working', array('unreadmessageid' => $message->id));
     }
-    $messagereadid = $DB->insert_record('message_read', $message);
-    $DB->delete_records('message', array('id' => $messageid));
-    return $messagereadid;
+
+    $readmessage = new stdClass();
+    $readmessage->id = $message->id;
+    $readmessage->timeread = $timeread;
+    $DB->update_record('message', $readmessage);
+
+    return $message->id;
 }
 
 /**

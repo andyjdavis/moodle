@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="lib/db" VERSION="20121116" COMMENT="XMLDB file for core Moodle tables"
+<XMLDB PATH="lib/db" VERSION="20121207" COMMENT="XMLDB file for core Moodle tables"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../lib/xmldb/xmldb.xsd"
 >
@@ -604,30 +604,7 @@
         <INDEX NAME="module-action" UNIQUE="true" FIELDS="module, action"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="message" COMMENT="Stores all unread messages" PREVIOUS="log_display" NEXT="message_read">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="useridfrom"/>
-        <FIELD NAME="useridfrom" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="useridto"/>
-        <FIELD NAME="useridto" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="useridfrom" NEXT="subject"/>
-        <FIELD NAME="subject" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The message subject" PREVIOUS="useridto" NEXT="fullmessage"/>
-        <FIELD NAME="fullmessage" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="subject" NEXT="fullmessageformat"/>
-        <FIELD NAME="fullmessageformat" TYPE="int" LENGTH="4" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The format of the full message" PREVIOUS="fullmessage" NEXT="fullmessagehtml"/>
-        <FIELD NAME="fullmessagehtml" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="html format of message" PREVIOUS="fullmessageformat" NEXT="smallmessage"/>
-        <FIELD NAME="smallmessage" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Smal version of message (eg sms)" PREVIOUS="fullmessagehtml" NEXT="notification"/>
-        <FIELD NAME="notification" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="smallmessage" NEXT="contexturl"/>
-        <FIELD NAME="contexturl" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="If this message is a notification of an event contexturl should contain a link to view this event. For example if its a notification of a forum post contexturl should contain a link to the forum post." PREVIOUS="notification" NEXT="contexturlname"/>
-        <FIELD NAME="contexturlname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Display text for the contexturl" PREVIOUS="contexturl" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="contexturlname"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-      </KEYS>
-      <INDEXES>
-        <INDEX NAME="useridfrom" UNIQUE="false" FIELDS="useridfrom" NEXT="useridto"/>
-        <INDEX NAME="useridto" UNIQUE="false" FIELDS="useridto" PREVIOUS="useridfrom"/>
-      </INDEXES>
-    </TABLE>
-    <TABLE NAME="message_read" COMMENT="Stores all messages that have been read" PREVIOUS="message" NEXT="message_contacts">
+    <TABLE NAME="message" COMMENT="Stores all unread messages" PREVIOUS="log_display" NEXT="message_contacts">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="useridfrom"/>
         <FIELD NAME="useridfrom" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="useridto"/>
@@ -641,17 +618,19 @@
         <FIELD NAME="contexturl" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="If this message is a notification of an event contexturl should contain a link to view this event. For example if its a notification of a forum post contexturl should contain a link to the forum post." PREVIOUS="notification" NEXT="contexturlname"/>
         <FIELD NAME="contexturlname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Display text for the contexturl" PREVIOUS="contexturl" NEXT="timecreated"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="contexturlname" NEXT="timeread"/>
-        <FIELD NAME="timeread" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated"/>
+        <FIELD NAME="timeread" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
         <INDEX NAME="useridfrom" UNIQUE="false" FIELDS="useridfrom" NEXT="useridto"/>
-        <INDEX NAME="useridto" UNIQUE="false" FIELDS="useridto" PREVIOUS="useridfrom"/>
+        <INDEX NAME="useridto" UNIQUE="false" FIELDS="useridto" PREVIOUS="useridfrom" NEXT="timeread"/>
+        <INDEX NAME="timeread" UNIQUE="false" FIELDS="timeread" PREVIOUS="useridto" NEXT="timecreated"/>
+        <INDEX NAME="timecreated" UNIQUE="false" FIELDS="timecreated" PREVIOUS="timeread"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="message_contacts" COMMENT="Maintains lists of relationships between users" PREVIOUS="message_read" NEXT="modules">
+    <TABLE NAME="message_contacts" COMMENT="Maintains lists of relationships between users" PREVIOUS="message" NEXT="modules">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="contactid"/>

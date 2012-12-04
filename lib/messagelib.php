@@ -133,8 +133,8 @@ function message_send($eventdata) {
         // Now ask phpunit if it wants to catch this message.
         if (phpunit_util::is_redirecting_messages()) {
             $savemessage->timeread = time();
-            $messageid = $DB->insert_record('message_read', $savemessage);
-            $message = $DB->get_record('message_read', array('id'=>$messageid));
+            $messageid = $DB->insert_record('message', $savemessage);
+            $message = $DB->get_record('message', array('id'=>$messageid));
             phpunit_util::message_sent($message);
             return $messageid;
         }
@@ -200,7 +200,7 @@ function message_send($eventdata) {
     if (empty($processorlist) && $savemessage->notification) {
         //if they have deselected all processors and its a notification mark it read. The user doesnt want to be bothered
         $savemessage->timeread = time();
-        $messageid = $DB->insert_record('message_read', $savemessage);
+        $messageid = $DB->insert_record('message', $savemessage);
     } else {                        // Process the message
         // Store unread message just in case we can not send it
         $messageid = $savemessage->id = $DB->insert_record('message', $savemessage);
@@ -222,7 +222,7 @@ function message_send($eventdata) {
                 require_once($CFG->dirroot.'/message/lib.php');
                 $messageid = message_mark_message_read($savemessage, time());
             } else if ( $DB->count_records('message_working', array('unreadmessageid' => $savemessage->id)) == 0){
-                //if there is no more processors that want to process this we can move message to message_read
+                //if no more processors want to process this message, mark it as read
                 require_once($CFG->dirroot.'/message/lib.php');
                 $messageid = message_mark_message_read($savemessage, time(), true);
             }

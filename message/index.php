@@ -171,8 +171,7 @@ if ($currentuser && !empty($user2) && has_capability('moodle/site:sendmessage', 
             }
             $messageid = message_post_message($user1, $user2, $data->message, FORMAT_MOODLE);
             if (!empty($messageid)) {
-                //including the id of the user sending the message in the logged URL so the URL works for admins
-                //note message ID may be misleading as the message may potentially get a different ID when moved from message to message_read
+                // Including the id of the user sending the message in the logged URL so the URL works for admins.
                 add_to_log(SITEID, 'message', 'write', 'index.php?user='.$user1->id.'&id='.$user2->id.'&history=1#m'.$messageid, $user1->id);
                 redirect($CFG->wwwroot . '/message/index.php?viewing='.$viewing.'&id='.$user2->id);
             }
@@ -202,9 +201,9 @@ $countunreadtotal = 0; //count of unread messages from all users
 //we're dealing with unread messages early so the contact list will accurately reflect what is read/unread
 $viewingnewmessages = false;
 if (!empty($user2)) {
-    //are there any unread messages from $user2
+    //are there any unread messages between $user1 and $user2
     $countunread = message_count_unread_messages($user1, $user2);
-    if ($countunread>0) {
+    if ($countunread > 0) {
         //mark the messages we're going to display as read
         message_mark_messages_read($user1->id, $user2->id);
          if($viewing == MESSAGE_VIEW_UNREAD_MESSAGES) {

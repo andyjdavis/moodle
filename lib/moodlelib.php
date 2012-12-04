@@ -10233,8 +10233,8 @@ function message_popup_window() {
     }
 
     //a quick query to check whether the user has new messages
-    $messagecount = $DB->count_records('message', array('useridto' => $USER->id));
-    if ($messagecount<1) {
+    $messagecount = $DB->count_records_select('message', 'useridto = :useridto and timeread = 0', array('useridto' => $USER->id));
+    if ($messagecount < 1) {
         return;
     }
 
@@ -10244,17 +10244,18 @@ function message_popup_window() {
                      JOIN {message_working} mw ON m.id=mw.unreadmessageid
                      JOIN {message_processors} p ON mw.processorid=p.id
                      JOIN {user} u ON m.useridfrom=u.id
-                    WHERE m.useridto = :userid
+                    WHERE timeread = 0
+                      AND m.useridto = :userid
                       AND p.name='popup'";
 
-    //if the user was last notified over an hour ago we can renotify them of old messages
-    //so don't worry about when the new message was sent
+    // If the user was last notified over an hour ago we can renotify them of old messages
+    // so don't worry about when the new message was sent.
     $lastnotifiedlongago = $USER->message_lastpopup < (time()-3600);
     if (!$lastnotifiedlongago) {
         $messagesql .= 'AND m.timecreated > :lastpopuptime';
     }
 
-    $message_users = $DB->get_records_sql($messagesql, array('userid'=>$USER->id, 'lastpopuptime'=>$USER->message_lastpopup));
+    $message_users = $DB->get_records_sql($messagesql, array('userid' => $USER->id, 'lastpopuptime' => $USER->message_lastpopup));
 
     //if we have new messages to notify the user about
     if (!empty($message_users)) {

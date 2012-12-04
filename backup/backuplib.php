@@ -1,34 +1,33 @@
 <?php
-    //Prints course's messages info (tables message, message_read and message_contacts)
+    //Prints course's messages info (tables message and message_contacts)
     function backup_messages ($bf,$preferences) {
         global $CFG, $DB;
 
         $status = true;
 
     /// Check we have something to backup
-        $unreads = $DB->count_records ('message');
-        $reads   = $DB->count_records ('message_read');
+        $messages = $DB->count_records ('message');
         $contacts= $DB->count_records ('message_contacts');
 
-        if ($unreads || $reads || $contacts) {
+        if ($messages || $contacts) {
             $counter = 0;
         /// message open tag
             fwrite ($bf,start_tag("MESSAGES",2,true));
 
-            if ($unreads) {
-                $rs_unreads = $DB->get_recordset('message');
-            /// Iterate over every unread
-                foreach ($rs_unreads as $unread) {
+            if ($messages) {
+                $rs_messages = $DB->get_recordset('message');
+            /// Iterate over every message
+                foreach ($rs_messages as $message) {
                 /// start message
                     fwrite($bf, start_tag("MESSAGE",3,true));
-                    fwrite ($bf,full_tag("ID",4,false,$unread->id));
-                    fwrite ($bf,full_tag("STATUS",4,false,"UNREAD"));
-                    fwrite ($bf,full_tag("USERIDFROM",4,false,$unread->useridfrom));
-                    fwrite ($bf,full_tag("USERIDTO",4,false,$unread->useridto));
-                    fwrite ($bf,full_tag("MESSAGE",4,false,$unread->message));
-                    fwrite ($bf,full_tag("FORMAT",4,false,$unread->format));
-                    fwrite ($bf,full_tag("TIMECREATED",4,false,$unread->timecreated));
-                    fwrite ($bf,full_tag("MESSAGETYPE",4,false,$unread->messagetype));
+                    fwrite ($bf,full_tag("ID",4,false,$message->id));
+                    fwrite ($bf,full_tag("USERIDFROM",4,false,$message->useridfrom));
+                    fwrite ($bf,full_tag("USERIDTO",4,false,$message->useridto));
+                    fwrite ($bf,full_tag("MESSAGE",4,false,$message->message));
+                    fwrite ($bf,full_tag("FORMAT",4,false,$message->format));
+                    fwrite ($bf,full_tag("TIMECREATED",4,false,$message->timecreated));
+                    fwrite ($bf,full_tag("TIMEREAD",4,false,$message->timeread));
+                    fwrite ($bf,full_tag("MESSAGETYPE",4,false,$message->messagetype));
                 /// end message
                     fwrite ($bf,end_tag("MESSAGE",3,true));
 
@@ -42,39 +41,7 @@
                         backup_flush(300);
                     }
                 }
-                $rs_unreads->close();
-            }
-
-            if ($reads) {
-                $rs_reads = $DB->get_recordset('message_read');
-            /// Iterate over every unread
-                foreach ($rs_reads as $read) {
-                /// start message
-                    fwrite($bf, start_tag("MESSAGE",3,true));
-                    fwrite ($bf,full_tag("ID",4,false,$read->id));
-                    fwrite ($bf,full_tag("STATUS",4,false,"READ"));
-                    fwrite ($bf,full_tag("USERIDFROM",4,false,$read->useridfrom));
-                    fwrite ($bf,full_tag("USERIDTO",4,false,$read->useridto));
-                    fwrite ($bf,full_tag("MESSAGE",4,false,$read->message));
-                    fwrite ($bf,full_tag("FORMAT",4,false,$read->format));
-                    fwrite ($bf,full_tag("TIMECREATED",4,false,$read->timecreated));
-                    fwrite ($bf,full_tag("MESSAGETYPE",4,false,$read->messagetype));
-                    fwrite ($bf,full_tag("TIMEREAD",4,false,$read->timeread));
-                    fwrite ($bf,full_tag("MAILED",4,false,$read->mailed));
-                /// end message
-                    fwrite ($bf,end_tag("MESSAGE",3,true));
-
-                /// Do some output
-                    $counter++;
-                    if ($counter % 20 == 0) {
-                        echo ".";
-                        if ($counter % 400 == 0) {
-                            echo "<br />";
-                        }
-                        backup_flush(300);
-                    }
-                }
-                $rs_reads->close();
+                $rs_messages->close();
             }
 
             if ($contacts) {

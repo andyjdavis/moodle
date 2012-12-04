@@ -163,7 +163,7 @@ function cron_run() {
         // Cleanup messaging
         if (!empty($CFG->messagingdeletereadnotificationsdelay)) {
             $notificationdeletetime = time() - $CFG->messagingdeletereadnotificationsdelay;
-            $DB->delete_records_select('message_read', 'notification=1 AND timeread<:notificationdeletetime', array('notificationdeletetime'=>$notificationdeletetime));
+            $DB->delete_records_select('message', 'notification = 1 AND timeread <> 0 AND timeread<:notificationdeletetime', array('notificationdeletetime'=>$notificationdeletetime));
             mtrace(' Cleaned up read notifications');
         }
 

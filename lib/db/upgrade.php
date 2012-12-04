@@ -1564,6 +1564,50 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2012120300.07);
     }
 
+    if ($oldversion < 2013011800.01) {
+
+        // Define field timeread to be added to message
+        $table = new xmldb_table('message');
+        $field = new xmldb_field('timeread', XMLDB_TYPE_INTEGER, '10', null, null, null, '0', 'timecreated');
+
+        // Conditionally launch add field timeread
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define index timeread (not unique) to be added to message
+        $index = new xmldb_index('timeread', XMLDB_INDEX_NOTUNIQUE, array('timeread'));
+
+        // Conditionally launch add index timeread
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index timecreated (not unique) to be added to message
+        $index = new xmldb_index('timecreated', XMLDB_INDEX_NOTUNIQUE, array('timecreated'));
+
+        // Conditionally launch add index timecreated
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define table message_read to be dropped
+        $table = new xmldb_table('message_read');
+
+        if ($dbman->table_exists($table)) {
+            // Migrate messages from message_read to message
+            $sql = 'INSERT INTO {message} (useridfrom, useridto, subject, fullmessage, fullmessageformat, fullmessagehtml, smallmessage, notification, contexturl, contexturlname, timecreated, timeread)
+                        SELECT useridfrom, useridto, subject, fullmessage, fullmessageformat, fullmessagehtml, smallmessage, notification, contexturl, contexturlname, timecreated, timeread
+                        FROM {message_read}';
+            $DB->execute($sql);
+
+            // Drop message_read            
+            $dbman->drop_table($table);
+        }
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2013011800.01);
+    }
 
     return true;
 }

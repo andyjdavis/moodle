@@ -36,9 +36,9 @@ class message_output_popup extends message_output{
 
     /**
      * Process the popup message.
-     * The popup doesn't send data only saves in the database for later use,
-     * the popup_interface.php takes the message from the message table into
-     * the message_read.
+     * 
+     * This just adds a row to message_working. The popup is produced by message_popup_window().
+     *
      * @param object $eventdata the event data submitted by the message sender plus $eventdata->savedmessageid
      * @return true if ok, false if error
      */

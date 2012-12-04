@@ -72,7 +72,11 @@
         //Get info from xml
         if ($status) {
             //info will contain the id and name of every table
-            //(message, message_read and message_contacts)
+            //(message and message_contacts)
+
+            // The message_read table was removed by MDL-36941.
+            // The message_read handling is retained here to deal with old backups.
+
             //in backup_ids->info will be the real info (serialized)
             $info = restore_read_xml_messages($restore,$xml_file);
 
@@ -197,12 +201,12 @@
                                             $dbrec->useridto = $user->new_id;
                                         }
                                         //Check if the record doesn't exist in DB!
-                                        $exist = $DB->get_record('message_read', array('useridfrom'=>$dbrec->useridfrom,
+                                        $exist = $DB->get_record('message', array('useridfrom'=>$dbrec->useridfrom,
                                                                                        'useridto'=>$dbrec->useridto,
                                                                                        'timecreated'=>$dbrec->timecreated));
                                         if (!$exist) {
                                             //Not exist. Insert
-                                            $status = $DB->insert_record('message_read',$dbrec);
+                                            $status = $DB->insert_record('message',$dbrec);
                                         } else {
                                             //Duplicate. Do nothing
                                         }
