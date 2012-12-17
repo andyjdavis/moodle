@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * External assign API
+ * External grading API
  *
- * @package    core_grade
+ * @package    core_grading
  * @since      Moodle 2.5
  * @copyright  2013 Paul Charsley
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -29,16 +29,16 @@ require_once("$CFG->libdir/externallib.php");
 require_once("$CFG->dirroot/grade/grading/lib.php");
 
 /**
- * core grade functions
+ * core grading functions
  */
-class core_grade_external extends external_api {
+class core_grading_external extends external_api {
 
     /**
      * Describes the parameters for get_definitions
      * @return external_function_parameters
      * @since Moodle 2.5
      */
-    public static function get_definitions_parameters () {
+    public static function get_definitions_parameters() {
         return new external_function_parameters(
             array(
                 'cmids' => new external_multiple_structure(
@@ -57,7 +57,7 @@ class core_grade_external extends external_api {
      * @return array of areas with definitions for each requested course module id
      * @since Moodle 2.5
      */
-    public static function get_definitions ($cmids, $areaname, $activeonly = false) {
+    public static function get_definitions($cmids, $areaname, $activeonly = false) {
         global $DB, $CFG;
         require_once("$CFG->dirroot/grade/grading/form/lib.php");
         $params = self::validate_parameters(self::get_definitions_parameters(),

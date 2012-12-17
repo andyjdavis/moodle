@@ -298,3 +298,4 @@ class web_service_token_form extends moodleform {
     }
 
 }
+

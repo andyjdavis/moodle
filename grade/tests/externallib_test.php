@@ -21,14 +21,14 @@ global $CFG;
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 
 /**
- * External core grade functions unit tests
+ * Unit tests for the grading API at /grade/externallib.php
  *
- * @package core_grade
+ * @package core_grading
  * @category external
  * @copyright 2013 Paul Charsley
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_grade_external_testcase extends externallib_advanced_testcase {
+class core_grading_external_testcase extends externallib_advanced_testcase {
 
     /**
      * Tests set up
@@ -148,7 +148,7 @@ class core_grade_external_testcase extends externallib_advanced_testcase {
         // Call the external function.
         $cmids = array ($cm->id);
         $areaname = 'submissions';
-        $result = core_grade_external::get_definitions($cmids, $areaname);
+        $result = core_grading_external::get_definitions($cmids, $areaname);
 
         $this->assertEquals(1, count($result['areas']));
         $this->assertEquals(1, count($result['areas'][0]['definitions']));
