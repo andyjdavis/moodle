@@ -295,6 +295,16 @@ class grade_report_grader extends grade_report {
                             $warnings[] = get_string('errorsavegrade', 'grades');
                             continue;
                         }
+                $errorstr = '';
+                // Warn if the grade is out of bounds.
+                if (is_null($finalgrade)) {
+                    // ok
+                } else {
+                    $bounded = $gradeitem->bounded_grade($finalgrade);
+                    if ($bounded > $finalgrade) {
+                        $errorstr = 'lessthanmin';
+                    } else if ($bounded < $finalgrade) {
+                        $errorstr = 'morethanmax';
                     }
 
                     $gradeitem->update_final_grade($userid, $finalgrade, 'gradebook', $feedback, FORMAT_MOODLE);
