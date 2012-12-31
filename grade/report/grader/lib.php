@@ -255,7 +255,7 @@ class grade_report_grader extends grade_report {
                 } else {
                     $bounded = $gradeitem->bounded_grade($finalgrade);
                     if ($bounded > $finalgrade) {
-                    $errorstr = 'lessthanmin';
+                        $errorstr = 'lessthanmin';
                     } else if ($bounded < $finalgrade) {
                         $errorstr = 'morethanmax';
                     }
