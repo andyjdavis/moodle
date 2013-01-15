@@ -117,6 +117,11 @@ switch ($action) {
             } else {
                 $json_object->gradevalue = $finalvalue;
 
+                $url = new moodle_url('/grade/report/grader/index.php', array('id' => $course->id));
+                $url = '/grade/report/grader/index.php?id='.$course->id;
+                $info = $course->fullname;
+                add_to_log($course->id, 'grade', 'override', $url, $info);
+
                 if ($grade_item->update_final_grade($userid, $finalgrade, 'gradebook', $feedback, FORMAT_MOODLE)) {
                     $json_object->result = 'success';
                     $json_object->message = false;
