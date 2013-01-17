@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 class tinymce_texteditor extends texteditor {
     /** @var string active version - this is the directory name where to find tinymce code */
-    public $version = '3.5.7b';
+    public $version = '3.5.8';
 
     /**
      * Is the current browser supported by this editor?
@@ -182,6 +182,16 @@ class tinymce_texteditor extends texteditor {
         } else {
             // At least one line is required.
             $params['theme_advanced_buttons1'] = '';
+        }
+
+        if (!empty($config->customconfig)) {
+            $config->customconfig = trim($config->customconfig);
+            $decoded = json_decode($config->customconfig, true);
+            if (is_array($decoded)) {
+                foreach ($decoded as $k=>$v) {
+                    $params[$k] = $v;
+                }
+            }
         }
 
         if (!empty($options['legacy']) or !empty($options['noclean']) or !empty($options['trusted'])) {

@@ -393,10 +393,12 @@ class core_renderer extends renderer_base {
         }
 
         // Get the theme javascript head and footer
-        $jsurl = $this->page->theme->javascript_url(true);
-        $this->page->requires->js($jsurl, true);
-        $jsurl = $this->page->theme->javascript_url(false);
-        $this->page->requires->js($jsurl);
+        if ($jsurl = $this->page->theme->javascript_url(true)) {
+            $this->page->requires->js($jsurl, true);
+        }
+        if ($jsurl = $this->page->theme->javascript_url(false)) {
+            $this->page->requires->js($jsurl);
+        }
 
         // Get any HTML from the page_requirements_manager.
         $output .= $this->page->requires->get_head_code($this->page, $this);
@@ -2103,7 +2105,7 @@ class core_renderer extends renderer_base {
         $attributes = array('src'=>$src, 'alt'=>$alt, 'title'=>$alt, 'class'=>$class, 'width'=>$size, 'height'=>$size);
 
         // get the image html output fisrt
-        $output = html_writer::empty_tag('img', $attributes);;
+        $output = html_writer::empty_tag('img', $attributes);
 
         // then wrap it in link if needed
         if (!$userpicture->link) {

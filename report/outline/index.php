@@ -42,7 +42,7 @@ add_to_log($course->id, 'course', 'report outline', "report/outline/index.php?id
 $showlastaccess = true;
 $hiddenfields = explode(',', $CFG->hiddenuserfields);
 
-if (array_search('lastaccess', $hiddenfields) and !has_capability('moodle/user:viewhiddendetails', $context)) {
+if (array_search('lastaccess', $hiddenfields) !== false and !has_capability('moodle/user:viewhiddendetails', $context)) {
     $showlastaccess = false;
 }
 
@@ -127,7 +127,7 @@ foreach ($modinfo->sections as $sectionnum=>$section) {
             $attributes['class'] = 'dimmed';
         }
 
-        $activitycell->text = $activityicon . html_writer::link("$CFG->wwwroot/mod/$cm->modname/view.php?id=$cm->id", format_string($cm->name), $attributes);;
+        $activitycell->text = $activityicon . html_writer::link("$CFG->wwwroot/mod/$cm->modname/view.php?id=$cm->id", format_string($cm->name), $attributes);
 
         $reportrow->cells[] = $activitycell;
 
