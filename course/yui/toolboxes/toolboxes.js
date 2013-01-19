@@ -64,7 +64,7 @@ YUI.add('moodle-course-toolboxes', function(Y) {
             var toggle_class;
             if (this.is_label(element)) {
                 toggle_class = CSS.DIMMEDTEXT;
-                dimarea = element.one(CSS.MODINDENTDIV + ' div');
+                dimarea = element.all(CSS.MODINDENTDIV + ' > div').item(1);
             } else {
                 toggle_class = CSS.DIMCLASS;
                 dimarea = element.one('a');
@@ -259,15 +259,6 @@ YUI.add('moodle-course-toolboxes', function(Y) {
         },
         _setup_for_resource : function(toolboxtarget) {
             toolboxtarget = Y.one(toolboxtarget);
-            // "Disable" show/hide icons (change cursor to not look clickable) if section is hidden
-            var showhide = toolboxtarget.all(CSS.COMMANDSPAN + ' ' + CSS.HIDE);
-            showhide.concat(toolboxtarget.all(CSS.COMMANDSPAN + ' ' + CSS.SHOW));
-            showhide.each(function(node) {
-                var section = node.ancestor(CSS.SECTIONLI);
-                if (section && section.hasClass(CSS.SECTIONHIDDENCLASS)) {
-                    node.setStyle('cursor', 'auto');
-                }
-            });
 
             // Set groupmode attribute for use by this.toggle_groupmode()
             var groups;
@@ -707,12 +698,6 @@ YUI.add('moodle-course-toolboxes', function(Y) {
 
                 if (Y.Array.indexOf(response.resourcestotoggle, activityid) != -1) {
                     this.toggle_hide_resource_ui(button);
-                }
-
-                if (value == 0) {
-                    button.setStyle('cursor', 'auto');
-                } else {
-                    button.setStyle('cursor', 'pointer');
                 }
             }, this);
         },

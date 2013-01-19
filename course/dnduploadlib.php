@@ -620,6 +620,9 @@ class dndupload_ajax_processor {
             throw new moodle_exception('errorcreatingactivity', 'moodle', '', $this->module->name);
         }
 
+        // Note the section visibility
+        $visible = get_fast_modinfo($this->course)->get_section_info($this->section)->visible;
+
         $DB->set_field('course_modules', 'instance', $instanceid, array('id' => $this->cm->id));
         // Rebuild the course cache after update action
         rebuild_course_cache($this->course->id, true);
@@ -627,7 +630,10 @@ class dndupload_ajax_processor {
 
         $sectionid = course_add_cm_to_section($this->course, $this->cm->id, $this->section);
 
-        set_coursemodule_visible($this->cm->id, true);
+        set_coursemodule_visible($this->cm->id, $visible);
+        if (!$visible) {
+            $DB->set_field('course_modules', 'visibleold', 1, array('id' => $this->cm->id));
+        }
 
         // retrieve the final info about this module.
         $info = get_fast_modinfo($this->course);
@@ -636,7 +642,7 @@ class dndupload_ajax_processor {
             delete_course_module($this->cm->id);
             throw new moodle_exception('errorcreatingactivity', 'moodle', '', $this->module->name);
         }
-        $mod = $info->cms[$this->cm->id];
+        $mod = $info->get_cm($this->cm->id);
         $mod->groupmodelink = $this->cm->groupmodelink;
         $mod->groupmode = $this->cm->groupmode;
 
@@ -665,7 +671,8 @@ class dndupload_ajax_processor {
      * @param cm_info $mod details of the mod just created
      */
     protected function send_response($mod) {
-        global $OUTPUT;
+        global $OUTPUT, $PAGE;
+        $courserenderer = $PAGE->get_renderer('core', 'course');
 
         $resp = new stdClass();
         $resp->error = self::ERROR_OK;
@@ -673,8 +680,10 @@ class dndupload_ajax_processor {
         $resp->name = $mod->name;
         $resp->link = $mod->get_url()->out();
         $resp->elementid = 'module-'.$mod->id;
-        $resp->commands = make_editing_buttons($mod, true, true, 0, $mod->sectionnum);
+        $actions = course_get_cm_edit_actions($mod, 0, $mod->sectionnum);
+        $resp->commands = ' '. $courserenderer->course_section_cm_edit_actions($actions);
         $resp->onclick = $mod->get_on_click();
+        $resp->visible = $mod->visible;
 
         // if using groupings, then display grouping name
         if (!empty($mod->groupingid) && has_capability('moodle/course:managegroups', $this->context)) {

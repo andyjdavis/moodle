@@ -778,6 +778,8 @@ class restore_groups_structure_step extends restore_structure_step {
         }
         // Save the id mapping
         $this->set_mapping('group', $oldid, $newitemid, $restorefiles);
+        // Invalidate the course group data cache just in case.
+        cache_helper::invalidate_by_definition('core', 'groupdata', array(), array($data->courseid));
     }
 
     public function process_grouping($data) {
@@ -821,23 +823,17 @@ class restore_groups_structure_step extends restore_structure_step {
         }
         // Save the id mapping
         $this->set_mapping('grouping', $oldid, $newitemid, $restorefiles);
+        // Invalidate the course group data cache just in case.
+        cache_helper::invalidate_by_definition('core', 'groupdata', array(), array($data->courseid));
     }
 
     public function process_grouping_group($data) {
-        global $DB;
+        global $CFG;
+
+        require_once($CFG->dirroot.'/group/lib.php');
 
         $data = (object)$data;
-
-        $data->groupingid = $this->get_new_parentid('grouping'); // Use new parentid
-        $data->groupid    = $this->get_mappingid('group', $data->groupid); // Get from mappings
-
-        $params = array();
-        $params['groupingid'] = $data->groupingid;
-        $params['groupid']    = $data->groupid;
-
-        if (!$DB->record_exists('groupings_groups', $params)) {
-            $DB->insert_record('groupings_groups', $data);  // No need to set this mapping (no child info nor files)
-        }
+        groups_assign_grouping($this->get_new_parentid('grouping'), $this->get_mappingid('group', $data->groupid), $data->timeadded);
     }
 
     protected function after_execute() {
@@ -846,6 +842,8 @@ class restore_groups_structure_step extends restore_structure_step {
         $this->add_related_files('group', 'description', 'group');
         // Add grouping related files, matching with "grouping" mappings
         $this->add_related_files('grouping', 'description', 'grouping');
+        // Invalidate the course group data.
+        cache_helper::invalidate_by_definition('core', 'groupdata', array(), array($this->get_courseid()));
     }
 
 }

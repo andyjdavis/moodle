@@ -48,6 +48,10 @@ class enrol_self_plugin extends enrol_plugin {
         $key = false;
         $nokey = false;
         foreach ($instances as $instance) {
+            if (!$instance->customint6) {
+                // New enrols not allowed.
+                continue;
+            }
             if ($instance->password or $instance->customint1) {
                 $key = true;
             } else {
@@ -107,6 +111,12 @@ class enrol_self_plugin extends enrol_plugin {
         if ($instance->status != ENROL_INSTANCE_ENABLED) {
             return false;
         }
+
+        if (!$instance->customint6) {
+            // New enrols not allowed.
+            return false;
+        }
+
         if ($instance->customint5) {
             require_once("$CFG->dirroot/cohort/lib.php");
             return cohort_is_member($instance->customint5, $USER->id);
@@ -197,6 +207,11 @@ class enrol_self_plugin extends enrol_plugin {
 
         if ($instance->enrolenddate != 0 and $instance->enrolenddate < time()) {
             //TODO: inform that enrolment is not possible any more
+            return null;
+        }
+
+        if (!$instance->customint6) {
+            // New enrols not allowed.
             return null;
         }
 
@@ -298,6 +313,7 @@ class enrol_self_plugin extends enrol_plugin {
         $fields['customint3']      = $this->get_config('maxenrolled');
         $fields['customint4']      = $this->get_config('sendcoursewelcomemessage');
         $fields['customint5']      = 0;
+        $fields['customint6']      = $this->get_config('newenrols');
 
         return $fields;
     }
@@ -543,7 +559,7 @@ class enrol_self_plugin extends enrol_plugin {
             $actions[] = new user_enrolment_action(new pix_icon('t/delete', ''), get_string('unenrol', 'enrol'), $url, array('class'=>'unenrollink', 'rel'=>$ue->id));
         }
         if ($this->allow_manage($instance) && has_capability("enrol/self:manage", $context)) {
-            $url = new moodle_url('/enrol/self/editenrolment.php', $params);
+            $url = new moodle_url('/enrol/editenrolment.php', $params);
             $actions[] = new user_enrolment_action(new pix_icon('t/edit', ''), get_string('edit'), $url, array('class'=>'editenrollink', 'rel'=>$ue->id));
         }
         return $actions;

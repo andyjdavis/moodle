@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -23,6 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['addmorechoiceblanks'] = 'Blanks for {no} more choices';
 $string['addcategory'] = 'Add category';
 $string['adminreport'] = 'Report on possible problems in your question database.';
 $string['availableq'] = 'Available?';
@@ -110,7 +110,7 @@ Each category has a context which determines where the questions in the category
 
 * Activity context - Questions only available in the activity module
 * Course context - Questions available in all activity modules in the course
-* Course category context - Questions available in all activity modules and courses in the course category 
+* Course category context - Questions available in all activity modules and courses in the course category
 * System context - Questions available in all courses and activities on the site
 
 Categories are also used for random questions, as questions are selected from a particular category.';
@@ -321,6 +321,7 @@ $string['complete'] = 'Complete';
 $string['contexterror'] = 'You shouldn\'t have got here if you\'re not moving a category to another context.';
 $string['correct'] = 'Correct';
 $string['correctfeedback'] = 'For any correct response';
+$string['correctfeedbackdefault'] = 'Your answer is correct.';
 $string['decimalplacesingrades'] = 'Decimal places in grades';
 $string['defaultmark'] = 'Default mark';
 $string['errorsavingflags'] = 'Error saving the flag state.';
@@ -346,6 +347,7 @@ $string['importfromupload'] = 'Select a file to upload ...';
 $string['includesubcategories'] = 'Also show questions from sub-categories';
 $string['incorrect'] = 'Incorrect';
 $string['incorrectfeedback'] = 'For any incorrect response';
+$string['incorrectfeedbackdefault'] = 'Your answer is incorrect.';
 $string['information'] = 'Information';
 $string['invalidanswer'] = 'Incomplete answer';
 $string['makecopy'] = 'Make copy';
@@ -367,6 +369,7 @@ $string['options'] = 'Options';
 $string['parent'] = 'Parent';
 $string['partiallycorrect'] = 'Partially correct';
 $string['partiallycorrectfeedback'] = 'For any partially correct response';
+$string['partiallycorrectfeedbackdefault'] = 'Your answer is partially correct.';
 $string['penaltyforeachincorrecttry'] = 'Penalty for each incorrect try';
 $string['penaltyforeachincorrecttry_help'] = 'When you run your questions using the \'Interactive with multiple tries\' or \'Adaptive mode\' behaviour, so that the the student will have several tries to get the question right, then this option controls how much they are penalised for each incorrect try.
 
@@ -379,6 +382,8 @@ $string['questionbehavioursorder'] = 'Question behaviours order';
 $string['questionbehavioursorderexplained'] = 'Enter a comma separated list of behaviours in the order you want them to appear in dropdown menu';
 $string['questionidmismatch'] = 'Question ids mismatch';
 $string['questionname'] = 'Question name';
+$string['questionpreviewdefaults'] = 'Question preview defaults';
+$string['questionpreviewdefaults_desc'] = 'These defaults are used when a user first previews a question in the question bank. Once a user has previewed a question, their personal preferences are stored as user preferences.';
 $string['questions'] = 'Questions';
 $string['questionx'] = 'Question {$a}';
 $string['questiontext'] = 'Question text';
@@ -391,7 +396,7 @@ $string['rightanswer'] = 'Right answer';
 $string['rightanswer_help'] = 'an automatically generated summary of the correct response. This can be limited, so you may wish to consider explaining the correct solution in the general feedback for the question, and turning this option off.';
 $string['saved'] = 'Saved: {$a}';
 $string['saveflags'] = 'Save the state of the flags';
-$string['settingsformultipletries'] = 'Settings for multiple tries';
+$string['settingsformultipletries'] = 'Multiple tries';
 $string['showhidden'] = 'Also show old questions';
 $string['showmarkandmax'] = 'Show mark and max';
 $string['showmaxmarkonly'] = 'Show max mark only';

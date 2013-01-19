@@ -123,7 +123,6 @@ class question_preview_options extends question_display_options {
      * Constructor.
      */
     public function __construct($question) {
-        global $CFG;
         $this->behaviour = 'deferredfeedback';
         $this->maxmark = $question->defaultmark;
         $this->variant = null;
@@ -169,9 +168,10 @@ class question_preview_options extends question_display_options {
      * Load the value of the options from the user_preferences table.
      */
     public function load_user_defaults() {
+        $defaults = get_config('question_preview');
         foreach ($this->get_user_pref_fields() as $field) {
             $this->$field = get_user_preferences(
-                    self::OPTIONPREFIX . $field, $this->$field);
+                    self::OPTIONPREFIX . $field, $defaults->$field);
         }
         $this->numpartscorrect = $this->feedback;
     }
@@ -341,14 +341,16 @@ function question_preview_cron() {
             'quba.component = :qubacomponent
                     AND NOT EXISTS (
                         SELECT 1
-                          FROM {question_attempts} qa
-                          JOIN {question_attempt_steps} qas ON qas.questionattemptid = qa.id
-                         WHERE qa.questionusageid = quba.id
-                           AND (qa.timemodified > :qamodifiedcutoff
-                                    OR qas.timecreated > :stepcreatedcutoff)
+                          FROM {question_attempts}      subq_qa
+                          JOIN {question_attempt_steps} subq_qas ON subq_qas.questionattemptid = subq_qa.id
+                          JOIN {question_usages}        subq_qu  ON subq_qu.id = subq_qa.questionusageid
+                         WHERE subq_qa.questionusageid = quba.id
+                           AND subq_qu.component = :qubacomponent2
+                           AND (subq_qa.timemodified > :qamodifiedcutoff
+                                    OR subq_qas.timecreated > :stepcreatedcutoff)
                     )
             ',
-            array('qubacomponent' => 'core_question_preview',
+            array('qubacomponent' => 'core_question_preview', 'qubacomponent2' => 'core_question_preview',
                 'qamodifiedcutoff' => $lastmodifiedcutoff, 'stepcreatedcutoff' => $lastmodifiedcutoff));
 
     question_engine::delete_questions_usage_by_activities($oldpreviews);

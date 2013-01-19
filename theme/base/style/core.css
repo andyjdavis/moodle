@@ -55,6 +55,8 @@ a.dimmed_text:visited,
 .block .list li,
 .sitetopic .section li.activity,
 .course-content .section li.activity,
+.sitetopic .section li.movehere,
+.course-content .section li.movehere,
 .tabtree li {list-style: none;margin:0;padding:0;}
 
 .course-content .current {background:#E3E3E3;}
@@ -942,7 +944,6 @@ sup {vertical-align: super;}
 
 /* Only set these options if we're showing the js container */
 .jsenabled .choosercontainer #chooseform .alloptions {
-    max-height: 550px;
     overflow-x: hidden;
     overflow-y: auto;
     max-width: 20.3em;
@@ -1037,7 +1038,6 @@ sup {vertical-align: super;}
     background-color: #FFFFFF;
     overflow-x: hidden;
     overflow-y: auto;
-    max-height: 550px;
     line-height: 2em;
 }
 

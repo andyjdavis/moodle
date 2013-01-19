@@ -3450,25 +3450,9 @@ class settings_navigation extends navigation_node {
             }
             $coursenode->add($editstring, $editurl, self::TYPE_SETTING, null, null, new pix_icon('i/edit', ''));
 
-            // Add the module chooser toggle
-            $modchoosertoggleurl = clone($baseurl);
-            if ($this->page->user_is_editing() && course_ajax_enabled($course)) {
-                if ($usemodchooser = get_user_preferences('usemodchooser', $CFG->modchooserdefault)) {
-                    $modchoosertogglestring = get_string('modchooserdisable', 'moodle');
-                    $modchoosertoggleurl->param('modchooser', 'off');
-                } else {
-                    $modchoosertogglestring = get_string('modchooserenable', 'moodle');
-                    $modchoosertoggleurl->param('modchooser', 'on');
-                }
-                $modchoosertoggle = $coursenode->add($modchoosertogglestring, $modchoosertoggleurl, self::TYPE_SETTING);
-                $modchoosertoggle->add_class('modchoosertoggle');
-                $modchoosertoggle->add_class('visibleifjs');
-                user_preference_allow_ajax_update('usemodchooser', PARAM_BOOL);
-            }
-
             // Add the course settings link
             $url = new moodle_url('/course/edit.php', array('id'=>$course->id));
-            $coursenode->add(get_string('editsettings'), $url, self::TYPE_SETTING, null, null, new pix_icon('i/settings', ''));
+            $coursenode->add(get_string('editsettings'), $url, self::TYPE_SETTING, null, 'editsettings', new pix_icon('i/settings', ''));
 
             // Add the course completion settings link
             if ($CFG->enablecompletion && $course->enablecompletion) {
@@ -3595,10 +3579,8 @@ class settings_navigation extends navigation_node {
             if ((count($roles)==1 && array_key_exists(0, $roles))|| $assumedrole!==false) {
                 $switchroles->force_open();
             }
-            $returnurl = $this->page->url;
-            $returnurl->param('sesskey', sesskey());
             foreach ($roles as $key => $name) {
-                $url = new moodle_url('/course/switchrole.php', array('id'=>$course->id,'sesskey'=>sesskey(), 'switchrole'=>$key, 'returnurl'=>$returnurl->out(false)));
+                $url = new moodle_url('/course/switchrole.php', array('id'=>$course->id, 'sesskey'=>sesskey(), 'switchrole'=>$key, 'returnurl'=>$this->page->url->out_as_local_url(false)));
                 $switchroles->add($name, $url, self::TYPE_SETTING, null, $key, new pix_icon('i/switchrole', ''));
             }
         }

@@ -705,6 +705,14 @@ function forum_cron() {
                 $eventdata->fullmessagehtml  = $posthtml;
                 $eventdata->notification = 1;
 
+                // If forum_replytouser is not set then send mail using the noreplyaddress.
+                if (empty($CFG->forum_replytouser)) {
+                    // Clone userfrom as it is referenced by $users.
+                    $cloneduserfrom = clone($userfrom);
+                    $cloneduserfrom->email = $CFG->noreplyaddress;
+                    $eventdata->userfrom = $cloneduserfrom;
+                }
+
                 $smallmessagestrings = new stdClass();
                 $smallmessagestrings->user = fullname($userfrom);
                 $smallmessagestrings->forumname = "$shortname: ".format_string($forum->name,true).": ".$discussion->name;
@@ -1006,10 +1014,9 @@ function forum_cron() {
                 }
 
                 $attachment = $attachname='';
-                $usetrueaddress = true;
                 // Directly email forum digests rather than sending them via messaging, use the
                 // site shortname as 'from name', the noreply address will be used by email_to_user.
-                $mailresult = email_to_user($userto, $site->shortname, $postsubject, $posttext, $posthtml, $attachment, $attachname, $usetrueaddress, $CFG->forum_replytouser);
+                $mailresult = email_to_user($userto, $site->shortname, $postsubject, $posttext, $posthtml, $attachment, $attachname);
 
                 if (!$mailresult) {
                     mtrace("ERROR!");

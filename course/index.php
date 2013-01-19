@@ -67,12 +67,11 @@ $straction = get_string('action');
 $strfulllistofcourses = get_string('fulllistofcourses');
 
 
-/// Unless it's an editing admin, just print the regular listing of courses/categories
+// Unless it's an editing admin, just print the regular listing of courses/categories.
 if (!$adminediting) {
-
-/// Print form for creating new categories
+    $showaddcoursebutton = true;
+    // Print form for creating new categories.
     $countcategories = $DB->count_records('course_categories');
-
     if ($countcategories > 1 || ($countcategories == 1 && $DB->count_records('course') > 200)) {
         $strcourses = get_string('courses');
         $strcategories = get_string('categories');
@@ -96,14 +95,13 @@ if (!$adminediting) {
         echo $OUTPUT->header();
         echo $OUTPUT->skip_link_target();
         echo $OUTPUT->box_start('courseboxes');
-        print_courses(0);
+        $showaddcoursebutton = print_courses(0);
         echo $OUTPUT->box_end();
     }
 
     echo $OUTPUT->container_start('buttons');
-    if (has_capability('moodle/course:create', $systemcontext)) {
-    /// Print link to create a new course
-    /// Get the 1st available category
+    if (has_capability('moodle/course:create', $systemcontext) && $showaddcoursebutton) {
+        // Print link to create a new course, for the 1st available category.
         $options = array('category' => $CFG->defaultrequestcategory);
         echo $OUTPUT->single_button(new moodle_url('edit.php', $options), get_string('addnewcourse'), 'get');
     }
@@ -254,7 +252,7 @@ $parentlist = array();
 $displaylist[0] = get_string('top');
 make_categories_list($displaylist, $parentlist);
 
-echo '<table class="generaltable editcourse boxaligncenter"><tr class="header">';
+echo '<table id="coursecategories" class="admintable generaltable editcourse"><tr class="header">';
 echo '<th class="header" scope="col">'.$strcategories.'</th>';
 echo '<th class="header" scope="col">'.$strcourses.'</th>';
 echo '<th class="header" scope="col">'.$stredit.'</th>';
@@ -309,7 +307,7 @@ function print_category_edit($category, $displaylist, $parentslist, $depth=-1, $
             $category->context = context_coursecat::instance($category->id);
         }
 
-        echo '<tr><td align="left" class="name">';
+        echo '<tr><td class="leftalign name">';
         for ($i=0; $i<$depth;$i++) {
             echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
         }
@@ -319,9 +317,9 @@ function print_category_edit($category, $displaylist, $parentslist, $depth=-1, $
              format_string($category->name, true, array('context' => $category->context)).'</a>';
         echo '</td>';
 
-        echo '<td class="count">'.$category->coursecount.'</td>';
+        echo '<td class="centeralign count">'.$category->coursecount.'</td>';
 
-        echo '<td class="icons">';    /// Print little icons
+        echo '<td class="centeralign icons">';  /// Print little icons
 
         if (has_capability('moodle/category:manage', $category->context)) {
             echo '<a title="'.$str->edit.'" href="editcategory.php?id='.$category->id.'"><img'.
@@ -358,7 +356,7 @@ function print_category_edit($category, $displaylist, $parentslist, $depth=-1, $
         }
         echo '</td>';
 
-        echo '<td align="left">';
+        echo '<td class="leftalign">';
         if (has_capability('moodle/category:manage', $category->context)) {
             $tempdisplaylist = $displaylist;
             unset($tempdisplaylist[$category->id]);
