@@ -693,7 +693,7 @@ function message_get_recent_conversations($user, $limitfrom=0, $limitto=100) {
     //This query retrieves the last message received from and sent to each user
     //It unions that data then, within that set, it finds the most recent message you've exchanged with each user over all
     //It then joins with some other tables to get some additional data we need
-    
+
     $sql = "SELECT $userfields, m.id as mid, m.smallmessage, m.fullmessage, m.timecreated, mc.id as contactlistid, mc.blocked
               FROM {message} m
               JOIN (
@@ -717,7 +717,7 @@ function message_get_recent_conversations($user, $limitfrom=0, $limitto=100) {
          LEFT JOIN {message_contacts} mc ON mc.userid = :userid3 AND mc.contactid = u.id
              WHERE u.deleted = '0'
              ORDER BY m.timecreated DESC";
-             
+
     $params = array('userid1' => $user->id, 'userid2' => $user->id, 'userid3' => $user->id);
     return $DB->get_records_sql($sql, $params, $limitfrom, $limitto);
 }

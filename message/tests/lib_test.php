@@ -94,7 +94,7 @@ class core_message_lib_testcase extends advanced_testcase {
         $savemessage->contexturl = null;
         $savemessage->contexturlname = null;
         $savemessage->timecreated = time();
-        
+
         // Not using message_send() as the recipient message settings can cause the message to be marked read immediately.
         $savemessage->id = $DB->insert_record('message', $savemessage);
         return $savemessage;

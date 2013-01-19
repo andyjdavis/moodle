@@ -36,7 +36,7 @@ class message_output_popup extends message_output{
 
     /**
      * Process the popup message.
-     * 
+     *
      * This just adds a row to message_working. The popup is produced by message_popup_window().
      *
      * @param object $eventdata the event data submitted by the message sender plus $eventdata->savedmessageid

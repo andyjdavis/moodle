@@ -1601,7 +1601,7 @@ function xmldb_main_upgrade($oldversion) {
                         FROM {message_read}';
             $DB->execute($sql);
 
-            // Drop message_read            
+            // Drop message_read
             $dbman->drop_table($table);
         }
 
