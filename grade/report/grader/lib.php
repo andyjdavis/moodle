@@ -304,6 +304,22 @@ class grade_report_grader extends grade_report {
                         $this->grades[$userid][$itemid]->feedback = $feedback;
                     }
                 }
+                if (!$sharinggroup) {
+                    // either group membership changed or somebody is hacking grades of other group
+                    $warnings[] = get_string('errorsavegrade', 'grades');
+                    continue;
+                }
+            }
+
+            $url = '/report/grader/index.php?id=' . $this->course->id;
+            $info = 'overrode the grade for ' . $gradeitem->itemname . ' in ' . $this->course->fullname;
+            add_to_log($this->course->id, 'grade', 'update', $url, $info);
+
+            $gradeitem->update_final_grade($userid, $finalgrade, 'gradebook', $feedback, FORMAT_MOODLE);
+
+            // We can update feedback without reloading the grade item as it doesn't affect grade calculations
+            if ($datatype === 'feedback') {
+                $this->grades[$userid][$itemid]->feedback = $feedback;
             }
         }
 

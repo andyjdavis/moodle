@@ -117,6 +117,10 @@ switch ($action) {
             } else {
                 $json_object->gradevalue = $finalvalue;
 
+                $url = '/report/grader/index.php?id=' . $course->id;
+                $info = 'overrode the grade for ' . $grade_item->itemname . ' in ' . $course->fullname;
+                add_to_log($course->id, 'grade', 'update', $url, $info);
+
                 if ($grade_item->update_final_grade($userid, $finalgrade, 'gradebook', $feedback, FORMAT_MOODLE)) {
                     $json_object->result = 'success';
                     $json_object->message = false;
