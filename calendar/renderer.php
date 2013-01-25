@@ -171,16 +171,13 @@ class core_calendar_renderer extends plugin_renderer_base {
         list($nextmon, $nextyr) = calendar_add_month($calendar->month, $calendar->year);
 
         $content  = html_writer::start_tag('div', array('class'=>'minicalendarblock'));
-        $content .= calendar_top_controls('display', array('id' => $calendar->courseid, 'm' => $prevmon, 'y' => $prevyr));
-        $content .= calendar_get_mini($calendar->courses, $calendar->groups, $calendar->users, $prevmon, $prevyr);
+        $content .= calendar_get_mini( $calendar->courses, $calendar->groups, $calendar->users, $prevmon, $prevyr, 'display', $calendar->courseid);
         $content .= html_writer::end_tag('div');
         $content .= html_writer::start_tag('div', array('class'=>'minicalendarblock'));
-        $content .= calendar_top_controls('display', array('id' => $calendar->courseid, 'm' => $calendar->month, 'y' => $calendar->year));
-        $content .= calendar_get_mini($calendar->courses, $calendar->groups, $calendar->users, $calendar->month, $calendar->year);
+        $content .= calendar_get_mini($calendar->courses, $calendar->groups, $calendar->users, $calendar->month, $calendar->year, 'display', $calendar->courseid);
         $content .= html_writer::end_tag('div');
         $content .= html_writer::start_tag('div', array('class'=>'minicalendarblock'));
-        $content .= calendar_top_controls('display', array('id' => $calendar->courseid, 'm' => $nextmon, 'y' => $nextyr));
-        $content .= calendar_get_mini($calendar->courses, $calendar->groups, $calendar->users, $nextmon, $nextyr);
+        $content .= calendar_get_mini($calendar->courses, $calendar->groups, $calendar->users, $nextmon, $nextyr, 'display', $calendar->courseid);
         $content .= html_writer::end_tag('div');
         return $content;
     }
@@ -292,6 +289,8 @@ class core_calendar_renderer extends plugin_renderer_base {
      * @return string
      */
     public function event(calendar_event $event, $showactions=true) {
+        global $CFG;
+
         $event = calendar_add_event_metadata($event);
 
         $anchor  = html_writer::tag('a', '', array('name'=>'event_'.$event->id));
@@ -319,6 +318,16 @@ class core_calendar_renderer extends plugin_renderer_base {
         }
         if (!empty($event->courselink)) {
             $table->data[0]->cells[1]->text .= html_writer::tag('div', $event->courselink, array('class'=>'course'));
+        }
+        // Show subscription source if needed.
+        if (!empty($event->subscription) && $CFG->calendar_showicalsource) {
+            if (!empty($event->subscription->url)) {
+                $source = html_writer::link($event->subscription->url, get_string('subsource', 'calendar', $event->subscription));
+            } else {
+                // File based ical.
+                $source = get_string('subsource', 'calendar', $event->subscription);
+            }
+            $table->data[0]->cells[1]->text .= html_writer::tag('div', $source, array('class' => 'subscription'));
         }
         if (!empty($event->time)) {
             $table->data[0]->cells[1]->text .= html_writer::tag('span', $event->time, array('class'=>'date'));

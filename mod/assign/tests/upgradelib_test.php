@@ -136,7 +136,7 @@ class mod_assign_upgradelib_testcase extends advanced_testcase {
         $plugin = $assign->get_submission_plugin_by_type('onlinetext');
         $this->assertEmpty($plugin->is_enabled());
         $plugin = $assign->get_submission_plugin_by_type('comments');
-        $this->assertNotEmpty($plugin->is_enabled());
+        $this->assertEmpty($plugin->is_enabled());
         $plugin = $assign->get_submission_plugin_by_type('file');
         $this->assertNotEmpty($plugin->is_enabled());
         $plugin = $assign->get_feedback_plugin_by_type('comments');
@@ -146,9 +146,7 @@ class mod_assign_upgradelib_testcase extends advanced_testcase {
         $plugin = $assign->get_feedback_plugin_by_type('offline');
         $this->assertEmpty($plugin->is_enabled());
 
-        $assign->delete_instance();
-        delete_course_module($cm->id);
-        delete_mod_from_section($cm->id, $cm->section);
+        course_delete_module($cm->id);
     }
 
     public function test_upgrade_uploadsingle_assignment() {
@@ -187,9 +185,7 @@ class mod_assign_upgradelib_testcase extends advanced_testcase {
         $plugin = $assign->get_feedback_plugin_by_type('offline');
         $this->assertEmpty($plugin->is_enabled());
 
-        $assign->delete_instance();
-        delete_course_module($cm->id);
-        delete_mod_from_section($cm->id, $cm->section);
+        course_delete_module($cm->id);
     }
 
     public function test_upgrade_onlinetext_assignment() {
@@ -228,9 +224,7 @@ class mod_assign_upgradelib_testcase extends advanced_testcase {
         $plugin = $assign->get_feedback_plugin_by_type('offline');
         $this->assertEmpty($plugin->is_enabled());
 
-        $assign->delete_instance();
-        delete_course_module($cm->id);
-        delete_mod_from_section($cm->id, $cm->section);
+        course_delete_module($cm->id);
     }
 
     public function test_upgrade_offline_assignment() {
@@ -269,8 +263,6 @@ class mod_assign_upgradelib_testcase extends advanced_testcase {
         $plugin = $assign->get_feedback_plugin_by_type('offline');
         $this->assertEmpty($plugin->is_enabled());
 
-        $assign->delete_instance();
-        delete_course_module($cm->id);
-        delete_mod_from_section($cm->id, $cm->section);
+        course_delete_module($cm->id);
     }
 }

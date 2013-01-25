@@ -68,6 +68,7 @@ function make_log_url($module, $url) {
         case 'lib':
         case 'admin':
         case 'calendar':
+        case 'category':
         case 'mnet course':
             if (strpos($url, '../') === 0) {
                 $url = ltrim($url, '.');
@@ -2149,6 +2150,13 @@ function set_coursemodule_visible($id, $visible) {
     if (!$cm = $DB->get_record('course_modules', array('id'=>$id))) {
         return false;
     }
+
+    // Create events and propagate visibility to associated grade items if the value has changed.
+    // Only do this if it's changed to avoid accidently overwriting manual showing/hiding of student grades.
+    if ($cm->visible == $visible) {
+        return true;
+    }
+
     if (!$modulename = $DB->get_field('modules', 'name', array('id'=>$cm->module))) {
         return false;
     }
@@ -2162,7 +2170,7 @@ function set_coursemodule_visible($id, $visible) {
         }
     }
 
-    // hide the associated grade items so the teacher doesn't also have to go to the gradebook and hide them there
+    // Hide the associated grade items so the teacher doesn't also have to go to the gradebook and hide them there.
     $grade_items = grade_item::fetch_all(array('itemtype'=>'mod', 'itemmodule'=>$modulename, 'iteminstance'=>$cm->instance, 'courseid'=>$cm->course));
     if ($grade_items) {
         foreach ($grade_items as $grade_item) {
@@ -2183,46 +2191,102 @@ function set_coursemodule_visible($id, $visible) {
 }
 
 /**
- * Delete a course module and any associated data at the course level (events)
- * Until 1.5 this function simply marked a deleted flag ... now it
- * deletes it completely.
+ * This function will handles the whole deletion process of a module. This includes calling
+ * the modules delete_instance function, deleting files, events, grades, conditional data,
+ * the data in the course_module and course_sections table and adding a module deletion
+ * event to the DB.
  *
+ * @param int $cmid the course module id
+ * @since 2.5
  */
-function delete_course_module($id) {
-    global $CFG, $DB;
+function course_delete_module($cmid) {
+    global $CFG, $DB, $USER;
+
     require_once($CFG->libdir.'/gradelib.php');
     require_once($CFG->dirroot.'/blog/lib.php');
 
-    if (!$cm = $DB->get_record('course_modules', array('id'=>$id))) {
+    // Get the course module.
+    if (!$cm = $DB->get_record('course_modules', array('id' => $cmid))) {
         return true;
     }
-    $modulename = $DB->get_field('modules', 'name', array('id'=>$cm->module));
-    //delete events from calendar
-    if ($events = $DB->get_records('event', array('instance'=>$cm->instance, 'modulename'=>$modulename))) {
+
+    // Get the module context.
+    $modcontext = context_module::instance($cm->id);
+
+    // Get the course module name.
+    $modulename = $DB->get_field('modules', 'name', array('id' => $cm->module), MUST_EXIST);
+
+    // Get the file location of the delete_instance function for this module.
+    $modlib = "$CFG->dirroot/mod/$modulename/lib.php";
+
+    // Include the file required to call the delete_instance function for this module.
+    if (file_exists($modlib)) {
+        require_once($modlib);
+    } else {
+        throw new moodle_exception("This module is missing mod/$modulename/lib.php", '', '',
+            null, 'failedtodeletemodulemissinglibfile');
+    }
+
+    $deleteinstancefunction = $modulename . "_delete_instance";
+
+    if (!$deleteinstancefunction($cm->instance)) {
+        throw new moodle_exception("Could not delete the $modulename (instance)", '', '',
+            null, 'failedtodeletemoduleinstance');
+    }
+
+    // Remove all module files in case modules forget to do that.
+    $fs = get_file_storage();
+    $fs->delete_area_files($modcontext->id);
+
+    // Delete events from calendar.
+    if ($events = $DB->get_records('event', array('instance' => $cm->instance, 'modulename' => $modulename))) {
         foreach($events as $event) {
             delete_event($event->id);
         }
     }
-    //delete grade items, outcome items and grades attached to modules
-    if ($grade_items = grade_item::fetch_all(array('itemtype'=>'mod', 'itemmodule'=>$modulename,
-                                                   'iteminstance'=>$cm->instance, 'courseid'=>$cm->course))) {
+
+    // Delete grade items, outcome items and grades attached to modules.
+    if ($grade_items = grade_item::fetch_all(array('itemtype' => 'mod', 'itemmodule' => $modulename,
+                                                   'iteminstance' => $cm->instance, 'courseid' => $cm->course))) {
         foreach ($grade_items as $grade_item) {
             $grade_item->delete('moddelete');
         }
     }
+
     // Delete completion and availability data; it is better to do this even if the
     // features are not turned on, in case they were turned on previously (these will be
-    // very quick on an empty table)
+    // very quick on an empty table).
     $DB->delete_records('course_modules_completion', array('coursemoduleid' => $cm->id));
     $DB->delete_records('course_modules_availability', array('coursemoduleid'=> $cm->id));
     $DB->delete_records('course_modules_avail_fields', array('coursemoduleid' => $cm->id));
     $DB->delete_records('course_completion_criteria', array('moduleinstance' => $cm->id,
                                                             'criteriatype' => COMPLETION_CRITERIA_TYPE_ACTIVITY));
 
+    // Delete the context.
     delete_context(CONTEXT_MODULE, $cm->id);
-    $DB->delete_records('course_modules', array('id'=>$cm->id));
+
+    // Delete the module from the course_modules table.
+    $DB->delete_records('course_modules', array('id' => $cm->id));
+
+    // Delete module from that section.
+    if (!delete_mod_from_section($cm->id, $cm->section)) {
+        throw new moodle_exception("Could not delete the $modulename from section", '', '',
+            null, 'failedtodeletemodulefromsection');
+    }
+
+    // Trigger a mod_deleted event with information about this module.
+    $eventdata = new stdClass();
+    $eventdata->modulename = $modulename;
+    $eventdata->cmid       = $cm->id;
+    $eventdata->courseid   = $cm->course;
+    $eventdata->userid     = $USER->id;
+    events_trigger('mod_deleted', $eventdata);
+
+    add_to_log($cm->course, 'course', "delete mod",
+               "view.php?id=$cm->course",
+               "$modulename $cm->instance", $cm->id);
+
     rebuild_course_cache($cm->course, true);
-    return true;
 }
 
 function delete_mod_from_section($modid, $sectionid) {
@@ -2418,7 +2482,7 @@ function reorder_sections($sections, $origin_position, $target_position) {
  * All parameters are objects
  */
 function moveto_module($mod, $section, $beforemod=NULL) {
-    global $OUTPUT;
+    global $OUTPUT, $DB;
 
 /// Remove original module from original section
     if (! delete_mod_from_section($mod->id, $mod->section)) {
@@ -2427,7 +2491,16 @@ function moveto_module($mod, $section, $beforemod=NULL) {
 
     // if moving to a hidden section then hide module
     if (!$section->visible && $mod->visible) {
+        // Set this in the object because it is sent as a response to ajax calls.
+        $mod->visible = 0;
         set_coursemodule_visible($mod->id, 0);
+        // Set visibleold to 1 so module will be visible when section is made visible.
+        $DB->set_field('course_modules', 'visibleold', 1, array('id' => $mod->id));
+    }
+    if ($section->visible && !$mod->visible) {
+        set_coursemodule_visible($mod->id, $mod->visibleold);
+        // Set this in the object because it is sent as a response to ajax calls.
+        $mod->visible = $mod->visibleold;
     }
 
 /// Add the module into the new section
@@ -2722,6 +2795,7 @@ function category_delete_full($category, $showfeedback=true) {
     // finally delete the category and it's context
     $DB->delete_records('course_categories', array('id'=>$category->id));
     delete_context(CONTEXT_COURSECAT, $category->id);
+    add_to_log(SITEID, "category", "delete", "index.php", "$category->name (ID $category->id)");
 
     events_trigger('course_category_deleted', $category);
 
@@ -2777,6 +2851,7 @@ function category_delete_move($category, $newparentid, $showfeedback=true) {
     // finally delete the category and it's context
     $DB->delete_records('course_categories', array('id'=>$category->id));
     delete_context(CONTEXT_COURSECAT, $category->id);
+    add_to_log(SITEID, "category", "delete", "index.php", "$category->name (ID $category->id)");
 
     events_trigger('course_category_deleted', $category);
 
@@ -2823,6 +2898,7 @@ function move_courses($courseids, $categoryid) {
             }
 
             $DB->update_record('course', $course);
+            add_to_log($course->id, "course", "move", "edit.php?id=$course->id", $course->id);
 
             $context   = context_course::instance($course->id);
             context_moved($context, $newparent);
@@ -2855,6 +2931,7 @@ function course_category_hide($category) {
             $DB->set_field('course', 'visible', 0, array('category' => $cat->id));
         }
     }
+    add_to_log(SITEID, "category", "hide", "editcategory.php?id=$category->id", $category->id);
 }
 
 /**
@@ -2878,6 +2955,7 @@ function course_category_show($category) {
             $DB->execute("UPDATE {course} SET visible = visibleold WHERE category = ?", array($cat->id));
         }
     }
+    add_to_log(SITEID, "category", "show", "editcategory.php?id=$category->id", $category->id);
 }
 
 /**
@@ -2891,12 +2969,10 @@ function move_category($category, $newparentcat) {
 
     $hidecat = false;
     if (empty($newparentcat->id)) {
-        $DB->set_field('course_categories', 'parent', 0, array('id'=>$category->id));
-
+        $DB->set_field('course_categories', 'parent', 0, array('id' => $category->id));
         $newparent = context_system::instance();
-
     } else {
-        $DB->set_field('course_categories', 'parent', $newparentcat->id, array('id'=>$category->id));
+        $DB->set_field('course_categories', 'parent', $newparentcat->id, array('id' => $category->id));
         $newparent = context_coursecat::instance($newparentcat->id);
 
         if (!$newparentcat->visible and $category->visible) {
@@ -2909,6 +2985,9 @@ function move_category($category, $newparentcat) {
 
     // now make it last in new category
     $DB->set_field('course_categories', 'sortorder', MAX_COURSES_IN_CATEGORY*MAX_COURSE_CATEGORIES, array('id'=>$category->id));
+
+    // Log action.
+    add_to_log(SITEID, "category", "move", "editcategory.php?id=$category->id", $category->id);
 
     // and fix the sortorders
     fix_course_sortorder();

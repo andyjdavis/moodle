@@ -372,8 +372,8 @@ function assign_print_overview($courses, &$htmlarray) {
                                                g.userid = ?
                                            LEFT JOIN {assign_submission} s ON
                                                s.assignment = a.id AND
-                                               s.userid = ? AND
-                                               a.id ' . $sqlassignmentids, $dbparams);
+                                               s.userid = ?
+                                           WHERE a.id ' . $sqlassignmentids, $dbparams);
 
     foreach ($assignments as $assignment) {
         // Do not show assignments that are not open.
