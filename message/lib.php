@@ -1477,19 +1477,14 @@ function message_history_link($userid1, $userid2, $return=false, $keywords='', $
  * @param int $courseid The course in question.
  * @param string $searchtext the text to search for
  * @param string $sort the column name to order by
- * @param string $exceptions comma separated list of user IDs to exclude
+ * @param string|array $exceptions comma separated list or array of user IDs to exclude.
  * @return array  An array of {@link $USER} records.
  */
 function message_search_users($courseid, $searchtext, $sort='', $exceptions='') {
     global $CFG, $USER, $DB;
 
     $fullname = $DB->sql_fullname();
-
-    if (!empty($exceptions)) {
-        $except = ' AND u.id NOT IN ('. $exceptions .') ';
-    } else {
-        $except = '';
-    }
+    $ufields = user_picture::fields('u');
 
     if (!empty($sort)) {
         $order = ' ORDER BY '. $sort;
@@ -1497,15 +1492,33 @@ function message_search_users($courseid, $searchtext, $sort='', $exceptions='') 
         $order = '';
     }
 
-    $ufields = user_picture::fields('u');
+    $params = array(
+        'userid' => $USER->id,
+        'query' => "%$searchtext%"
+    );
+
+    if (empty($exceptions)) {
+        $exceptions = array();
+    } else if (!empty($exceptions) && is_string($exceptions)) {
+        $exceptions = explode(',', $exceptions);
+    }
+
+    // Ignore self and guest account.
+    $exceptions[] = $USER->id;
+    $exceptions[] = $CFG->siteguest;
+
+    // Exclude exceptions from the search result.
+    list($except, $params_except) = $DB->get_in_or_equal($exceptions, SQL_PARAMS_NAMED, 'param', false);
+    $except = ' AND u.id ' . $except;
+    $params = array_merge($params_except, $params);
+
     if (!$courseid or $courseid == SITEID) {
-        $params = array($USER->id, "%$searchtext%");
         return $DB->get_records_sql("SELECT $ufields, mc.id as contactlistid, mc.blocked
                                        FROM {user} u
                                        LEFT JOIN {message_contacts} mc
-                                            ON mc.contactid = u.id AND mc.userid = ?
+                                            ON mc.contactid = u.id AND mc.userid = :userid
                                       WHERE u.deleted = '0' AND u.confirmed = '1'
-                                            AND (".$DB->sql_like($fullname, '?', false).")
+                                            AND (".$DB->sql_like($fullname, ':query', false).")
                                             $except
                                      $order", $params);
     } else {
@@ -1514,15 +1527,14 @@ function message_search_users($courseid, $searchtext, $sort='', $exceptions='') 
         $contextlists = get_related_contexts_string($context);
 
         // everyone who has a role assignment in this course or higher
-        $params = array($USER->id, "%$searchtext%");
         $users = $DB->get_records_sql("SELECT DISTINCT $ufields, mc.id as contactlistid, mc.blocked
                                          FROM {user} u
                                          JOIN {role_assignments} ra ON ra.userid = u.id
                                          LEFT JOIN {message_contacts} mc
-                                              ON mc.contactid = u.id AND mc.userid = ?
+                                              ON mc.contactid = u.id AND mc.userid = :userid
                                         WHERE u.deleted = '0' AND u.confirmed = '1'
                                               AND ra.contextid $contextlists
-                                              AND (".$DB->sql_like($fullname, '?', false).")
+                                              AND (".$DB->sql_like($fullname, ':query', false).")
                                               $except
                                        $order", $params);
 
