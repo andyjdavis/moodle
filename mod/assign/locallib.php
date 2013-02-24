@@ -3948,6 +3948,9 @@ class assign {
         $modifiedusers = array();
         foreach ($currentgrades as $current) {
             $modified = $users[(int)$current->userid];
+            if ($modified->lastmodified < 0) {
+                continue;
+            }
             $grade = $this->get_user_grade($modified->userid, false);
 
             // Check to see if the outcomes were modified.
