@@ -1177,6 +1177,7 @@ class grade_category extends grade_object {
 
                 if ($cat->path !== '/'.$cat->id.'/') {
                     $grade_category = new grade_category($cat, false);
+                    $grade_category->id = $cat->id;
                     $grade_category->path  = '/'.$cat->id.'/';
                     $grade_category->depth = 1;
                     $grade_category->update('system');
