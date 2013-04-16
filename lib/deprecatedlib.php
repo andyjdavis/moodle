@@ -4849,3 +4849,11 @@ function can_use_rotated_text() {
     debugging('can_use_rotated_text() is deprecated since Moodle 2.5. JS feature detection is used automatically.', DEBUG_DEVELOPER);
     return true;
 }
+
+/**
+ * This function has been deprecated please use {@link message_get_providers_for_user()} instead.
+ * @deprecated since 2.1
+ */
+function message_get_my_providers() {
+    throw new coding_exception('message_get_my_providers() is deprecated please use message_get_providers_for_user()');
+} 
