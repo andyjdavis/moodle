@@ -38,5 +38,9 @@ $string['newmodule'] = 'Link Bazaar';
 $string['nonewmodules'] = 'No Link Bazaar instances';
 $string['pluginadministration'] = 'Link Bazaar administration';
 $string['pluginname'] = 'Link Bazaar';
+$string['upvote'] = 'up vote';
+$string['upvoteremove'] = 'remove up vote';
+$string['upvotetitle'] = 'Click here to vote for this link if it was useful';
+$string['upvoteremovetitle'] = 'click here to remove your up vote';
 $string['votingownlink'] = 'You cannot upvote your own links';
 

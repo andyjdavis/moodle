@@ -80,18 +80,22 @@ foreach ($linkbazaar->links as $link) {
         if (!array_key_exists($link->id, $votes)) {
             $votelink = html_writer::link(
                 new moodle_url('vote.php', array('contextid' => $context->id, 'linkid' => $link->id)),
-                format_string('upvote', true)
+                html_writer::empty_tag('img', array('src' => 'pix/arrow.png',
+                                                    'alt' => get_string('upvote', 'linkbazaar'),
+                                                    'title' => get_string('upvotetitle', 'linkbazaar')))
             );
         } else {
             $votelink = html_writer::link(
                 new moodle_url('vote.php', array('contextid' => $context->id,
                                                       'linkid' => $link->id,
                                                       'delete' => 1)),
-                format_string('remove upvote', true)
+                html_writer::empty_tag('img', array('src' => 'pix/selectedarrow.png',
+                                                    'alt' => get_string('upvoteremove', 'linkbazaar'),
+                                                    'title' => get_string('upvoteremovetitle', 'linkbazaar')))
             );
         }
     }
-    
+
     if ($USER->id == $link->userid || $canmoderate) {
         $deletelink = html_writer::link(
             new moodle_url('link.php', array('id' => $linkbazaar->id, 'linkid' => $link->id, 'delete' => 1)),
