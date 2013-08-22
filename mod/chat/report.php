@@ -133,7 +133,7 @@
     $PAGE->set_title(format_string($chat->name).": $strchatreport");
     echo $OUTPUT->header();
 
-    echo $OUTPUT->heading(format_string($chat->name).': '.get_string('sessions', 'chat'));
+    echo $OUTPUT->heading(format_string($chat->name).': '.get_string('sessions', 'chat'), 2, null);
 
 
 /// Check to see if groups are being used here

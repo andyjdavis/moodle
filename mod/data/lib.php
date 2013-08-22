@@ -1986,13 +1986,12 @@ function data_print_header($course, $cm, $data, $currenttab='') {
 
     $PAGE->set_title($data->name);
     echo $OUTPUT->header();
-    echo $OUTPUT->heading(format_string($data->name));
+    echo $OUTPUT->heading(format_string($data->name), 2, null);
+    echo $OUTPUT->box(format_module_intro('data', $data, $cm->id), 'generalbox', 'intro');
 
-// Groups needed for Add entry tab
+    // Groups needed for Add entry tab
     $currentgroup = groups_get_activity_group($cm);
     $groupmode = groups_get_activity_groupmode($cm);
-
-    echo $OUTPUT->box(format_module_intro('data', $data, $cm->id), 'generalbox', 'intro');
 
     // Print the tabs
 

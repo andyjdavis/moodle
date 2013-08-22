@@ -97,7 +97,7 @@ $form_save->set_data(array('d' => $data->id, 'name'=>$data->name));
 /* Output */
 if (!$form_export->is_submitted()) {
     echo $OUTPUT->header();
-    echo $OUTPUT->heading(format_string($data->name));
+    echo $OUTPUT->heading(format_string($data->name), 2, null);
 
     // Needed for tabs.php
     $currenttab = 'presets';

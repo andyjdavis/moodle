@@ -249,10 +249,9 @@ if ($datarecord = data_submitted() and confirm_sesskey()) {
 /// Print the page header
 
 echo $OUTPUT->header();
-groups_print_activity_menu($cm, $CFG->wwwroot.'/mod/data/edit.php?d='.$data->id);
-echo $OUTPUT->heading(format_string($data->name));
-
+echo $OUTPUT->heading(format_string($data->name), 2, null);
 echo $OUTPUT->box(format_module_intro('data', $data, $cm->id), 'generalbox', 'intro');
+groups_print_activity_menu($cm, $CFG->wwwroot.'/mod/data/edit.php?d='.$data->id);
 
 /// Print the tabs
 

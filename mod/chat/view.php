@@ -95,7 +95,6 @@ echo $OUTPUT->header();
 /// Check to see if groups are being used here
 $groupmode = groups_get_activity_groupmode($cm);
 $currentgroup = groups_get_activity_group($cm, true);
-groups_print_activity_menu($cm, $CFG->wwwroot . "/mod/chat/view.php?id=$cm->id");
 
 // url parameters
 $params = array();
@@ -108,11 +107,13 @@ if ($currentgroup) {
     $groupparam = "";
 }
 
-echo $OUTPUT->heading(format_string($chat->name));
+echo $OUTPUT->heading(format_string($chat->name), 2, null);
 
 if ($chat->intro) {
     echo $OUTPUT->box(format_module_intro('chat', $chat, $cm->id), 'generalbox', 'intro');
 }
+
+groups_print_activity_menu($cm, $CFG->wwwroot . "/mod/chat/view.php?id=$cm->id");
 
 if (has_capability('mod/chat:chat', $context)) {
     /// Print the main part of the page
