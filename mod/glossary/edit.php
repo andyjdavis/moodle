@@ -184,7 +184,10 @@ if (!empty($id)) {
 $PAGE->set_title(format_string($glossary->name));
 $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($glossary->name));
+echo $OUTPUT->heading(format_string($glossary->name), 2);
+if ($glossary->intro) {
+    echo $OUTPUT->box(format_module_intro('glossary', $glossary, $cm->id), 'generalbox', 'intro');
+}
 
 $mform->display();
 
