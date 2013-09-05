@@ -67,4 +67,11 @@ $observers = array(
         'callback' => 'quiz_attempt_submitted_handler',
         'internal' => false
     ),
+
+    // On question edit, update related information.
+    array(
+        'eventname'   => '\core\event\question_updated',
+        'includefile' => 'mod/quiz/locallib.php',
+        'callback'    => 'quiz_question_updated_handler',
+    ),
 );
