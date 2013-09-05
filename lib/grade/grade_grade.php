@@ -781,6 +781,11 @@ class grade_grade extends grade_object {
             \availability_grade\callbacks::grade_changed($this->userid);
         }
 
+        // Sync the grade to outcome attempts if necessary
+        if (!empty($CFG->core_outcome_enable)) {
+            \core_outcome\service::attempt()->sync_mod_attempt_with_grade($this, $deleted);
+        }
+
         require_once($CFG->libdir.'/completionlib.php');
 
         // Bail out immediately if completion is not enabled for site (saves loading

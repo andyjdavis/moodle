@@ -70,7 +70,7 @@ function quiz_has_question_use($quiz, $slot) {
  * @param int $questionid The id of the question to be deleted.
  */
 function quiz_remove_slot($quiz, $slotnumber) {
-    global $DB;
+    global $CFG, $DB;
 
     $slot = $DB->get_record('quiz_slots', array('quizid' => $quiz->id, 'slot' => $slotnumber));
     $maxslot = $DB->get_field_sql('SELECT MAX(slot) FROM {quiz_slots} WHERE quizid = ?', array($quiz->id));
@@ -85,6 +85,12 @@ function quiz_remove_slot($quiz, $slotnumber) {
                 array('quizid' => $quiz->id, 'slot' => $i));
     }
     $trans->allow_commit();
+
+    if (!empty($CFG->core_outcome_enable)) {
+        if ($outcomearea = question_get_outcome_area($questionid)) {
+            \core_outcome\service::area()->unset_area_used($outcomearea, $quiz->cmid);
+        }
+    }
 }
 
 /**
@@ -119,7 +125,7 @@ function quiz_delete_empty_page($quiz, $pagenumber) {
  * @return bool false if the question was already in the quiz
  */
 function quiz_add_quiz_question($questionid, $quiz, $page = 0, $maxmark = null) {
-    global $DB;
+    global $CFG, $DB;
     $slots = $DB->get_records('quiz_slots', array('quizid' => $quiz->id),
             'slot', 'questionid, slot, page, id');
     if (array_key_exists($questionid, $slots)) {
@@ -180,6 +186,12 @@ function quiz_add_quiz_question($questionid, $quiz, $page = 0, $maxmark = null) 
 
     $DB->insert_record('quiz_slots', $slot);
     $trans->allow_commit();
+
+    if (!empty($CFG->core_outcome_enable)) {
+        if ($outcomearea = question_get_outcome_area($id)) {
+            \core_outcome\service::area()->set_area_used($outcomearea, $quiz->cmid);
+        }
+    }
 }
 
 /**

@@ -29,7 +29,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-
 /**
  * @deprecated since 2.6 - use core_plugin_manager instead.
  */

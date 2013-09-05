@@ -227,7 +227,12 @@ if (!empty($add)) {
     } else {
         $pageheading = get_string('updatinga', 'moodle', $fullmodulename);
     }
+
     $navbaraddition = null;
+
+    if (!empty($CFG->core_outcome_enable)) {
+        $data->outcomes = \core_outcome\service::mapper()->get_outcome_mappings_for_form('mod_'.$module->name, 'mod', $cm->id);
+    }
 
 } else {
     require_login();

@@ -354,6 +354,7 @@ $cache = '.var_export($cache, true).';
             //'moodle.org'  => null, // Not used any more.
             'my'          => $CFG->dirroot.'/my',
             'notes'       => $CFG->dirroot.'/notes',
+            'outcome'     => $CFG->dirroot.'/outcome',
             'pagetype'    => null,
             'pix'         => null,
             'plagiarism'  => $CFG->dirroot.'/plagiarism',
@@ -414,6 +415,9 @@ $cache = '.var_export($cache, true).';
             'tool'          => $CFG->dirroot.'/'.$CFG->admin.'/tool',
             'cachestore'    => $CFG->dirroot.'/cache/stores',
             'cachelock'     => $CFG->dirroot.'/cache/locks',
+            'outcomesupport' => $CFG->dirroot.'/outcome/support',
+            'outcomeimport'  => $CFG->dirroot.'/outcome/import',
+            'outcomeexport'  => $CFG->dirroot.'/outcome/export',
         );
         $parents = array();
         $subplugins = array();

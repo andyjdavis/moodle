@@ -62,6 +62,12 @@ function assignment_delete_instance($id){
     if ($cm = get_coursemodule_from_instance('assignment', $assignment->id)) {
         $context = context_module::instance($cm->id);
         $fs->delete_area_files($context->id);
+        
+        // Remove all outcome attempts except for those directly related to the assignment.
+        if (!empty($CFG->core_outcome_enable)) {
+            $excludearea = \core_outcome\service::area()->get_area('mod_assignment', 'mod', $cm->id);
+            \core_outcome\service::attempt()->remove_mod_attempts($cm->id, $excludearea);
+        }
     }
 
     if (! $DB->delete_records('assignment_submissions', array('assignment'=>$assignment->id))) {
