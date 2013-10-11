@@ -25,6 +25,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'General Moodle Format';
-$string['pleaseusexml'] = 'Only XML files can be processed by the General Moodle Format.';
+$string['pluginname'] = 'Moodle XML Format';
+$string['pleaseusexml'] = 'Only XML files can be processed by the Moodle XML Format.';
 $string['failedtofindid'] = 'Failed to find id tag for outcome, ensure each outcome has an id tag.';

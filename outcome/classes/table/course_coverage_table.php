@@ -156,7 +156,7 @@ class course_coverage_table extends report_abstract {
         $params['systemid3']      = $system->id;
 
         $params = array_merge($params, $activitiesinparmas, $resourcesinparams, $filterparams);
-        $where  = "$filtersql->where GROUP BY o.id, t1.resources, t2.activities, t3.questions, t3.questionsused";
+        $where  = "$filtersql->where GROUP BY o.id, o.docnum, o.description, t1.resources, t2.activities, t3.questions, t3.questionsused";
 
         $this->set_sql(implode(', ', $fields), $from, $where, $params);
         $this->set_count_sql("SELECT COUNT(1) FROM (SELECT o.id FROM {outcome} o $filtersql->join WHERE $filtersql->where $filtersql->groupby) x", $filterparams);
