@@ -716,7 +716,7 @@ class backup_course_outcome_structure_step extends backup_structure_step {
         $histories->add_child($history);
 
         $usedset->set_source_sql('
-            SELECT s.idnumber, u.filter
+            SELECT s.id, s.idnumber, u.filter
               FROM {outcome_sets} s
         INNER JOIN {outcome_used_sets} u ON s.id = u.outcomesetid
              WHERE u.courseid = ?
