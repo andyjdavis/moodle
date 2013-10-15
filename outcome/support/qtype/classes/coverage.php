@@ -123,7 +123,7 @@ class coverage extends coverage_abstract {
              WHERE qc.contextid $contextinsql AND area.id IS NULL
                AND (qc.contextid != :systemctx1 OR (qc.contextid = :systemctx2 AND quiz.id IS NOT NULL))
                $qtypesql
-          GROUP BY q.id", $params);
+          GROUP BY q.id, q.name", $params);
 
         return $this->add_invalid_mapped_questions($unmapped);
     }
@@ -167,7 +167,7 @@ class coverage extends coverage_abstract {
              WHERE qc.contextid $contextinsql
                AND (qc.contextid != :systemctx1 OR (qc.contextid = :systemctx2 AND quiz.id IS NOT NULL))
                $qtypesql
-          GROUP BY q.id", $params);
+          GROUP BY q.id, q.name", $params);
 
         foreach ($mapinfos as $mapinfo) {
             if (empty($mapinfo->validcount) and !array_key_exists($mapinfo->id, $unmapped)) {

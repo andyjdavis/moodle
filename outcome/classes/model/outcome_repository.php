@@ -127,7 +127,7 @@ class outcome_repository extends abstract_repository {
         }
         if (!empty($joins)) {
             $sql->join    = implode(' ', $joins);
-            $sql->groupby = 'GROUP BY o.id';
+            $sql->groupby = 'GROUP BY o.id, o.description, o.idnumber, o.docnum, o.sortorder, o.timemodified, o.timecreated, o.parentid, o.outcomesetid, o.assessable, o.deleted';
         }
         return array($sql, $params);
     }

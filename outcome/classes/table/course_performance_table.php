@@ -167,7 +167,7 @@ class course_performance_table extends report_abstract {
 
         $params = array_merge($params, $enrolledparams, $filterparams);
 
-        $this->set_sql(implode(', ', $fields), $from, "$filtersql->where GROUP BY o.id", $params);
+        $this->set_sql(implode(', ', $fields), $from, "$filtersql->where GROUP BY o.id, o.docnum, o.description", $params);
         $this->set_count_sql("SELECT COUNT(1) FROM (SELECT o.id FROM {outcome} o $filtersql->join WHERE $filtersql->where $filtersql->groupby) x", $filterparams);
     }
 

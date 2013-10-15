@@ -159,7 +159,7 @@ class marking_table extends report_abstract {
         $params['itemnumber']    = 0;
         $params['gradetype']     = GRADE_TYPE_SCALE;
 
-        $this->set_sql(implode(', ', $fields), $from, "$filtersql->where GROUP BY o.id, m.id", array_merge($params, $filterparams));
+        $this->set_sql(implode(', ', $fields), $from, "$filtersql->where GROUP BY o.id, o.docnum, o.description, m.id, m.result", array_merge($params, $filterparams));
         $this->set_count_sql("SELECT COUNT(1) FROM (SELECT o.id FROM {outcome} o $filtersql->join WHERE $filtersql->where $filtersql->groupby) x", $filterparams);
     }
 
