@@ -310,17 +310,14 @@ class mod_lesson_mod_form extends moodleform_mod {
      **/
     function data_preprocessing(&$default_values) {
         global $DB;
-        global $module;
+
         if (isset($default_values['conditions'])) {
             $conditions = unserialize($default_values['conditions']);
             $default_values['timespent'] = $conditions->timespent;
             $default_values['completed'] = $conditions->completed;
             $default_values['gradebetterthan'] = $conditions->gradebetterthan;
         }
-        // after this passwords are clear text, MDL-11090
-        if (isset($default_values['password']) and ($module->version<2008112600)) {
-            unset($default_values['password']);
-        }
+
 
         if ($this->current->instance) {
             // editing existing instance - copy existing files into draft area
