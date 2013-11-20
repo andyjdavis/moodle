@@ -15,20 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Outcome report library functions
+ * Outcome import plugin info.
  *
- * @package    gradereport_outcomes
- * @copyright  Copyright (c) 2013 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   core_outcome
+ * @category  outcome
+ * @copyright 2013 Sam Hemelryk
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
- * Determine if the outcomes grade report is enabled or not
- *
- * @return bool
- */
-function gradereport_outcomes_is_enabled() {
-    global $CFG;
+namespace core\plugininfo;
 
-    return !empty($CFG->enableoutcomes);
+defined('MOODLE_INTERNAL') || die();
+
+class outcomeimport extends base {
+
 }

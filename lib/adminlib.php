@@ -8619,7 +8619,8 @@ class admin_setting_php_extension_enabled extends admin_setting {
     }
 }
 
-/** This setting manages two settings:
+/**
+ * This setting manages two settings:
  *      1. $CFG->enableoutcomes - turns legacy outcomes On/Off
  *      2. $CFG->core_outcome_enable - turns new outcomes On/Off
  *

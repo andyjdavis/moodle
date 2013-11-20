@@ -137,8 +137,10 @@ abstract class filter_abstract extends cached_form_abstract {
         list($gsql, $rparams) = $DB->get_in_or_equal(explode(',', $CFG->gradebookroles), SQL_PARAMS_NAMED, 'grbr');
         list($csql, $cparams) = $DB->get_in_or_equal($context->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'ctx');
 
+        $fields = \get_all_user_name_fields(true, 'u');
+
         $users = $DB->get_records_sql("
-            SELECT u.id, u.firstname, u.lastname
+            SELECT u.id, {$fields}
               FROM {user} u
         INNER JOIN ($esql) e ON e.id = u.id
         INNER JOIN (

@@ -2847,6 +2847,7 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2013110600.02);
     }
 
+    // Create the outcomes database structure. The end has been marked.
     if ($oldversion < 2013112000.00) {
         // Define table outcome_sets to be created.
         $table = new xmldb_table('outcome_sets');
@@ -2873,6 +2874,12 @@ function xmldb_main_upgrade($oldversion) {
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2013112000.00);
+    }
+
+    if ($oldversion < 2013112000.01) {
 
         // Define table outcome to be created.
         $table = new xmldb_table('outcome');
@@ -2903,6 +2910,12 @@ function xmldb_main_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2013112000.01);
+    }
+
+    if ($oldversion < 2013112000.02) {
+
         // Define table outcome_metadata to be created.
         $table = new xmldb_table('outcome_metadata');
 
@@ -2920,6 +2933,12 @@ function xmldb_main_upgrade($oldversion) {
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2013112000.02);
+    }
+
+    if ($oldversion < 2013112000.03) {
 
         // Define table outcome_areas to be created.
         $table = new xmldb_table('outcome_areas');
@@ -2941,6 +2960,12 @@ function xmldb_main_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2013112000.03);
+    }
+
+    if ($oldversion < 2013112000.04) {
+
         // Define table outcome_area_outcomes to be created.
         $table = new xmldb_table('outcome_area_outcomes');
 
@@ -2958,6 +2983,12 @@ function xmldb_main_upgrade($oldversion) {
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2013112000.04);
+    }
+
+    if ($oldversion < 2013112000.05) {
 
         // Define table outcome_used_areas to be created.
         $table = new xmldb_table('outcome_used_areas');
@@ -2977,6 +3008,12 @@ function xmldb_main_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2013112000.05);
+    }
+
+    if ($oldversion < 2013112000.06) {
+
         // Define table outcome_used_sets to be created.
         $table = new xmldb_table('outcome_used_sets');
 
@@ -2995,6 +3032,12 @@ function xmldb_main_upgrade($oldversion) {
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2013112000.06);
+    }
+
+    if ($oldversion < 2013112000.07) {
 
         // Define table outcome_attempts to be created.
         $table = new xmldb_table('outcome_attempts');
@@ -3024,6 +3067,12 @@ function xmldb_main_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2013112000.07);
+    }
+
+    if ($oldversion < 2013112000.08) {
+
         // Define table outcome_marks to be created.
         $table = new xmldb_table('outcome_marks');
 
@@ -3048,6 +3097,12 @@ function xmldb_main_upgrade($oldversion) {
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2013112000.08);
+    }
+
+    if ($oldversion < 2013112000.09) {
 
         // Define table outcome_marks_history to be created.
         $table = new xmldb_table('outcome_marks_history');
@@ -3076,6 +3131,12 @@ function xmldb_main_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2013112000.09);
+    }
+
+    if ($oldversion < 2013112000.10) {
+
         // Define table outcome_awards to be created.
         $table = new xmldb_table('outcome_awards');
 
@@ -3096,8 +3157,9 @@ function xmldb_main_upgrade($oldversion) {
         }
 
         // Main savepoint reached.
-        upgrade_main_savepoint(true, 2013112000.00);
+        upgrade_main_savepoint(true, 2013112000.10);
     }
+    // End of outcomes structure.
 
     return true;
 }
