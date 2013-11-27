@@ -126,7 +126,15 @@ class MoodleQuickForm_map_outcome extends HTML_QuickForm_element {
             'error'
         ), 'moodle');
 
-        return html_writer::tag('div', $this->_getTabs().'<input'.$this->_getAttrString($this->_attributes).' />', array('id' => $randomid));
+        // Dummy prototype code
+        $s = '';
+        //$s .= 'Rubric Outcomes';
+        //$s .= '<ul tabindex="-1" class="yui3-moodle-core_outcome-mapoutcome-mapped-outcomes" id="yui_3_13_0_2_1385433418565_804"><li>test outcome set<ul><li data-outcomesetid="1" data-outcomeid="706" class="outcome" tabindex="-1">&nbsp;description of test outcome 2</li></ul></li></ul>';
+        $s .= html_writer::tag('div', $this->_getTabs().'<input'.$this->_getAttrString($this->_attributes).' />', array('id' => $randomid));
+        
+        //Dummy prototype code - disable outcomes sections
+        $s = 'Defined in the activity rubric';
+        return $s;
     }
 
     function exportValue(&$submitValues, $assoc = false) {
