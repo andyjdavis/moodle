@@ -41,6 +41,7 @@ class gradingform_rubric_editrubric extends moodleform {
      * Form element definition
      */
     public function definition() {
+        global $CFG;//todo DELETE ME
         $form = $this->_form;
 
         $form->addElement('hidden', 'areaid');
@@ -66,8 +67,15 @@ class gradingform_rubric_editrubric extends moodleform {
         $form->addElement('select', 'status', get_string('rubricstatus', 'gradingform_rubric'), $choices)->freeze();
 
         // Dummy prototype code
-        $form->addElement('static', 'activityoutcomes', 'Activity outcomes','<ul tabindex="-1" class="yui3-moodle-core_outcome-mapoutcome-mapped-outcomes" id="yui_3_13_0_2_1385433418565_804"><li>test outcome set<ul><li data-outcomesetid="1" data-outcomeid="706" class="outcome" tabindex="-1">&nbsp;description of test outcome 3</li></ul></li></ul>');
-
+        var_dump('debug output showing we have access to the activity so we can retrieve its outcomes');
+        var_dump($this->_customdata['context']);
+        require_once($CFG->dirroot . '/question/editlib.php');
+        $module = get_module_from_cmid($this->_customdata['context']->instanceid)[0];
+        var_dump($module);
+        if ($module) {
+            $form->addElement('static', 'activityoutcomes', 'Activity outcomes',$module->name.'<br /><ul tabindex="-1" class="yui3-moodle-core_outcome-mapoutcome-mapped-outcomes" id="yui_3_13_0_2_1385433418565_804"><li>test outcome set<ul><li data-outcomesetid="1" data-outcomeid="706" class="outcome" tabindex="-1">&nbsp;description of test outcome 3</li></ul></li></ul>');
+        }
+        
         // rubric editor
         $element = $form->addElement('rubriceditor', 'rubric', get_string('rubric', 'gradingform_rubric'));
         $form->setType('rubric', PARAM_RAW);

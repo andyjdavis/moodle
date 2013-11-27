@@ -133,7 +133,7 @@ class MoodleQuickForm_map_outcome extends HTML_QuickForm_element {
         $s .= html_writer::tag('div', $this->_getTabs().'<input'.$this->_getAttrString($this->_attributes).' />', array('id' => $randomid));
         
         //Dummy prototype code - disable outcomes sections
-        $s = 'Defined in the activity rubric';
+        //$s = 'Defined in the activity rubric';
         return $s;
     }
 
