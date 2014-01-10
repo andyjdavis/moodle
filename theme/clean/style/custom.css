@@ -16,6 +16,8 @@ a.logo {
     float: right;
 }
 
+#grade_edit_tree_table th {width:auto;}
+
 /* Custom CSS Settings
 -------------------------*/
 [[setting:customcss]]
