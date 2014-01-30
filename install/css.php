@@ -29,11 +29,8 @@ if (file_exists(dirname(dirname(__FILE__)).'/config.php')) {
 }
 
 // include only the necessary stuff from themes, keep this small otherwise IE will complain...
-$files = array(
-        'base/style/pagelayout.css',
-        'base/style/core.css',
-        'standard/style/core.css',
-        'standard/style/css3.css');
+
+$files = array('bootstrapbase/style/moodle.css');
 
 
 $content = '';
