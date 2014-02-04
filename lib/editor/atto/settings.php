@@ -32,7 +32,7 @@ if ($ADMIN->fulltree) {
     $desc = new lang_string('toolbarconfig_desc', 'editor_atto');
     $default = 'style = bold, italic, underline, strike, clear, title' . "\n" .
                'paragraph = indent, outdent, orderedlist, unorderedlist' . "\n" .
-               'links = link, unlink' . "\n" .
+               'links = link, unlink, noautolink' . "\n" .
                'insert = table, image, media' . "\n" .
                'other = html';
     $setting = new admin_setting_configtextarea('editor_atto/toolbar',
