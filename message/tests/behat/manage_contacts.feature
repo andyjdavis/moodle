@@ -9,6 +9,7 @@ Feature: Manage contacts
       | username | firstname | lastname | email |
       | user1 | User | One | one@asd.com |
       | user2 | User | Two | two@asd.com |
+    And I resize the browser to "1000" by "600"
     And I log in as "user1"
     And I send "Message 1 from user1 to user2" message to "User Two" user
     And I send "Message 2 from user1 to user2" message to "User Two" user

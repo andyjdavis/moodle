@@ -42,11 +42,28 @@ use Behat\Behat\Context\Step\When as When;
 class behat_auth extends behat_base {
 
     /**
+     * Resizes the browser window
+     *
+     * @Given /^I resize the browser to "(?P<width_number>\d+)" by "(?P<height_number>\d+)"$/
+     * @param int $width
+     * @param int $height
+     */
+    public function i_resize_the_browser_to_by($width, $height) {
+        if ($this->running_javascript()) {
+            $this->getSession()->getDriver()->resizeWindow(intval($width), intval($height));
+        }
+    }
+
+    /**
      * Logs in the user. There should exist a user with the same value as username and password.
      *
      * @Given /^I log in as "(?P<username_string>(?:[^"]|\\")*)"$/
      */
     public function i_log_in_as($username) {
+        // WIP - this code will not live here permanently.
+        /*if ($this->running_javascript()) {
+            $this->getSession()->getDriver()->resizeWindow(1000, 600);
+        }*/
 
         return array(new Given('I am on homepage'),
             new Given('I follow "' . get_string('login') . '"'),
