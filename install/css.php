@@ -30,7 +30,10 @@ if (file_exists(dirname(dirname(__FILE__)).'/config.php')) {
 
 // include only the necessary stuff from themes, keep this small otherwise IE will complain...
 
-$files = array('bootstrapbase/style/moodle.css');
+// MDL-43839 IE9 cannot handle all of our css.
+// Once IE9 is no longer supported we can include 'bootstrapbase/style/moodle.css'
+// and remove part of installer.css.
+$files = array('bootstrapbase/style/installer.css');
 
 
 $content = '';
