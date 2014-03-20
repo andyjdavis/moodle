@@ -1352,13 +1352,10 @@ function forum_user_complete($course, $user, $mod, $forum) {
 
 
 /**
- * @global object
- * @global object
- * @global object
  * @param array $courses
  * @param array $htmlarray
  */
-function forum_print_overview($courses,&$htmlarray) {
+function forum_print_overview($courses, &$htmlarray) {
     global $USER, $CFG, $DB, $SESSION;
 
     if (empty($courses) || !is_array($courses) || count($courses) == 0) {
@@ -1369,39 +1366,71 @@ function forum_print_overview($courses,&$htmlarray) {
         return;
     }
 
-    // Courses to search for new posts
+    // Ignore posts before the cut off.
+    $cutoffdate = isset($CFG->forum_oldpostdays) ? (time() - ($CFG->forum_oldpostdays*24*60*60)) : 0;
+
+    // Courses to search for new posts.
     $coursessqls = array();
-    $params = array();
+    $params = array('forum');
     foreach ($courses as $course) {
 
-        // If the user has never entered into the course all posts are pending
+        // Set the user's group ID.
+        $groupids = groups_get_all_groups($course->id, $USER->id);
+        if ($groupids) {
+            reset($groupids);
+            $groupid = key($groupids);
+        } else {
+            $groupid = 0;
+        }
+        $SESSION->currentgroup[$course->id] = $groupid;
+        unset($groupids);
+
+        // If the user has never entered into the course all posts are pending.
         if ($course->lastaccess == 0) {
             $coursessqls[] = '(f.course = ?)';
             $params[] = $course->id;
 
-        // Only posts created after the course last access
+        // Only posts created after the course last access.
         } else {
-            $coursessqls[] = '(f.course = ? AND p.created > ?)';
+            $coursessqls[] = '(f.course = ? AND p.created > ? AND p.created > ?)';
             $params[] = $course->id;
             $params[] = $course->lastaccess;
+            $params[] = $cutoffdate; // A safety check to limit the size of the data set.
         }
     }
+
     $params[] = $USER->id;
     $coursessql = implode(' OR ', $coursessqls);
-
-    $sql = "SELECT f.id, COUNT(*) as count "
-                .'FROM {forum} f '
-                .'JOIN {forum_discussions} d ON d.forum  = f.id '
-                .'JOIN {forum_posts} p ON p.discussion = d.id '
-                ."WHERE ($coursessql) "
-                .'AND p.userid != ? '
-                .'GROUP BY f.id';
-
-    if (!$new = $DB->get_records_sql($sql, $params)) {
-        $new = array(); // avoid warnings
+    
+    $groupsql = '';
+    foreach ($courses as $course) {
+        if ($groupsql != '') {
+            $groupsql .= ' OR ';
+        }
+        // Students are assigned to a group at the course level.
+        // Check the discussions are for the student's group or not group specific.
+        $groupsql .= '(f.course = ? AND d.groupid = -1 OR d.groupid = 0 OR d.groupid = ?)';
+        $params[] = $course->id;
+        $params[] = $SESSION->currentgroup[$course->id];
     }
 
-    // also get all forum tracking stuff ONCE.
+    $sql = 'SELECT f.id, COUNT(*) as count '.
+            ' FROM {forum} f '.
+            ' JOIN {forum_discussions} d ON d.forum  = f.id '.
+            ' JOIN {course_modules} cm on f.id = cm.instance'.
+            ' JOIN {modules} mod ON cm.module = mod.id AND mod.name = ?'.
+            ' JOIN {forum_posts} p ON p.discussion = d.id '.
+           " WHERE ($coursessql) ".
+                 ' AND (cm.groupmode = 0 OR cm.groupmode = 2 OR ('. // No groups or visible groups.
+                   $groupsql.
+                 ' )) AND p.userid != ? '.
+                 ' GROUP BY f.id';
+
+    if (!$new = $DB->get_records_sql($sql, $params)) {
+        $new = array(); // Avoid warnings.
+    }
+
+    // Get all forum tracking stuff ONCE.
     $trackingforums = array();
     foreach ($forums as $forum) {
         if (forum_tp_can_track_forums($forum)) {
@@ -1410,34 +1439,31 @@ function forum_print_overview($courses,&$htmlarray) {
     }
 
     if (count($trackingforums) > 0) {
-        $cutoffdate = isset($CFG->forum_oldpostdays) ? (time() - ($CFG->forum_oldpostdays*24*60*60)) : 0;
         $sql = 'SELECT d.forum,d.course,COUNT(p.id) AS count '.
-            ' FROM {forum_posts} p '.
-            ' JOIN {forum_discussions} d ON p.discussion = d.id '.
-            ' LEFT JOIN {forum_read} r ON r.postid = p.id AND r.userid = ? WHERE (';
-        $params = array($USER->id);
+                ' FROM {forum_posts} p '.
+                ' JOIN {forum_discussions} d ON p.discussion = d.id '.
+                ' JOIN {forum} f ON f.id = d.forum'.
+                ' JOIN {course_modules} cm on f.id = cm.instance'.
+                ' JOIN {modules} mod ON cm.module = mod.id AND mod.name = ?'.
+                ' LEFT JOIN {forum_read} r ON r.postid = p.id AND r.userid = ?'.
+               ' WHERE (cm.groupmode = 0 OR cm.groupmode = 2 OR ('; // No groups or visible groups.
+        $params = array('forum');
+        $params[] = $USER->id;
 
+        $addedgroup = false;
         foreach ($trackingforums as $track) {
-            $sql .= '(d.forum = ? AND (d.groupid = -1 OR d.groupid = 0 OR d.groupid = ?)) OR ';
-            $params[] = $track->id;
             if (isset($SESSION->currentgroup[$track->course])) {
-                $groupid =  $SESSION->currentgroup[$track->course];
+                $sql .= '(d.forum = ? AND (d.groupid = -1 OR d.groupid = 0 OR d.groupid = ?)) OR ';
+                $params[] = $track->id;
+                $params[] = $SESSION->currentgroup[$track->course];
+                $addedgroup = true;
             } else {
-                // get first groupid
-                $groupids = groups_get_all_groups($track->course, $USER->id);
-                if ($groupids) {
-                    reset($groupids);
-                    $groupid = key($groupids);
-                    $SESSION->currentgroup[$track->course] = $groupid;
-                } else {
-                    $groupid = 0;
-                }
-                unset($groupids);
+                debugging('User is tracking a forum in a course they do not have access to');
+                continue;
             }
-            $params[] = $groupid;
         }
-        $sql = substr($sql,0,-3); // take off the last OR
-        $sql .= ') AND p.modified >= ? AND r.id is NULL GROUP BY d.forum,d.course';
+        $sql = substr($sql,0,-3); // Take off the last OR.
+        $sql .= ')) AND p.modified >= ? AND r.id is NULL GROUP BY d.forum,d.course';
         $params[] = $cutoffdate;
 
         if (!$unread = $DB->get_records_sql($sql, $params)) {
