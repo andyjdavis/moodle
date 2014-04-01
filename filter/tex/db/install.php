@@ -26,10 +26,11 @@
 
 function xmldb_filter_tex_install() {
     global $CFG;
-
-    // purge all caches during installation
-
     require_once("$CFG->dirroot/filter/tex/lib.php");
+
+    filter_set_global_state('tex', TEXTFILTER_ON);
+
+    // Purge all caches during installation.
     filter_tex_updatedcallback(null);
 }
 
