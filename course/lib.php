@@ -2350,8 +2350,7 @@ function course_format_ajax_support($format) {
 
 /**
  * Can the current user delete this course?
- * Course creators have exception,
- * 1 day after the creation they can sill delete the course.
+ *
  * @param int $courseid
  * @return boolean
  */
@@ -2363,32 +2362,6 @@ function can_delete_course($courseid) {
     if (has_capability('moodle/course:delete', $context)) {
         return true;
     }
-
-    // hack: now try to find out if creator created this course recently (1 day)
-    if (!has_capability('moodle/course:create', $context)) {
-        return false;
-    }
-
-    $since = time() - 60*60*24;
-    $course = get_course($courseid);
-
-    if ($course->timecreated < $since) {
-        return false; // Return if the course was not created in last 24 hours.
-    }
-
-    $logmanger = get_log_manager();
-    $readers = $logmanger->get_readers('\core\log\sql_select_reader');
-    $reader = reset($readers);
-
-    if (empty($reader)) {
-        return false; // No log reader found.
-    }
-
-    // A proper reader.
-    $select = "userid = :userid AND courseid = :courseid AND eventname = :eventname AND timecreated > :since";
-    $params = array('userid' => $USER->id, 'since' => $since, 'courseid' => $course->id, 'eventname' => '\core\event\course_created');
-
-    return (bool)$reader->get_events_select_count($select, $params);
 }
 
 /**
