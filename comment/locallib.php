@@ -63,8 +63,11 @@ class comment_manager {
 
         $sql = "SELECT c.id, c.contextid, c.itemid, c.commentarea, c.userid, c.content, u.firstname, u.lastname, c.timecreated
                   FROM {comments} c
-                  JOIN {user} u
-                       ON u.id=c.userid
+                  JOIN {user} u ON u.id = c.userid
+                  JOIN {context} context ON c.contextid = context.id
+                  JOIN {course_modules} cm ON cm.id = context.instanceid
+                  JOIN {modules} m ON cm.module = m.id
+                 WHERE m.visible = 1
               ORDER BY c.timecreated ASC";
         $rs = $DB->get_recordset_sql($sql, null, $start, $this->perpage);
         $formatoptions = array('overflowdiv' => true);
