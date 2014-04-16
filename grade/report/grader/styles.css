@@ -387,6 +387,8 @@ tr.groupavg th.header {
 .path-grade-report-grader td select {
     font-size: 100%;
     padding: 0;
+    height: 20px;
+    margin-bottom: 0;
 }
 .path-grade-report-grader .right_scroller td select {
     font-size: 86%;
