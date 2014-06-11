@@ -2248,11 +2248,12 @@ function blocks_add_default_system_blocks() {
     $page->blocks->add_blocks(array(BLOCK_POS_LEFT => array('navigation', 'settings')), '*', null, true);
     $page->blocks->add_blocks(array(BLOCK_POS_LEFT => array('admin_bookmarks')), 'admin-*', null, null, 2);
 
-    if ($defaultmypage = $DB->get_record('my_pages', array('userid'=>null, 'name'=>'__default', 'private'=>1))) {
-        $subpagepattern = $defaultmypage->id;
-    } else {
+    $subpagecriteria = array('userid' => null, 'name' => '__default', 'private' => 1);
+    if (!$subpagepattern = $DB->get_field('my_pages', 'id', $subpagecriteria)) {
         $subpagepattern = null;
     }
 
-    $page->blocks->add_blocks(array(BLOCK_POS_RIGHT => array('private_files', 'online_users'), 'content' => array('course_overview')), 'my-index', $subpagepattern, false);
+    $newblocks = array('calendar_month', 'calendar_upcoming', 'badges', 'private_files', 'online_users');
+    $newcontent = array('course_overview');
+    $page->blocks->add_blocks(array(BLOCK_POS_RIGHT => $newblocks, 'content' => $newcontent), 'my-index', $subpagepattern, false);
 }

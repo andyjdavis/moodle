@@ -3676,5 +3676,38 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2014061000.00);
     }
 
+    if ($oldversion < 2014061300.03) {
+        // Add additional blocks to the default blocks on /my.
+        $newdefaultblocks = array('calendar_month', 'calendar_upcoming', 'badges');
+
+        $page = new moodle_page();
+        $page->set_context(context_system::instance());
+
+        // Check if the change needs to apply to any subpage types.
+        $subpagecriteria = array('userid' => null, 'name' => '__default', 'private' => 1);
+        if (!$subpagepattern = $DB->get_field('my_pages', 'id', $subpagecriteria)) {
+            $subpagepattern = null;
+        }
+
+        $toadd = array();
+        foreach ($newdefaultblocks as $blockname) {
+            // Check each block to see if it is already on the default /my page.
+            $criteria = array(
+                'blockname' => $blockname,
+                'parentcontextid' => $page->context->id,
+                'pagetypepattern' => 'my-index',
+                'subpagepattern' => $subpagepattern
+            );
+
+            if (!$DB->record_exists('block_instances', $criteria)) {
+                $toadd[] = $blockname;
+            }
+        }
+        // Add the blocks that aren't already on the default /my.
+        $page->blocks->add_blocks(array(BLOCK_POS_RIGHT => $toadd), 'my-index', $subpagepattern);
+
+        upgrade_main_savepoint(true, 2014061300.03);
+    }
+
     return true;
 }
