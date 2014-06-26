@@ -201,9 +201,9 @@
       *
       * @param stdClass $glossary
       */
-    function glossary_rss_delete_file($glossary) {
+    function glossary_rss_invalidate_cache($glossary) {
         global $CFG;
         require_once("$CFG->libdir/rsslib.php");
 
-        rss_delete_file('mod_glossary', $glossary);
+        rss_invalidate_cache('mod_glossary', $glossary);
     }

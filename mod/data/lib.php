@@ -3720,7 +3720,7 @@ function data_delete_record($recordid, $data, $courseid, $cmid) {
                 // Delete cached RSS feeds.
                 if (!empty($CFG->enablerssfeeds)) {
                     require_once($CFG->dirroot.'/mod/data/rsslib.php');
-                    data_rss_delete_file($data);
+                    data_rss_invalidate_cache($data);
                 }
 
                 // Trigger an event for deleting this record.

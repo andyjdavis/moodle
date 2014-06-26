@@ -87,12 +87,12 @@ function forum_rss_get_feed($context, $args) {
 }
 
 /**
- * Given a forum object, deletes all cached RSS files associated with it.
+ * Given a forum object, deletes all cached RSS files.
  *
  * @param stdClass $forum
  */
-function forum_rss_delete_file($forum) {
-    rss_delete_file('mod_forum', $forum);
+function forum_rss_invalidate_cache($forum) {
+    rss_invalidate_cache('mod_forum', $forum);
 }
 
 ///////////////////////////////////////////////////////

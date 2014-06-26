@@ -182,10 +182,10 @@
      *
      * @param stdClass $data
      */
-    function data_rss_delete_file($data) {
+    function data_rss_invalidate_cache($data) {
         global $CFG;
         require_once("$CFG->libdir/rsslib.php");
 
-        rss_delete_file('mod_data', $data);
+        rss_invalidate_cache('mod_data', $data);
     }
 

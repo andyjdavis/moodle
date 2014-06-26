@@ -117,7 +117,7 @@ if ($action === 'delete'){
             print_error('nopermissionstodeleteentry', 'blog');
         } else {
             $entry->delete();
-            blog_rss_delete_file($userid);
+            blog_rss_invalidate_cache($userid);
             redirect($returnurl);
         }
     } else if (blog_user_can_edit_entry($entry)) {
@@ -191,14 +191,15 @@ if ($blogeditform->is_cancelled()) {
             $blogentry = new blog_entry(null, $data, $blogeditform);
             $blogentry->add();
             $blogentry->edit($data, $blogeditform, $summaryoptions, $attachmentoptions);
+            blog_rss_invalidate_cache($userid);
         break;
 
         case 'edit':
             if (empty($entry->id)) {
                 print_error('wrongentryid', 'blog');
             }
-
             $entry->edit($data, $blogeditform, $summaryoptions, $attachmentoptions);
+            blog_rss_invalidate_cache($userid);
         break;
 
         default :

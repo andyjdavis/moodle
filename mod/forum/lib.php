@@ -4411,7 +4411,7 @@ function forum_delete_post($post, $children, $course, $cm, $forum, $skipcompleti
     // Delete cached RSS feeds.
     if (!empty($CFG->enablerssfeeds)) {
         require_once($CFG->dirroot.'/mod/forum/rsslib.php');
-        forum_rss_delete_file($forum);
+        forum_rss_invalidate_cache($forum);
     }
 
     if ($DB->delete_records("forum_posts", array("id" => $post->id))) {

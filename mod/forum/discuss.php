@@ -113,8 +113,8 @@
 
         // Delete the RSS files for the 2 forums to force regeneration of the feeds
         require_once($CFG->dirroot.'/mod/forum/rsslib.php');
-        forum_rss_delete_file($forum);
-        forum_rss_delete_file($forumto);
+        forum_rss_invalidate_cache($forum);
+        forum_rss_invalidate_cache($forumto);
 
         redirect($return.'&moved=-1&sesskey='.sesskey());
     }

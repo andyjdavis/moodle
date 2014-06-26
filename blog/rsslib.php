@@ -322,11 +322,11 @@ function blog_rss_save_file($type, $id, $tagid=0, $contents='') {
 /**
  * Delete the supplied user's cached blog post RSS feed.
  * Only user blogs are available by RSS.
- * This doesn't call rss_delete_file() as blog RSS caching uses it's own file structure.
+ * This doesn't call rss_invalidate_cache() as blog RSS caching uses it's own file structure.
  *
  * @param int $userid
  */
-function blog_rss_delete_file($userid) {
+function blog_rss_invalidate_cache($userid) {
     $filename = blog_rss_file_name('user', $userid);
     if (file_exists($filename)) {
         unlink($filename);

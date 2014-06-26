@@ -117,7 +117,7 @@ if ($confirm and confirm_sesskey()) { // the operation was confirmed.
     // Delete cached RSS feeds.
     if (!empty($CFG->enablerssfeeds)) {
         require_once($CFG->dirroot.'/mod/glossary/rsslib.php');
-        glossary_rss_delete_file($glossary);
+        glossary_rss_invalidate_cache($glossary);
     }
 
     $event = \mod_glossary\event\entry_deleted::create(array(

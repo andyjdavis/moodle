@@ -100,12 +100,12 @@ function rss_print_link($contextid, $userid, $componentname, $id, $tooltiptext='
 }
 
 /**
- * Given an object, deletes all RSS files associated with it.
+ * Given an object, deletes all RSS cached files associated with it.
  *
  * @param string   $componentname the name of the module ie 'forum'. Used to construct the cache path.
  * @param stdClass $instance      An object with an id member variable ie $forum, $glossary.
  */
-function rss_delete_file($componentname, $instance) {
+function rss_invalidate_cache($componentname, $instance) {
     global $CFG;
 
     $dirpath = "$CFG->cachedir/rss/$componentname";
