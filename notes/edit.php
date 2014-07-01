@@ -4,20 +4,19 @@ require_once('../config.php');
 require_once('lib.php');
 require_once('edit_form.php');
 
-/// retrieve parameters
 $noteid = optional_param('id', 0, PARAM_INT);
 
 $url = new moodle_url('/notes/edit.php');
 
 if ($noteid) {
-    //existing note
+    // Existing note.
     $url->param('id', $noteid);
     if (!$note = note_load($noteid)) {
         print_error('invalidid', 'notes');
     }
 
 } else {
-    // adding new note
+    // Adding new note.
     $courseid = required_param('courseid', PARAM_INT);
     $userid   = required_param('userid', PARAM_INT);
     $state    = optional_param('publishstate', NOTES_STATE_PUBLIC, PARAM_ALPHA);
@@ -36,25 +35,22 @@ if ($noteid) {
 
 $PAGE->set_url($url);
 
-/// locate course information
-if (!$course = $DB->get_record('course', array('id'=>$note->courseid))) {
+if (!$course = $DB->get_record('course', array('id' => $note->courseid))) {
     print_error('invalidcourseid');
 }
 
-/// locate user information
-if (!$user = $DB->get_record('user', array('id'=>$note->userid))) {
-    print_error('invaliduserid');
-}
-
-/// require login to access notes
+// Require login to access notes.
 require_login($course);
-
-/// locate context information
-$context = context_course::instance($course->id);
-require_capability('moodle/notes:manage', $context);
 
 if (empty($CFG->enablenotes)) {
     print_error('notesdisabled', 'notes');
+}
+
+$context = context_course::instance($course->id);
+require_capability('moodle/notes:manage', $context);
+
+if (!$user = $DB->get_record('user', array('id' => $note->userid))) {
+    print_error('invaliduserid');
 }
 
 /// create form
