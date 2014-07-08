@@ -29,9 +29,15 @@ require_once($CFG->libdir.'/adminlib.php');
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
 $returnurl = optional_param('returnurl', null, PARAM_LOCALURL);
 
+$syscontext = context_system::instance();
+$PAGE->set_url('/admin/purgecaches.php');
+$PAGE->set_context($syscontext);
+
+require_login();
+
 // If we have got here as a confirmed aciton, do it.
-if ($confirm && isloggedin() && confirm_sesskey()) {
-    require_capability('moodle/site:config', context_system::instance());
+if ($confirm && confirm_sesskey()) {
+    require_capability('moodle/site:config', $syscontext);
 
     // Valid request. Purge, and redirect the user back to where they came from.
     purge_all_caches();
