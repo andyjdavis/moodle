@@ -62,14 +62,12 @@ class grade_edit_tree {
             $gtree->cats = array();
             $gtree->fill_cats();
 
-            $gtree->parents = array();
-            $gtree->parents[$gtree->top_element['object']->grade_item->id] = new stdClass();
-            $gtree->fill_parents($gtree->top_element, $gtree->top_element['object']->grade_item->id, $gtree->showtotalsifcontainhidden, array());
 
             //TODO: we should probably epxlain why this is renaming to a column that already exists
             $gtree->grades = $DB->get_records_sql('SELECT id, grademax as finalgrade, grademax as rawgrademax FROM {grade_items} WHERE courseid = ?', array($COURSE->id));
 
-            $gtree->calc_weights_recursive2($gtree->top_element, $gtree->grades, false, true);
+//            $gtree->calc_weights_recursive2($gtree->top_element, $gtree->grades, true, true, true);
+            $gtree->calc_values($gtree->grades, false, true);
         }
 
         $this->gtree = $gtree;
@@ -142,8 +140,8 @@ class grade_edit_tree {
 
         $object = $element['object'];
         $eid    = $element['eid'];
-        $object->name = $this->gtree->get_element_header($element, true, true, false);
-        $object->stripped_name = $this->gtree->get_element_header($element, false, false, false);
+        $object->name = $this->gtree->get_element_header($element, true, true, false, false);
+        $object->stripped_name = $this->gtree->get_element_header($element, false, false, false, false);
 
         $is_category_item = false;
         if ($element['type'] == 'categoryitem' || $element['type'] == 'courseitem') {
@@ -337,7 +335,8 @@ class grade_edit_tree {
 
         } else { // Dealing with a grade item
 
-            $item = grade_item::fetch(array('id' => $object->id));
+//            $item = grade_item::fetch(array('id' => $object->id));
+            $item = $element['object'];
             $element['type'] = 'item';
             $element['object'] = $item;
 
@@ -397,7 +396,7 @@ class grade_edit_tree {
         return '<input type="hidden" name="extracredit_'.$item->id .'" value="0" />' .
             '<label class="accesshide" for="extracredit"'.$item->id.'">'.
             get_string('extracreditvalue', 'grades', $item->itemname).'</label>'.
-            '<input type="checkbox" id="extacredit_'.$item->id.'" name="extacredit_'.$item->id.'" value="1" '.$checked.'/>';
+            '<input type="checkbox" id="extracredit_'.$item->id.'" name="extracredit_'.$item->id.'" value="1" '.$checked.'/>';
     }
 
     //Trims trailing zeros
@@ -778,13 +777,15 @@ class grade_edit_tree_column_weight extends grade_edit_tree_column {
         $item = $category->get_grade_item();
         $categorycell = clone($this->categorycell);
         $categorycell->attributes['class']  .= ' ' . $levelclass;
-        $gtree_item = $params['gtree']->grades[$item->id];
+        $gtree_item = $params['gtree']->items[$item->id];
 
         if ($item->itemtype !== 'course') {
             if (!isset($gtree_item->weight)) {
                 $categorycell->text = '-';
             } else if ($gtree_item->weight === '') {
                 $categorycell->text = '-';
+            } else if ($gtree_item->weight == -1) {
+                $categorycell->text = 'dropped';
             } else if ($params['gtree']->action === 'editweights') {
                 $categorycell->text = '<label class="accesshide" for="weight'. $item->id .'">'.get_string('editweight', 'grades').'</label>' .
                                 '<input type="text" size="6" id="weight'. $item->id .'" name="weight_'.$item->id.'" value="' .
@@ -811,12 +812,14 @@ class grade_edit_tree_column_weight extends grade_edit_tree_column {
         $itemcell->text = '&nbsp;';
 
         if (!in_array($params['element']['object']->itemtype, array('courseitem', 'categoryitem', 'category'))) {
-            $gtree_item = $params['gtree']->grades[$item->id];
+            $gtree_item = $params['gtree']->items[$item->id];
 
             if (!isset($gtree_item->weight)) {
                 $itemcell->text = '-';
             } else if ($gtree_item->weight == '') {
                 $itemcell->text = '-';
+            } else if ($gtree_item->weight == -1) {
+                $itemcell->text = 'dropped';
             } else if ($params['gtree']->action === 'editweights') {
                 $itemcell->text = '<label class="accesshide" for="weight' . $item->id . '">'.get_string('editweight', 'grades').'</label>' .
                             '<input type="text" size="6" id="weight'. $item->id .'" name="weight_'.$item->id.'" value="'.
