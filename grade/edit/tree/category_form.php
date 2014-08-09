@@ -455,6 +455,11 @@ class edit_category_form extends moodleform {
                 }
             }
         }
+        // Remove grademin element if the site setting says it is hidden.
+        $minshown = (bool) get_config('moodle', 'grade_report_showmin');
+        if (!$minshown and $mform->elementExists('grade_item_grademin')) {
+            $mform->removeElement('grade_item_grademin');
+        }
     }
 
 /// perform extra validation before submission

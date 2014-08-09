@@ -314,8 +314,13 @@ class edit_item_form extends moodleform {
         if (!$mform->elementExists('aggregationcoef') and !$mform->elementExists('parentcategory')) {
             $mform->removeElement('headerparent');
         }
-    }
 
+        // Remove grademin element if the site setting says it is hidden.
+        $minshown = (bool) get_config('moodle', 'grade_report_showmin');
+        if (!$minshown and $mform->elementExists('grademin')) {
+            $mform->removeElement('grademin');
+        }
+    }
 
 /// perform extra validation before submission
     function validation($data, $files) {

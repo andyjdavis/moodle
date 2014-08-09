@@ -68,6 +68,18 @@ if (has_capability('moodle/grade:manage', $systemcontext)
 
         $temp->add(new admin_setting_special_gradelimiting());
 
+        $temp->add(new admin_setting_configcheckbox('grade_report_allowcalculations',
+                                                    get_string('allowcalculations', 'grades'),
+                                                    get_string('allowcalculations_help', 'grades'), 1));
+
+        $temp->add(new admin_setting_configcheckbox('grade_report_showmin',
+                                                    get_string('minimum_show', 'grades'),
+                                                    get_string('minimum_show_help', 'grades'), '1'));
+
+        $temp->add(new admin_setting_configcheckbox('grade_report_showuserfields',
+                                                    get_string('userfields_show', 'grades'),
+                                                    get_string('userfields_show_help', 'grades'), '1'));
+
         $temp->add(new admin_setting_special_gradepointmax());
 
         $temp->add(new admin_setting_special_gradepointdefault());
@@ -125,6 +137,9 @@ if (has_capability('moodle/grade:manage', $systemcontext)
         $defaults['forced'] = false;
         $temp->add(new admin_setting_gradecat_combo('grade_droplow', new lang_string('droplow', 'grades'),
                     new lang_string('droplow_help', 'grades'), $defaults, $options));
+
+        $temp->add(new admin_setting_configcheckbox('grade_overridecat', new lang_string('overridecat', 'grades'),
+                   new lang_string('overridecat_help', 'grades'), 1));
     }
     $ADMIN->add('grades', $temp);
 

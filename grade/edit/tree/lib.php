@@ -55,6 +55,9 @@ class grade_edit_tree {
     public function __construct($gtree, $moving=false, $gpr) {
         global $USER, $OUTPUT, $COURSE;
 
+        $systemdefault = get_config('moodle', 'grade_report_allowcalculations');
+        $this->allow_calculations = get_user_preferences('grade_report_allowcalculations', $systemdefault);
+
         $this->gtree = $gtree;
         $this->moving = $moving;
         $this->gpr = $gpr;
@@ -138,7 +141,9 @@ class grade_edit_tree {
             $actions .= $this->gtree->get_edit_icon($element, $this->gpr);
         }
 
-        $actions .= $this->gtree->get_calculation_icon($element, $this->gpr);
+        if ($this->allow_calculations) {
+            $actions .= $this->gtree->get_calculation_icon($element, $this->gpr);
+        }
 
         if ($element['type'] == 'item' or ($element['type'] == 'category' and $element['depth'] > 1)) {
             if ($this->element_deletable($element)) {

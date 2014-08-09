@@ -143,6 +143,8 @@ class grade_report_grader extends grade_report {
         $this->setup_groups();
         $this->setup_users();
         $this->setup_sortitemid();
+
+        $this->overridecat = (bool)get_config('moodle', 'grade_overridecat');
     }
 
     /**
@@ -578,8 +580,11 @@ class grade_report_grader extends grade_report {
         $strfeedback  = $this->get_lang_string("feedback");
         $strgrade     = $this->get_lang_string('grade');
 
-        $extrafields = get_extra_user_fields($this->context);
-
+        if (get_config('moodle', 'grade_report_showuserfields')) {
+            $extrafields = get_extra_user_fields($this->context);
+        } else {
+            $extrafields = array();
+        }
         $arrows = $this->get_sort_arrows($extrafields);
 
         $colspan = 1;
@@ -1029,7 +1034,13 @@ class grade_report_grader extends grade_report {
                     }
 
                     if ($enableajax) {
-                        $itemcell->attributes['class'] .= ' clickable';
+                        $canoverride = true;
+                        if ($item->is_category_item() || $item->is_course_item()) {
+                            $canoverride = (bool) get_config('moodle', 'grade_overridecat');
+                        }
+                        if ($canoverride) {
+                            $itemcell->attributes['class'] .= ' clickable';
+                        }
                     }
 
                     if ($item->needsupdate) {
@@ -1485,7 +1496,16 @@ class grade_report_grader extends grade_report {
         // Init all icons
         $editicon = '';
 
-        if ($element['type'] != 'categoryitem' && $element['type'] != 'courseitem') {
+        $editable = true;
+
+        if ($element['type'] == 'grade') {
+            $item = $element['object']->grade_item;
+            if ($item->is_course_item() or $item->is_category_item()) {
+                $editable = $this->overridecat;
+            }
+        }
+
+        if ($element['type'] != 'categoryitem' && $element['type'] != 'courseitem' && $editable) {
             $editicon = $this->gtree->get_edit_icon($element, $this->gpr);
         }
 
@@ -1494,8 +1514,10 @@ class grade_report_grader extends grade_report {
         $lockunlockicon      = '';
 
         if (has_capability('moodle/grade:manage', $this->context)) {
-            if ($this->get_pref('showcalculations')) {
-                $editcalculationicon = $this->gtree->get_calculation_icon($element, $this->gpr);
+            if (get_config('moodle', 'grade_report_allowcalculations')) {
+                if ($this->get_pref('showcalculations')) {
+                    $editcalculationicon = $this->gtree->get_calculation_icon($element, $this->gpr);
+                }
             }
 
             if ($this->get_pref('showeyecons')) {

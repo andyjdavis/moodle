@@ -44,7 +44,7 @@ class grader_report_preferences_form extends moodleform {
 
         $canviewhidden = has_capability('moodle/grade:viewhidden', $context);
 
-        $checkbox_default = array(GRADE_REPORT_PREFERENCE_DEFAULT => '*default*', 0 => get_string('no'), 1 => get_string('yes'));
+        $checkboxdefault = array(GRADE_REPORT_PREFERENCE_DEFAULT => '*default*', 0 => get_string('no'), 1 => get_string('yes'));
 
         $advanced = array();
 /// form definition with preferences defaults
@@ -55,12 +55,16 @@ class grader_report_preferences_form extends moodleform {
         if (has_capability('moodle/grade:manage', $context)) {
 
             $preferences['prefshow'] = array();
-            $preferences['prefshow']['showcalculations']  = $checkbox_default;
-            $preferences['prefshow']['showeyecons']       = $checkbox_default;
-            if ($canviewhidden) {
-                $preferences['prefshow']['showaverages']  = $checkbox_default;
+
+            if (get_config('moodle', 'grade_report_allowcalculations')) {
+                $preferences['prefshow']['showcalculations'] = $checkboxdefault;
             }
-            $preferences['prefshow']['showlocks']         = $checkbox_default;
+
+            $preferences['prefshow']['showeyecons']       = $checkboxdefault;
+            if ($canviewhidden) {
+                $preferences['prefshow']['showaverages']  = $checkboxdefault;
+            }
+            $preferences['prefshow']['showlocks']         = $checkboxdefault;
 
             $preferences['prefrows'] = array(
                         'rangesdisplaytype'      => array(GRADE_REPORT_PREFERENCE_DEFAULT => '*default*',
@@ -92,28 +96,28 @@ class grader_report_preferences_form extends moodleform {
 
         // quickgrading and showquickfeedback are conditional on grade:edit capability
         if (has_capability('moodle/grade:edit', $context)) {
-            $preferences['prefgeneral']['quickgrading'] = $checkbox_default;
-            $preferences['prefgeneral']['showquickfeedback'] = $checkbox_default;
+            $preferences['prefgeneral']['quickgrading'] = $checkboxdefault;
+            $preferences['prefgeneral']['showquickfeedback'] = $checkboxdefault;
         }
 
         // View capability is the lowest permission. Users with grade:manage or grade:edit must also have grader:view
         if (has_capability('gradereport/grader:view', $context)) {
             $preferences['prefgeneral']['studentsperpage'] = 'text';
             if (has_capability('moodle/course:viewsuspendedusers', $context)) {
-                $preferences['prefgeneral']['showonlyactiveenrol'] = $checkbox_default;
+                $preferences['prefgeneral']['showonlyactiveenrol'] = $checkboxdefault;
             }
             $preferences['prefgeneral']['aggregationposition'] = array(GRADE_REPORT_PREFERENCE_DEFAULT => '*default*',
                                                                        GRADE_REPORT_AGGREGATION_POSITION_FIRST => get_string('positionfirst', 'grades'),
                                                                        GRADE_REPORT_AGGREGATION_POSITION_LAST => get_string('positionlast', 'grades'));
-            $preferences['prefgeneral']['enableajax'] = $checkbox_default;
+            $preferences['prefgeneral']['enableajax'] = $checkboxdefault;
 
-            $preferences['prefshow']['showuserimage'] = $checkbox_default;
-            $preferences['prefshow']['showactivityicons'] = $checkbox_default;
-            $preferences['prefshow']['showranges'] = $checkbox_default;
-            $preferences['prefshow']['showanalysisicon'] = $checkbox_default;
+            $preferences['prefshow']['showuserimage'] = $checkboxdefault;
+            $preferences['prefshow']['showactivityicons'] = $checkboxdefault;
+            $preferences['prefshow']['showranges'] = $checkboxdefault;
+            $preferences['prefshow']['showanalysisicon'] = $checkboxdefault;
 
             if ($canviewhidden) {
-                $preferences['prefrows']['shownumberofgrades'] = $checkbox_default;
+                $preferences['prefrows']['shownumberofgrades'] = $checkboxdefault;
             }
 
             $advanced = array_merge($advanced, array('aggregationposition'));
