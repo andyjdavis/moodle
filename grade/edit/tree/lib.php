@@ -61,23 +61,24 @@ class grade_edit_tree {
         $this->deepest_level = $this->get_deepest_level($this->gtree->top_element);
 
         $this->columns = array(grade_edit_tree_column::factory('name', array('deepest_level' => $this->deepest_level)),
-                               grade_edit_tree_column::factory('aggregation', array('flag' => true)));
+                               grade_edit_tree_column::factory('aggregation', array('flag' => true))
+                               );
 
         if ($this->uses_weight) {
             $this->columns[] = grade_edit_tree_column::factory('weight', array('adv' => 'aggregationcoef'));
         }
-        if ($this->uses_extra_credit) {
+        /*if ($this->uses_extra_credit) {
             $this->columns[] = grade_edit_tree_column::factory('extracredit', array('adv' => 'aggregationcoef'));
-        }
+        }*/
 
         $this->columns[] = grade_edit_tree_column::factory('range'); // This is not a setting... How do we deal with it?
-        $this->columns[] = grade_edit_tree_column::factory('aggregateonlygraded', array('flag' => true));
-        $this->columns[] = grade_edit_tree_column::factory('aggregatesubcats', array('flag' => true));
-        $this->columns[] = grade_edit_tree_column::factory('aggregateoutcomes', array('flag' => true));
-        $this->columns[] = grade_edit_tree_column::factory('droplow', array('flag' => true));
-        $this->columns[] = grade_edit_tree_column::factory('keephigh', array('flag' => true));
-        $this->columns[] = grade_edit_tree_column::factory('multfactor', array('adv' => true));
-        $this->columns[] = grade_edit_tree_column::factory('plusfactor', array('adv' => true));
+        //$this->columns[] = grade_edit_tree_column::factory('aggregateonlygraded', array('flag' => true));
+        //$this->columns[] = grade_edit_tree_column::factory('aggregatesubcats', array('flag' => true));
+        //$this->columns[] = grade_edit_tree_column::factory('aggregateoutcomes', array('flag' => true));
+        //$this->columns[] = grade_edit_tree_column::factory('droplow', array('flag' => true));
+        //$this->columns[] = grade_edit_tree_column::factory('keephigh', array('flag' => true));
+        //$this->columns[] = grade_edit_tree_column::factory('multfactor', array('adv' => true));
+        //$this->columns[] = grade_edit_tree_column::factory('plusfactor', array('adv' => true));
         $this->columns[] = grade_edit_tree_column::factory('actions');
         $this->columns[] = grade_edit_tree_column::factory('select');
 
@@ -659,23 +660,23 @@ class grade_edit_tree_column_aggregation extends grade_edit_tree_column_category
                          GRADE_AGGREGATE_MODE             => get_string('aggregatemode', 'grades'),
                          GRADE_AGGREGATE_SUM              => get_string('aggregatesum', 'grades'));
 
-        $visible = explode(',', $CFG->grade_aggregations_visible);
+        /*$visible = explode(',', $CFG->grade_aggregations_visible);
         foreach ($options as $constant => $string) {
             if (!in_array($constant, $visible) && $constant != $category->aggregation) {
                 unset($options[$constant]);
             }
-        }
+        }*/
 
-        if ($this->forced) {
+        //if ($this->forced) {
             $aggregation = $options[$category->aggregation];
-        } else {
+        /*} else {
             $attributes = array();
             $attributes['id'] = 'aggregation_'.$category->id;
             $aggregation = html_writer::label(get_string('aggregation', 'grades'), 'aggregation_'.$category->id, false, array('class' => 'accesshide'));
             $aggregation .= html_writer::select($options, 'aggregation_'.$category->id, $category->aggregation, null, $attributes);
             $action = new component_action('change', 'update_category_aggregation', array('courseid' => $params['id'], 'category' => $category->id, 'sesskey' => sesskey()));
             $OUTPUT->add_action_handler($action, 'aggregation_'.$category->id);
-        }
+        }*/
 
         $categorycell = clone($this->categorycell);
         $categorycell->attributes['class'] .= ' ' . $levelclass;

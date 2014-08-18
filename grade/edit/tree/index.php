@@ -93,7 +93,7 @@ if (has_capability('moodle/grade:manage', $context)) {
 }
 
 // Change category aggregation if requested
-if (!is_null($category) && !is_null($aggregationtype) && confirm_sesskey()) {
+/*if (!is_null($category) && !is_null($aggregationtype) && confirm_sesskey()) {
     if (!$grade_category = grade_category::fetch(array('id'=>$category, 'courseid'=>$courseid))) {
         print_error('invalidcategoryid');
     }
@@ -104,7 +104,7 @@ if (!is_null($category) && !is_null($aggregationtype) && confirm_sesskey()) {
     $grade_category->update();
 
     grade_regrade_final_grades($courseid);
-}
+}*/
 
 //first make sure we have proper final grades - we need it for locking changes
 grade_regrade_final_grades($courseid);
