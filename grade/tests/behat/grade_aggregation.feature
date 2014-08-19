@@ -182,9 +182,9 @@ Feature: We can use calculated grade totals
     And I should see "40.00 (40.00 %)" in the "overview-grade" "table"
 
   @javascript
-  Scenario: Sum of grades aggregation
+  Scenario: Natural aggregation
     And I follow "Edit   Course 1"
-    And I set the field "Aggregation" to "Sum of grades"
+    And I set the field "Aggregation" to "Natural"
     And I press "Save changes"
     And I turn editing mode off
     Then I should see "120.00 (40.00 %)" in the ".course" "css_element"
