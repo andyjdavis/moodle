@@ -748,26 +748,8 @@ class grade_report_grader extends grade_report {
         $strtypescale = get_string('typescale', 'grades');
 
         //TODO: we should probably epxlain why this is renaming to a column that already exists
-        // rebase conflict.
-        // $sql = 'SELECT id, grademax as finalgrade, grademax as rawgrademax FROM {grade_items} WHERE courseid = ' . $this->courseid;
-        // $tempgrades = $DB->get_records_sql($sql);
-
-        // $this->gtree->emptycats = array();
-        // looking for the overall weights
-        // $this->gtree->calc_weights_recursive2($this->gtree->top_element, $tempgrades, false, true, true);
-        // looking for each students' weights
-//        $this->gtree->calc_weights_recursive2($this->gtree->top_element, $tempgrades, false, false);
-        
-        // grademax
-
-        //$this->gtree->accuratepoints($tempgrades, true, true); // calculates range correctly for categories and course
-
-        // individual points
-
-        // $this->gtree->accuratepointsrecursive($this->grades, false, false); // makes certain no grades have been injected that throw off points calcs
-        // End conflict.
-        
-//        grade_regrade_final_grades($this->courseid);
+        $sql = 'SELECT id, grademax as finalgrade, grademax as rawgrademax FROM {grade_items} WHERE courseid = ' . $this->courseid;
+        $tempgrades = $DB->get_records_sql($sql);
 
         foreach ($this->gtree->get_levels() as $key => $row) {
             $headingrow = new html_table_row();
@@ -1074,11 +1056,7 @@ class grade_report_grader extends grade_report {
                         $itemcell->text .= "<span class='gradevalue{$hidden}{$gradepass}'>" .
                                 grade_format_gradevalue($gradeval, $item, true, $gradedisplaytype, null) . "</span>";
                         if ($showanalysisicon) {
-                            // Start rebase conflict.
-                        // $itemcell->text .= html_writer::tag('span', $this->grade_format_gradevalue($gradeval, $item, $grade, true, $gradedisplaytype, null),
-                        //         array('class'=>"gradevalue$hidden$gradepass"));
-                        // if ($this->get_pref('showanalysisicon')) {
-                            //end rebase conflict.
+                            $itemcell->text .= $this->gtree->get_grade_analysis_icon($grade);
                             $itemcell->text .= $this->gtree->get_grade_analysis_icon($grade);
                         }
                     }
