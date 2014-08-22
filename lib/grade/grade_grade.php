@@ -545,22 +545,23 @@ class grade_grade extends grade_object {
      * @param int $rangesdecimalpoints
      * @return string
      */
-    function get_formatted_range($rangesdisplaytype=null, $rangesdecimalpoints=null) {
+    public function get_formatted_range($rangesdisplaytype=null, $rangesdecimalpoints=null) {
 
         global $USER;
 
-        // Determine which display type to use for this average
-        if (isset($USER->gradeediting) && array_key_exists($this->grade_item->courseid, $USER->gradeediting) && $USER->gradeediting[$this->grade_item->courseid]) {
+        // Determine which display type to use for this average.
+        if (isset($USER->gradeediting) && array_key_exists($this->grade_item->courseid, $USER->gradeediting) &&
+            $USER->gradeediting[$this->grade_item->courseid]) {
             $displaytype = GRADE_DISPLAY_TYPE_REAL;
 
-        } else if ($rangesdisplaytype == GRADE_REPORT_PREFERENCE_INHERIT) { // no ==0 here, please resave report and user prefs
+        } else if ($rangesdisplaytype == GRADE_REPORT_PREFERENCE_INHERIT) { // No ==0 here, please resave report and user prefs.
             $displaytype = $this->get_displaytype();
 
         } else {
             $displaytype = $rangesdisplaytype;
         }
 
-        // Override grade_item setting if a display preference (not default) was set for the averages
+        // Override grade_item setting if a display preference (not default) was set for the averages.
         if ($rangesdecimalpoints == GRADE_REPORT_PREFERENCE_INHERIT) {
             $decimalpoints = $this->get_decimals();
 

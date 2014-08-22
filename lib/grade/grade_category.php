@@ -483,38 +483,38 @@ class grade_category extends grade_object {
         if ($rs->valid()) {
 
             if ($userid == null) {
-                //TODO: why this equality check
-                $grade_values = null;
+                // TODO: Why this equality check?
+                $gradevalues = null;
             } else {
-                //TODO: this is really confusing
-                // must send grades to auto_update_max in order for ungraded items to be excluded
+                // TODO: this is really confusing.
+                // Must send grades to auto_update_max in order for ungraded items to be excluded.
                 $sql = "SELECT itemid, finalgrade
                             FROM {grade_grades} g, {grade_items} gi
                             WHERE gi.id = g.itemid AND gi.id $usql $usersql
                             ORDER BY g.userid";
 
-                // group the results by userid and aggregate the grades for this user
-                $grade_values = $DB->get_records_sql($sql, $params);
+                // Group the results by userid and aggregate the grades for this user.
+                $gradevalues = $DB->get_records_sql($sql, $params);
             }
 
-            // needed mostly for SUM agg type
-            $this->auto_update_max($items, $grade_values);
+            // Needed mostly for SUM aggregation type.
+            $this->auto_update_max($items, $gradevalues);
 
             $prevuser = 0;
-            $grade_values = array();
+            $gradevalues = array();
             $excluded     = array();
             $oldgrade     = null;
 
             foreach ($rs as $used) {
 
                 if ($used->userid != $prevuser) {
-                    $this->aggregate_grades($prevuser, $items, $grade_values, $oldgrade, $excluded);
+                    $this->aggregate_grades($prevuser, $items, $gradevalues, $oldgrade, $excluded);
                     $prevuser = $used->userid;
-                    $grade_values = array();
+                    $gradevalues = array();
                     $excluded     = array();
                     $oldgrade     = null;
                 }
-                $grade_values[$used->itemid] = $used->finalgrade;
+                $gradevalues[$used->itemid] = $used->finalgrade;
 
                 if ($used->excluded) {
                     $excluded[] = $used->itemid;
@@ -524,7 +524,7 @@ class grade_category extends grade_object {
                     $oldgrade = $used;
                 }
             }
-            $this->aggregate_grades($prevuser, $items, $grade_values, $oldgrade, $excluded);//the last one
+            $this->aggregate_grades($prevuser, $items, $gradevalues, $oldgrade, $excluded);//the last one
         }
         $rs->close();
 
@@ -536,11 +536,11 @@ class grade_category extends grade_object {
      *
      * @param int    $userid The User ID
      * @param array  $items Grade items
-     * @param array  $grade_values Array of grade values
+     * @param array  $gradevalues Array of grade values
      * @param object $oldgrade Old grade
      * @param array  $excluded Excluded
      */
-    private function aggregate_grades($userid, $items, $grade_values, $oldgrade, $excluded) {
+    private function aggregate_grades($userid, $items, $gradevalues, $oldgrade, $excluded) {
         global $CFG;
         if (empty($userid)) {
             //ignore first call
@@ -566,17 +566,17 @@ class grade_category extends grade_object {
         }
 
         // can not use own final category grade in calculation
-        unset($grade_values[$this->grade_item->id]);
+        unset($gradevalues[$this->grade_item->id]);
 
 
         // sum is a special aggregation types - it adjusts the min max, does not use relative values
         if ($this->aggregation == GRADE_AGGREGATE_SUM) {
-            $this->sum_grades($grade, $oldfinalgrade, $items, $grade_values, $excluded);
+            $this->sum_grades($grade, $oldfinalgrade, $items, $gradevalues, $excluded);
             return;
         }
 
         // if no grades calculation possible or grading not allowed clear final grade
-        if (empty($grade_values) or empty($items) or ($this->grade_item->gradetype != GRADE_TYPE_VALUE and $this->grade_item->gradetype != GRADE_TYPE_SCALE)) {
+        if (empty($gradevalues) or empty($items) or ($this->grade_item->gradetype != GRADE_TYPE_VALUE and $this->grade_item->gradetype != GRADE_TYPE_SCALE)) {
             $grade->finalgrade = null;
 
             if (!is_null($oldfinalgrade)) {
@@ -587,21 +587,21 @@ class grade_category extends grade_object {
 
         // normalize the grades first - all will have value 0...1
         // ungraded items are not used in aggregation
-        foreach ($grade_values as $itemid=>$v) {
+        foreach ($gradevalues as $itemid=>$v) {
 
             if (is_null($v)) {
                 // null means no grade
-                unset($grade_values[$itemid]);
+                unset($gradevalues[$itemid]);
                 continue;
 
             } else if (in_array($itemid, $excluded)) {
-                unset($grade_values[$itemid]);
+                unset($gradevalues[$itemid]);
                 continue;
             } else if ($this->aggregateonlygraded && $v == null) {
-                // allow for exclude empty grades for Sum
-                unset($grade_values[$itemid]);
+                // Allow for exclude empty grades for Sum.
+                unset($gradevalues[$itemid]);
             }
-            $grade_values[$itemid] = grade_grade::standardise_score($v, $items[$itemid]->grademin, $items[$itemid]->grademax, 0, 1);
+            $gradevalues[$itemid] = grade_grade::standardise_score($v, $items[$itemid]->grademin, $items[$itemid]->grademax, 0, 1);
         }
 
         // use min grade if grade missing for these types
@@ -609,18 +609,18 @@ class grade_category extends grade_object {
 
             foreach ($items as $itemid=>$value) {
 
-                if (!isset($grade_values[$itemid]) and !in_array($itemid, $excluded)) {
-                    $grade_values[$itemid] = 0;
+                if (!isset($gradevalues[$itemid]) and !in_array($itemid, $excluded)) {
+                    $gradevalues[$itemid] = 0;
                 }
             }
         }
 
         // limit and sort
-        $this->apply_limit_rules($grade_values, $items);
-        asort($grade_values, SORT_NUMERIC);
+        $this->apply_limit_rules($gradevalues, $items);
+        asort($gradevalues, SORT_NUMERIC);
 
         // let's see we have still enough grades to do any statistics
-        if (count($grade_values) == 0) {
+        if (count($gradevalues) == 0) {
             // not enough attempts yet
             $grade->finalgrade = null;
 
@@ -631,7 +631,7 @@ class grade_category extends grade_object {
         }
 
         // do the maths
-        $result = $this->aggregate_values_and_adjust_bounds($grade_values, $items);
+        $result = $this->aggregate_values_and_adjust_bounds($gradevalues, $items);
         $agg_grade = $result['grade'];
 
         // recalculate the grade back to requested range
@@ -652,7 +652,7 @@ class grade_category extends grade_object {
      *
      * Must be public as it is used by grade_grade::get_hiding_affected()
      *
-     * @param array $grade_values An array of values to be aggregated
+     * @param array $gradevalues An array of values to be aggregated
      * @param array $items The array of grade_items
      * @since Moodle 2.6.5, 2.7.2
      * @return array containing values for:
@@ -660,7 +660,7 @@ class grade_category extends grade_object {
      *                'grademin' => the new calculated min grade for the category
      *                'grademax' => the new calculated max grade for the category
      */
-    public function aggregate_values_and_adjust_bounds($grade_values, $items) {
+    public function aggregate_values_and_adjust_bounds($gradevalues, $items) {
         $category_item = $this->get_grade_item();
         $grademin = $category_item->grademin;
         $grademax = $category_item->grademax;
@@ -668,8 +668,8 @@ class grade_category extends grade_object {
         switch ($this->aggregation) {
 
             case GRADE_AGGREGATE_MEDIAN: // Middle point value in the set: ignores frequencies
-                $num = count($grade_values);
-                $grades = array_values($grade_values);
+                $num = count($gradevalues);
+                $grades = array_values($gradevalues);
 
                 if ($num % 2 == 0) {
                     $agg_grade = ($grades[intval($num/2)-1] + $grades[intval($num/2)]) / 2;
@@ -680,18 +680,18 @@ class grade_category extends grade_object {
                 break;
 
             case GRADE_AGGREGATE_MIN:
-                $agg_grade = reset($grade_values);
+                $agg_grade = reset($gradevalues);
                 break;
 
             case GRADE_AGGREGATE_MAX:
-                $agg_grade = array_pop($grade_values);
+                $agg_grade = array_pop($gradevalues);
                 break;
 
             case GRADE_AGGREGATE_MODE:       // the most common value, average used if multimode
                 // array_count_values only counts INT and STRING, so if grades are floats we must convert them to string
                 $converted_grade_values = array();
 
-                foreach ($grade_values as $k => $gv) {
+                foreach ($gradevalues as $k => $gv) {
 
                     if (!is_int($gv) && !is_string($gv)) {
                         $converted_grade_values[$k] = (string) $gv;
@@ -713,7 +713,7 @@ class grade_category extends grade_object {
                 $weightsum = 0;
                 $sum       = 0;
 
-                foreach ($grade_values as $itemid=>$grade_value) {
+                foreach ($gradevalues as $itemid=>$grade_value) {
 
                     if ($items[$itemid]->aggregationcoef <= 0) {
                         continue;
@@ -736,7 +736,7 @@ class grade_category extends grade_object {
                 $weightsum = 0;
                 $sum       = null;
 
-                foreach ($grade_values as $itemid=>$grade_value) {
+                foreach ($gradevalues as $itemid=>$grade_value) {
                     $weight = $items[$itemid]->grademax - $items[$itemid]->grademin;
 
                     if ($weight <= 0) {
@@ -761,7 +761,7 @@ class grade_category extends grade_object {
                 $num = 0;
                 $sum = null;
 
-                foreach ($grade_values as $itemid=>$grade_value) {
+                foreach ($gradevalues as $itemid=>$grade_value) {
 
                     if ($items[$itemid]->aggregationcoef == 0) {
                         $num += 1;
@@ -781,13 +781,13 @@ class grade_category extends grade_object {
                 break;
 
             case GRADE_AGGREGATE_SUM:    // Add up all the items.
-                $num = count($grade_values);
-                $sum = array_sum($grade_values);
+                $num = count($gradevalues);
+                $sum = array_sum($gradevalues);
                 $agg_grade = $sum / $num;
                 // Excluded items can affect the grademax for this grade_item.
                 $grademin = 0;
                 $grademax = 0;
-                foreach ($grade_values as $itemid => $grade_value) {
+                foreach ($gradevalues as $itemid => $grade_value) {
                     $grademin += $items[$itemid]->grademin;
                     $grademax += $items[$itemid]->grademax;
                 }
@@ -795,8 +795,8 @@ class grade_category extends grade_object {
 
             case GRADE_AGGREGATE_MEAN:    // Arithmetic average of all grade items (if ungraded aggregated, NULL counted as minimum)
             default:
-                $num = count($grade_values);
-                $sum = array_sum($grade_values);
+                $num = count($gradevalues);
+                $sum = array_sum($gradevalues);
                 $agg_grade = $sum / $num;
                 break;
         }
@@ -810,14 +810,14 @@ class grade_category extends grade_object {
      * Must be public as it is used by grade_grade::get_hiding_affected()
      *
      * @deprecated since Moodle 2.8
-     * @param array $grade_values An array of values to be aggregated
+     * @param array $gradevalues An array of values to be aggregated
      * @param array $items The array of grade_items
      * @return float The aggregate grade for this grade category
      */
-    public function aggregate_values($grade_values, $items) {
+    public function aggregate_values($gradevalues, $items) {
         debugging('grade_category::aggregate_values() is deprecated.
                    Call grade_category::aggregate_values_and_adjust_bounds() instead.', DEBUG_DEVELOPER);
-        $result = $this->aggregate_values_and_adjust_bounds($grade_values, $items);
+        $result = $this->aggregate_values_and_adjust_bounds($gradevalues, $items);
         return $result['grade'];
     }
 
@@ -834,7 +834,8 @@ class grade_category extends grade_object {
             return;
         }
 
-        $showtotalsifcontainhidden = grade_get_setting($this->courseid, 'report_user_showtotalsifcontainhidden', $CFG->grade_report_user_showtotalsifcontainhidden);
+        $showtotalsifcontainhidden = grade_get_setting($this->courseid, 'report_user_showtotalsifcontainhidden',
+            $CFG->grade_report_user_showtotalsifcontainhidden);
 
         if (!$items) {
 
@@ -863,8 +864,9 @@ class grade_category extends grade_object {
                 continue;
             }
 
-            if (($showtotalsifcontainhidden == GRADE_REPORT_SHOW_TOTAL_IF_CONTAINS_HIDDEN || $showtotalsifcontainhidden == GRADE_REPORT_HIDE_TOTAL_IF_CONTAINS_HIDDEN) && $item->hidden == 1) {
-                // totals for this course should not contain hidden items and this item is hidden
+            if (($showtotalsifcontainhidden == GRADE_REPORT_SHOW_TOTAL_IF_CONTAINS_HIDDEN ||
+                 $showtotalsifcontainhidden == GRADE_REPORT_HIDE_TOTAL_IF_CONTAINS_HIDDEN) && $item->hidden == 1) {
+                // Totals for this course should not contain hidden items and this item is hidden.
                 continue;
             }
 
@@ -894,24 +896,24 @@ class grade_category extends grade_object {
      * @param grade_grade $grade The grade item
      * @param float $oldfinalgrade Old Final grade
      * @param array $items Grade items
-     * @param array $grade_values Grade values
+     * @param array $gradevalues Grade values
      * @param array $excluded Excluded
      */
-    private function sum_grades(&$grade, $oldfinalgrade, $items, $grade_values, $excluded) {
+    private function sum_grades(&$grade, $oldfinalgrade, $items, $gradevalues, $excluded) {
         if (empty($items)) {
             return null;
         }
 
         // ungraded and excluded items are not used in aggregation
-        foreach ($grade_values as $itemid=>$v) {
+        foreach ($gradevalues as $itemid=>$v) {
 
             if (is_null($v)) {
-                unset($grade_values[$itemid]);
+                unset($gradevalues[$itemid]);
 
             } else if (in_array($itemid, $excluded)) {
-                unset($grade_values[$itemid]);
-            } else if ($this->aggregateonlygraded && $v == null) { // allow for exclude empty grades for Sum
-                unset($grade_values[$itemid]);                
+                unset($gradevalues[$itemid]);
+            } else if ($this->aggregateonlygraded && $v == null) { // Allow for exclude empty grades for Sum.
+                unset($gradevalues[$itemid]);
             }
         }
 
@@ -920,21 +922,21 @@ class grade_category extends grade_object {
 
             foreach ($items as $itemid=>$value) {
 
-                if (!isset($grade_values[$itemid]) and !in_array($itemid, $excluded)) {
-                    $grade_values[$itemid] = 0;
+                if (!isset($gradevalues[$itemid]) and !in_array($itemid, $excluded)) {
+                    $gradevalues[$itemid] = 0;
                 }
             }
         } else if ($this->aggregateonlygraded) {
-            foreach ($items as $itemid=>$value) {
-                if (!isset($grade_values[$itemid]) and !in_array($itemid, $excluded)) {
-                    $grade_values[$itemid] = 0;
+            foreach ($items as $itemid => $value) {
+                if (!isset($gradevalues[$itemid]) and !in_array($itemid, $excluded)) {
+                    $gradevalues[$itemid] = 0;
                 }
             }
         }
 
-        $this->apply_limit_rules($grade_values, $items);
+        $this->apply_limit_rules($gradevalues, $items);
 
-        $sum = array_sum($grade_values);
+        $sum = array_sum($gradevalues);
         $grade->finalgrade = $this->grade_item->bounded_grade($sum);
 
         // update in db if changed
@@ -948,15 +950,15 @@ class grade_category extends grade_object {
     /**
      * Given an array of grade values (numerical indices) applies droplow or keephigh rules to limit the final array.
      *
-     * @param array $grade_values itemid=>$grade_value float
+     * @param array $gradevalues itemid=>$grade_value float
      * @param array $items grade item objects
      * @return array Limited grades.
      */
-    public function apply_limit_rules(&$grade_values, $items) {
+    public function apply_limit_rules(&$gradevalues, $items) {
         $extraused = $this->is_extracredit_used();
 
         if (!empty($this->droplow)) {
-            asort($grade_values, SORT_NUMERIC);
+            asort($gradevalues, SORT_NUMERIC);
             $dropped = 0;
 
             // If we have fewer grade items available to drop than $this->droplow, use this flag to escape the loop
@@ -966,7 +968,7 @@ class grade_category extends grade_object {
             while ($dropped < $this->droplow && $droppedsomething) {
                 $droppedsomething = false;
 
-                $grade_keys = array_keys($grade_values);
+                $grade_keys = array_keys($gradevalues);
                 $gradekeycount = count($grade_keys);
 
                 if ($gradekeycount === 0) {
@@ -1000,7 +1002,7 @@ class grade_category extends grade_object {
                     $possibleitemid = $grade_keys[$originalindex+$i];
                     $i++;
 
-                    if ($grade_values[$founditemid] != $grade_values[$possibleitemid]) {
+                    if ($gradevalues[$founditemid] != $grade_values[$possibleitemid]) {
                         // The next grade item has a different grade value. Stop looking.
                         break;
                     }
@@ -1019,16 +1021,16 @@ class grade_category extends grade_object {
                 }
 
                 // Now drop whatever grade item we have found
-                unset($grade_values[$founditemid]);
+                unset($gradevalues[$founditemid]);
                 $dropped++;
                 $droppedsomething = true;
             }
 
         } else if (!empty($this->keephigh)) {
-            arsort($grade_values, SORT_NUMERIC);
+            arsort($gradevalues, SORT_NUMERIC);
             $kept = 0;
 
-            foreach ($grade_values as $itemid=>$value) {
+            foreach ($gradevalues as $itemid=>$value) {
 
                 if ($extraused and $items[$itemid]->aggregationcoef > 0) {
                     // we keep all extra credits
@@ -1037,7 +1039,7 @@ class grade_category extends grade_object {
                     $kept++;
 
                 } else {
-                    unset($grade_values[$itemid]);
+                    unset($gradevalues[$itemid]);
                 }
             }
         }
