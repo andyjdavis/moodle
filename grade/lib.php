@@ -1129,9 +1129,13 @@ class grade_structure {
 
     public $courseid;
 
-    public $cats;    //TODO: phpdoc
+    /**
+     * An array containing final grades and adjusted weights
+     * @var array
+     */
+    public $cats;
 
-    public $parents;  //TODO: phpdoc
+    //public $parents;  //TODO: phpdoc
 
     /**
     * Reference to modinfo for current course (for performance, to save
@@ -1251,11 +1255,11 @@ class grade_structure {
         }
 
         if ($showweight) {
-            $header .= 'Weight=' . format_float($element['object']->weight,2) . '<br />'; 
+            $header .= 'Weight=' . format_float($element['object']->weight, 2) . '<br />';
         }
-        
+
         $header .= $element['object']->get_name();
-        
+
         if ($element['type'] != 'item' and $element['type'] != 'categoryitem' and
             $element['type'] != 'courseitem') {
             return $header;
@@ -1869,7 +1873,9 @@ class grade_tree extends grade_structure {
         $this->courseid   = $courseid;
         $this->levels     = array();
         $this->context    = context_course::instance($courseid);
-        $this->showtotalsifcontainhidden = array($this->courseid => grade_get_setting($this->courseid, 'report_user_showtotalsifcontainhidden', $CFG->grade_report_user_showtotalsifcontainhidden));
+        $this->showtotalsifcontainhidden = array($this->courseid => grade_get_setting($this->courseid,
+                                                                                      'report_user_showtotalsifcontainhidden',
+                                                                                      $CFG->grade_report_user_showtotalsifcontainhidden));
 
         if (!empty($COURSE->id) && $COURSE->id == $this->courseid) {
             $course = $COURSE;
@@ -2289,19 +2295,19 @@ class grade_tree extends grade_structure {
             return false;
         }
     }
-    
+
 
     /*
      * LAE need in order to get hold of the category name for the categoryitem structure without using the upper level category which we don't use
     */
-    function fill_cats() {
-        foreach($this->items as $key=>$item) {
+    public function fill_cats() {
+        foreach ($this->items as $key => $item) {
             if (!$item->categoryid ) {
                 $this->cats[$item->iteminstance] = $item;
                 $this->cats[$item->iteminstance]->finalgrade = 0;
                 $this->cats[$item->iteminstance]->grademax = 0;
                 $this->cats[$item->iteminstance]->adjusted_weight[0] = 0;
-                $this->cats[$item->iteminstance]->adjusted_grademax[0] = 0; // avoid notices when nothing is in this array
+                $this->cats[$item->iteminstance]->adjusted_grademax[0] = 0; // Avoid notices when nothing is in this array.
             }
         }
     }
@@ -2312,40 +2318,40 @@ class grade_tree extends grade_structure {
      * $fullweight being false means we're being called by Grader or User and only calculating grade values
      * so how do we calculate rawgrademaxes?
      */
-    function calc_values(&$grades, $unset, $fullweight = false) {
-        // clear dropped conditions
+    public function calc_values(&$grades, $unset, $fullweight = false) {
+        // Clear dropped conditions.
 /*
         if ($fullweight) {
             foreach ($this->items as $id => $item) {
-                if ($item->weight == -1){
+                if ($item->weight == -1) {
                     $item->weight = 0;
                 }
             }
         } else {
             foreach ($grades as $id => $item) {
-                if ($item->weight == -1){
+                if ($item->weight == -1) {
                     $item->weight = 0;
                 }
             }
         }
-*/        
+*/
         $this->fill_cats();
-        
+
         // load grade_categories, need for xreffing for aggregateonlygraded
         foreach ($this->cats as $catid => $cat) {
             $cat->grade_category = grade_category::fetch(array('id' => $catid));
             $cat->value = 0;
         }
 
-        // take all adjusted weights out of consideration
-        // need to do this up front before any item weights are rolled up into their containers
+        // Take all adjusted weights out of consideration.
+        // Need to do this up front before any item weights are rolled up into their containers.
         $this->get_adjusted_weights();
-        
-        // determine accurate points in each container
+
+        // Determine accurate points in each container.
         $this->accuratepoints($fullweight, $grades);
-        
+
         $this->cat_rollup($fullweight, $grades);
-        
+
         // reset
 //        $this->reset_cats();
 
@@ -2354,39 +2360,35 @@ class grade_tree extends grade_structure {
 //            $this->accuratepoints(true, $grades, true);
 //        }
 
-        // reset
         $this->reset_cats();
 
-        // determine relative weights in each container
+        // Determine relative weights in each container.
         $this->accurateweights($fullweight, $grades);
-        
-        // reset
+
         $this->reset_cats();
-        
-        // determine contribution
+
+        // Determine contribution.
         $this->calccontrib($fullweight, $grades);
-        
+
         $this->determine_cat_limits($grades, $fullweight);
-        
+
  //       $this->cat_rollup($fullweight, $grades);
         
         // and then, of course we need to recalculate weights and contribs because any dropped or kept conditions changes all the weights and contribs
         // re-determine relative weights in each container
         $this->accurateweights($fullweight, $grades);
-        
-        // reset
+
         $this->reset_cats();
-        
-        // re-determine contribution
+
+        // Re-determine contribution.
         $this->calccontrib($fullweight, $grades);
-        
     }
 
-    function determine_cat_limits(&$grades, $fullweight) {
+    public function determine_cat_limits(&$grades, $fullweight) {
         $levelsarray = array_keys($this->levels);
 
         array_pop($levelsarray);
-        // now go through all the items and categories to aggregate their values into their parents
+        // Now go through all the items and categories to aggregate their values into their parents.
         $curlevel = $levelsarray[max($levelsarray)];
         
         while ($curlevel > 0) {
@@ -2403,16 +2405,23 @@ class grade_tree extends grade_structure {
             $curlevel--;
         }    
     }
-    
-    function reset_cats() {
+
+    /**
+     * Set all category values to zero.
+     */
+    public function reset_cats() {
         foreach ($this->cats as $catid => $cat) {
             $cat->value = 0;
         }        
     }
-    
-    function get_adjusted_weights() {
+
+    /**
+     * Load adjusted weights into the category array.
+     * Each adjust weight goes into the array associated with its parent.
+     */
+    public function get_adjusted_weights() {
         global $DB;
-        // determine any overridden weights
+        // Determine any overridden weights.
         $sql = "SELECT id, weight, weightoverride, iteminstance, categoryid, grademax
                 FROM {grade_items}
                 WHERE courseid = $this->courseid
@@ -2425,31 +2434,33 @@ class grade_tree extends grade_structure {
                 $parentid = $item->categoryid;
             }
             $this->cats[$parentid]->adjusted_weight[$id] = $item->weight;
-//            $this->cats[$parentid]->adjusted_grademax[$item->id] = $item->grademax;
         }
     }
-    
-    function accurateweights($fullweight, &$grades) {
+
+    /**
+     * Walk up the grade tree aggregating weights.
+     */
+    public function accurateweights($fullweight, &$grades) {
         $levelsarray = array_keys($this->levels);
 
-        // now go through all the items and categories to aggregate their values into their parents
+        // Now go through all the items and categories to aggregate their values into their parents.
         $curlevel = $levelsarray[max($levelsarray)];
         
         while ($curlevel > -1) {
             foreach ($this->levels[$curlevel] as $element) {
-                // don't consider any items with particular conditions
+                // Don't consider any items with particular conditions.
                 if ($element['type'] === 'category') {
-                    
+
                     $item = $this->cats[$element['object']->id]->grade_category;
                     if (!isset($element['object']->grade_item)) {
                         $element['object']->load_grade_item();
                     }
                     $itemid = $element['object']->grade_item->id;
 
-                    // exclude ungraded, hidden, and extra credit items
-                    if ($this->exclude_items($item, $grades, $itemid, $fullweight)) { // dont't include the course item
+                    // Exclude ungraded, hidden, and extra credit items.
+                    if ($this->exclude_items($item, $grades, $itemid, $fullweight)) { // Don't include the course item.
                         if (isset($item->parent)) {
-                            // determine if points need to be subtracted from grademax accounting for adjusted weights before calculating weight
+                            // Determine if points need to be subtracted from grademax accounting for adjusted weights before calculating weight.
                             $minusmax = array_sum($this->cats[$item->parent]->adjusted_grademax);
                             $minusweight = 100 - array_sum($this->cats[$item->parent]->adjusted_weight);
 
@@ -2458,8 +2469,8 @@ class grade_tree extends grade_structure {
                                 $this->normalize_weights($element, $grades, $fullweight);
                                 if (!$this->is_extra_credit($itemid)) {
                                     if ($this->check_adjusted_weights($itemid)) {
-    //                                    $catparent = $this->cats[$item->id]->grade_category->parent;
-    //                                    $this->cats[$catparent]->adjusted_weight[$itemid] = $this->checkitems[$itemid]->weight;
+                                        // $catparent = $this->cats[$item->id]->grade_category->parent;
+                                        // $this->cats[$catparent]->adjusted_weight[$itemid] = $this->checkitems[$itemid]->weight;
                                         $tempweight = $this->checkitems[$itemid]->weight;
                                         $this->cats[$parentid]->adjusted_weight[$itemid] = $tempweight;
                                     } else {
@@ -2469,15 +2480,14 @@ class grade_tree extends grade_structure {
                                     }
                                     if ($tempweight != $this->items[$itemid]->weight) {
                                         $this->items[$itemid]->weight = $tempweight;
-                                        $this->update_field($itemid,'weight', $this->items[$itemid]->weight, 'grade_items');
-//                                        $this->items[$itemid]->update();
+                                        $this->update_field($itemid, 'weight', $this->items[$itemid]->weight, 'grade_items');
                                     }
                                 }
-                            } else if ($grades[$parentid]->rawgrademax != 0){
+                            } else if ($grades[$parentid]->rawgrademax != 0) {
                                 $this->normalize_weights($element, $grades, $fullweight);
                                 if ($this->check_adjusted_weights($itemid)) {
-//                                    $catparent = $this->cats[$item->id]->grade_category->parent;
-//                                    $this->cats[$catparent]->adjusted_weight[$itemid] = $this->checkitems[$itemid]->weight;
+                                    // $catparent = $this->cats[$item->id]->grade_category->parent;
+                                    // $this->cats[$catparent]->adjusted_weight[$itemid] = $this->checkitems[$itemid]->weight;
                                     $tempweight = $this->checkitems[$itemid]->weight;
                                     $this->cats[$parentid]->adjusted_weight[$itemid] = $tempweight;
                                 } else {
@@ -2487,23 +2497,22 @@ class grade_tree extends grade_structure {
                                 }
                                 if ($grades[$itemid]->weight != $tempweight) {
                                     $grades[$itemid]->weight = $tempweight;
-                                    $this->update_field($grades[$itemid]->id,'weight', $grades[$itemid]->weight, 'grade_grades');
+                                    $this->update_field($grades[$itemid]->id, 'weight', $grades[$itemid]->weight, 'grade_grades');
                                 }
                             } else {
                                 $tempweight = 0;
                                 if ($grades[$itemid]->weight != $tempweight) {
                                     $grades[$itemid]->weight = $tempweight;
-                                    $this->update_field($grades[$itemid]->id,'weight', $grades[$itemid]->weight, 'grade_grades');
+                                    $this->update_field($grades[$itemid]->id, 'weight', $grades[$itemid]->weight, 'grade_grades');
                                 }
                             }
                         } else {
-                            // course item
+                            // Course item.
                             $this->normalize_weights($element, $grades, $fullweight);
                             if ($fullweight) {
                                 $tempweight = 100;
                                 if ($tempweight != $this->items[$itemid]->weight) {
                                         $this->items[$itemid]->weight = $tempweight;
-//                                        $this->items[$itemid]->update();
                                 }
                             } else {
                                 $grades[$itemid]->weight = 100;
@@ -2514,7 +2523,7 @@ class grade_tree extends grade_structure {
                     $item = $this->items[$element['object']->id];
                     $itemid = $item->id;
                     $tempweight = 0;
-                    // exclude ungraded, hidden, and extra credit items
+                    // Exclude ungraded, hidden, and extra credit items.
                     if ($this->exclude_items($item, $grades, $itemid, $fullweight) && isset($grades[$itemid]->id)) {
                         $parentid = $this->cats[$item->categoryid]->id;
                         $minusmax = array_sum($this->cats[$item->categoryid]->adjusted_grademax);
@@ -2546,7 +2555,7 @@ class grade_tree extends grade_structure {
                                 } else if (isset($item->categoryid) && $grades[$itemid]->finalgrade === null && 
                                         $this->cats[$item->categoryid]->grade_category->aggregateonlygraded !== 0) {
                                     $tempweight = 0;
-                                } else if ($grades[$parentid]->rawgrademax - $minusmax != 0){
+                                } else if ($grades[$parentid]->rawgrademax - $minusmax != 0) {
                                     $tempweight = $grades[$itemid]->rawgrademax 
                                             / ($grades[$parentid]->rawgrademax - $minusmax) 
                                             * $minusweight;                                
@@ -2573,7 +2582,7 @@ class grade_tree extends grade_structure {
     function normalize_weights($element, &$grades, $fullweight) {
         $adjusted_weights = 0;
         $normal_weights = 0;
-        foreach($element['children'] as $position => $child) {
+        foreach ($element['children'] as $position => $child) {
             if ($child['type'] == 'categoryitem' || $child['type'] == 'fillerlast') {
                 continue;
             } else if ($child['type'] == 'category') {
@@ -2604,7 +2613,7 @@ class grade_tree extends grade_structure {
             $normalizer = (100 - $adjusted_weights) / $normal_weights;
             $adjuster = 1;
         }
-        foreach($element['children'] as $position => $child) {
+        foreach ($element['children'] as $position => $child) {
             $id = $child['object']->id;
             if ($child['type'] == 'categoryitem' || $child['type'] == 'fillerlast') {
                 continue;
@@ -2628,14 +2637,14 @@ class grade_tree extends grade_structure {
         }
     }
     
-    function update_field($itemid, $field, $value, $table) {
+    public function update_field($itemid, $field, $value, $table) {
         global $DB;
         $wheresql = "id=?";
         $params   = array($itemid);
         $DB->set_field_select($table, $field, $value, $wheresql, $params);
     }
-    
-    function calccontrib($fullweight, &$grades) {
+
+    public function calccontrib($fullweight, &$grades) {
         $levelsarray = array_keys($this->levels);
 
         // now go through all the items and categories to aggregate their values into their parents
@@ -2750,7 +2759,7 @@ class grade_tree extends grade_structure {
                     $item = $element['object'];
                     $itemid = $item->id;
                     $parentid = $item->categoryid;
-                    // exclude ungraded, hidden, and extra credit items
+                    // Exclude ungraded, hidden, and extra credit items.
                     if ($this->exclude_items($item, $grades, $itemid, $grademax)) {
                         if ($grademax) {
                             if (!$this->is_extra_credit($itemid)) {
@@ -2807,23 +2816,26 @@ class grade_tree extends grade_structure {
         }
     }
 
-    function exclude_items($item, $grades, $itemid, $fullweight) {
+    /**
+     * Exclude
+     */
+    public function exclude_items($item, $grades, $itemid, $fullweight) {
         // exclude extra credit
 //        if ($fullweight && isset($item->extracredit) && $item->extracredit == 1) { 
 //            return false;
         // exclude those items removed by drop lowest keep highest
-        if ($fullweight && isset($this->items[$itemid]->weight) && $this->items[$itemid]->weight == -1) { 
+        if ($fullweight && isset($this->items[$itemid]->weight) && $this->items[$itemid]->weight == -1) {
             return false;
-        } else if (isset($grades[$itemid]->weight) && $grades[$itemid]->weight == -1) { 
+        } else if (isset($grades[$itemid]->weight) && $grades[$itemid]->weight == -1) {
             return false;
-        // exclude ungraded items if specified
+        // Exclude ungraded items if specified.
         } else if (!$fullweight
                 && (!isset($grades[$itemid]->finalgrade)
                         || $grades[$itemid]->finalgrade === null)
                 &&  isset($item->categoryid)
-                && $this->cats[$item->categoryid]->grade_category->aggregateonlygraded != 0) {    
+                && $this->cats[$item->categoryid]->grade_category->aggregateonlygraded != 0) {
             return false;
-        // exclude hidden    
+        // Exclude hidden.
         } else if ($item->is_hidden() && $this->showtotalsifcontainhidden !== GRADE_REPORT_SHOW_REAL_TOTAL_IF_CONTAINS_HIDDEN) {
             return false;
         }
@@ -2902,11 +2914,11 @@ class grade_tree extends grade_structure {
         } else if (!empty($this->cat->keephigh)) {
             arsort($maxes, SORT_NUMERIC);
             $kept = 0;
-            foreach ($grades[$itemid]->contrib as $childid=>$contrib) {
+            foreach ($grades[$itemid]->contrib as $childid => $contrib) {
                 if (is_null($contrib)) {
                     continue;
                 } else if ($extraused && $this->items[$childid]->extracredit > 0) {
-                    // we keep all extra credits
+                    // We keep all extra credits.
                 } else if ($kept < $this->cat->keephigh) {
                     $kept++;
                 } else {
@@ -2964,11 +2976,11 @@ class grade_tree extends grade_structure {
             }
         }
 
-        // remove the category item
+        // Remove the category item.
         if (!empty($this->cat->droplow)) {
             asort($contrib, SORT_NUMERIC);
             $dropped = 0;
-            foreach($contrib as $id => $value) {
+            foreach ($contrib as $id => $value) {
 //                $childid = $item['object']->id;
                 if ($dropped < $this->cat->droplow) {
                     if (isset($this->items[$id]->contrib) || $id == 0 || $itemid == $id) {
@@ -3003,7 +3015,7 @@ class grade_tree extends grade_structure {
         } else if (!empty($this->cat->keephigh)) {
             arsort($contrib, SORT_NUMERIC);
             $kept = 0;
-            foreach($contrib as $id => $value) {
+            foreach ($contrib as $id => $value) {
                 if (isset($this->items[$id]->contrib) || $id == 0 || $itemid == $id) {
                     continue;
                 } else if ($this->cat->aggregation == GRADE_AGGREGATE_WEIGHTED_MEAN2 && $this->items[$childid]->aggregationcoef > 0) {
@@ -3160,7 +3172,7 @@ function grade_extend_settings($plugininfo, $courseid) {
 
         // If we can get the course admin node make sure it is closed by default
         // as in this case the gradenode will be opened
-        if ($coursenode = $PAGE->settingsnav->get('courseadmin', navigation_node::TYPE_COURSE)){
+        if ($coursenode = $PAGE->settingsnav->get('courseadmin', navigation_node::TYPE_COURSE)) {
             $coursenode->make_inactive();
             $coursenode->forceopen = false;
         }
@@ -3271,7 +3283,7 @@ abstract class grade_helper {
         }
         $context = context_course::instance($courseid);
         if (has_capability('moodle/grade:manage', $context)) {
-            self::$managesetting = new grade_plugin_info('coursesettings', new moodle_url('/grade/edit/settings/index.php', array('id'=>$courseid)), get_string('course'));
+            self::$managesetting = new grade_plugin_info('coursesettings', new moodle_url('/grade/edit/settings/index.php', array('id' => $courseid)), get_string('course'));
         } else {
             self::$managesetting = false;
         }
@@ -3285,7 +3297,7 @@ abstract class grade_helper {
         if ($CFG->grade_sumofgradesonly == FORCE_SUM_OF_GRADES) {
             return 'force';
         } else if ($CFG->grade_sumofgradesonly == OPTIONAL_SUM_OF_GRADES) {
-            $categories = $DB->get_records('grade_categories', array('courseid'=>$courseid));
+            $categories = $DB->get_records('grade_categories', array('courseid' => $courseid));
             foreach ($categories as $cat) {
                 if ($cat->aggregation != GRADE_AGGREGATE_SUM) {
                     return false;
