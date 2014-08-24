@@ -113,7 +113,7 @@ $sumofgradesonly = grade_helper::get_sum_of_grades_only($courseid);
 grade_regrade_final_grades($courseid);
 $gtree = new grade_tree($courseid, false, false);
 
-$gtree->action = isset($action) ? $action : ''; //TODO: why?
+$gtree->action = isset($action) ? $action : ''; // Check out why this line of code is needed.
 
 if (empty($eid)) {
     $element = null;
@@ -143,7 +143,7 @@ if ($action == 'moveselect') {
     }
 }
 
-// have to store any weight adjustments to the table first before we go get the grade_edit_tree
+// We have to store any weight adjustments to the table first before we go get the grade_edit_tree.
 if ($data = data_submitted() and confirm_sesskey()) {
     foreach ($data as $key => $value) {
         // Grade weight overrides
@@ -156,7 +156,7 @@ if ($data = data_submitted() and confirm_sesskey()) {
 
             $oldkey = 'old_' . $key;
             if ($value != $data->$oldkey) {
-                $grade_item = grade_item::fetch(array('id'=>$aid, 'courseid'=>$courseid));
+                $grade_item = grade_item::fetch(array('id' => $aid, 'courseid' => $courseid));
                 $grade_item->$param = $value;
                 $grade_item->weightoverride = 1;
                 $grade_item->update();

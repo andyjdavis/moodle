@@ -63,10 +63,12 @@ class grade_edit_tree {
             $gtree->fill_cats();
 
 
-            //TODO: we should probably epxlain why this is renaming to a column that already exists
-            $gtree->grades = $DB->get_records_sql('SELECT id, grademax as finalgrade, grademax as rawgrademax FROM {grade_items} WHERE courseid = ?', array($COURSE->id));
-
-//            $gtree->calc_weights_recursive2($gtree->top_element, $gtree->grades, true, true, true);
+            // We should probably explain why this is renaming to a column that already exists.
+            $gtree->grades = $DB->get_records_sql(
+                'SELECT id, grademax as finalgrade, grademax as rawgrademax
+                   FROM {grade_items}
+                  WHERE courseid = ?', array($COURSE->id
+            ));
             $gtree->calc_values($gtree->grades, false, true);
         }
 
@@ -317,8 +319,15 @@ class grade_edit_tree {
 
             foreach ($this->columns as $column) {
                 if (!($this->moving && $column->hide_when_moving) && !$column->is_hidden($mode)) {
-                    //TODO: why does this need gtree - breaks encapsulation
-                    $row->cells[] = $column->get_category_cell($category, $levelclass, array('id' => $id, 'name' => $object->name, 'level' => $level, 'actions' => $actions, 'eid' => $eid, 'gtree' => $this->gtree));
+                    // Why does this need gtree - it breaks encapsulation.
+                    $row->cells[] = $column->get_category_cell($category, $levelclass, array(
+                            'id' => $id,
+                            'name' => $object->name,
+                            'level' => $level,
+                            'actions' => $actions,
+                            'eid' => $eid,
+                            'gtree' => $this->gtree
+                    ));
                 }
             }
 
@@ -335,7 +344,6 @@ class grade_edit_tree {
 
         } else { // Dealing with a grade item
 
-//            $item = grade_item::fetch(array('id' => $object->id));
             $item = $element['object'];
             $element['type'] = 'item';
             $element['object'] = $item;
@@ -753,7 +761,7 @@ class grade_edit_tree_column_extracredit extends grade_edit_tree_column {
 class grade_edit_tree_column_weight extends grade_edit_tree_column {
 
     public function get_header_cell() {
-        global $OUTPUT, $COURSE, $gtree;    //TODO: gtree should NOT be global
+        global $OUTPUT, $COURSE, $gtree; // The gtree should NOT be global.
 
         $headercell = clone($this->headercell);
 
@@ -762,7 +770,7 @@ class grade_edit_tree_column_weight extends grade_edit_tree_column {
             $optionsreset = array('sesskey' => sesskey(), 'id' => $COURSE->id, 'action' => 'reset');
             $url = new moodle_url('index.php', $optionsreset);
 
-            //TODO: needs to be a better way to get the weight_edit_icon
+            // There needs to be a better way to get the weight_edit_icon
             $headercell->text = get_string('weightuc', 'grades') . $OUTPUT->help_icon('aggregationcoefweight', 'grades') .
                                         '<br/>' . $gtree->get_weight_edit_icon() .
                                         $OUTPUT->action_icon($url, new pix_icon('t/reload', get_string('resetweights', 'grades')));
@@ -787,11 +795,12 @@ class grade_edit_tree_column_weight extends grade_edit_tree_column {
             } else if ($gtree_item->weight == -1) {
                 $categorycell->text = 'dropped';
             } else if ($params['gtree']->action === 'editweights') {
-                $categorycell->text = '<label class="accesshide" for="weight'. $item->id .'">'.get_string('editweight', 'grades').'</label>' .
-                                '<input type="text" size="6" id="weight'. $item->id .'" name="weight_'.$item->id.'" value="' .
-                                format_float($gtree_item->weight, 3).'" />' .
-                                '<input type="hidden" size="6" id="old_weight'. $item->id .'" name="old_weight_'.$item->id.'" value="' .
-                                format_float($gtree_item->weight, 3).'" />';
+                $categorycell->text = '<label class="accesshide" for="weight' . $item->id . '">' .
+                        get_string('editweight', 'grades') . '</label>' .
+                        '<input type="text" size="6" id="weight' . $item->id . '" name="weight_' . $item->id . '" value="' .
+                        format_float($gtree_item->weight, 3) . '" />' .
+                        '<input type="hidden" size="6" id="old_weight' . $item->id . '" name="old_weight_' .$item->id. '" value="' .
+                        format_float($gtree_item->weight, 3) . '" />';
             } else {
                 $categorycell->text = format_float($gtree_item->weight, 3) . '%';
             }
@@ -806,7 +815,9 @@ class grade_edit_tree_column_weight extends grade_edit_tree_column {
 
     public function get_item_cell($item, $params) {
         if (empty($params['element'])) {
-            throw new Exception('Array key (element) missing from 2nd param of grade_edit_tree_column_weight::get_item_cell($item, $params)');
+            throw new Exception(
+                    'Array key (element) missing from 2nd param of grade_edit_tree_column_weight::get_item_cell($item, $params)'
+            );
         }
         $itemcell = clone($this->itemcell);
         $itemcell->text = '&nbsp;';
@@ -821,11 +832,11 @@ class grade_edit_tree_column_weight extends grade_edit_tree_column {
             } else if ($gtree_item->weight == -1) {
                 $itemcell->text = 'dropped';
             } else if ($params['gtree']->action === 'editweights') {
-                $itemcell->text = '<label class="accesshide" for="weight' . $item->id . '">'.get_string('editweight', 'grades').'</label>' .
-                            '<input type="text" size="6" id="weight'. $item->id .'" name="weight_'.$item->id.'" value="'.
-                            format_float($gtree_item->weight, 3).'" />' .
-                            '<input type="hidden" size="6" id="old_weight'. $item->id . '" name="old_weight_'.$item->id.'" value="'.
-                            format_float($gtree_item->weight, 3).'" />';
+                $itemcell->text = '<label class="accesshide" for="weight' . $item->id . '">' .
+                        get_string('editweight', 'grades') . '</label>' .
+                        '<input type="text" size="6" id="weight' . $item->id . '" name="weight_' . $item->id . '" value="' .
+                        format_float($gtree_item->weight, 3) . '" />' . '<input type="hidden" size="6" id="old_weight' .
+                        $item->id . '" name="old_weight_' . $item->id . '" value="' . format_float($gtree_item->weight, 3) . '" />';
             } else {
                 $itemcell->text = format_float($gtree_item->weight, 3) . '%';
             }

@@ -483,15 +483,15 @@ class grade_category extends grade_object {
         if ($rs->valid()) {
 
             if ($userid == null) {
-                // TODO: Why this equality check?
+                // Why do we have this equality check?
                 $gradevalues = null;
             } else {
-                // TODO: this is really confusing.
+                // This is really confusing.
                 // Must send grades to auto_update_max in order for ungraded items to be excluded.
                 $sql = "SELECT itemid, finalgrade
-                            FROM {grade_grades} g, {grade_items} gi
-                            WHERE gi.id = g.itemid AND gi.id $usql $usersql
-                            ORDER BY g.userid";
+                          FROM {grade_grades} g, {grade_items} gi
+                         WHERE gi.id = g.itemid AND gi.id $usql $usersql
+                      ORDER BY g.userid";
 
                 // Group the results by userid and aggregate the grades for this user.
                 $gradevalues = $DB->get_records_sql($sql, $params);
@@ -501,7 +501,7 @@ class grade_category extends grade_object {
             $this->auto_update_max($items, $gradevalues);
 
             $prevuser = 0;
-            $gradevalues = array();
+            $gradevalues  = array();
             $excluded     = array();
             $oldgrade     = null;
 
@@ -587,7 +587,7 @@ class grade_category extends grade_object {
 
         // normalize the grades first - all will have value 0...1
         // ungraded items are not used in aggregation
-        foreach ($gradevalues as $itemid=>$v) {
+        foreach ($gradevalues as $itemid => $v) {
 
             if (is_null($v)) {
                 // null means no grade
@@ -652,7 +652,7 @@ class grade_category extends grade_object {
      *
      * Must be public as it is used by grade_grade::get_hiding_affected()
      *
-     * @param array $gradevalues An array of values to be aggregated
+     * @param array $gradevalues An array of values to be aggregated.
      * @param array $items The array of grade_items
      * @since Moodle 2.6.5, 2.7.2
      * @return array containing values for:
@@ -810,7 +810,7 @@ class grade_category extends grade_object {
      * Must be public as it is used by grade_grade::get_hiding_affected()
      *
      * @deprecated since Moodle 2.8
-     * @param array $gradevalues An array of values to be aggregated
+     * @param array $gradevalues An array of values to be aggregated.
      * @param array $items The array of grade_items
      * @return float The aggregate grade for this grade category
      */
@@ -896,7 +896,7 @@ class grade_category extends grade_object {
      * @param grade_grade $grade The grade item
      * @param float $oldfinalgrade Old Final grade
      * @param array $items Grade items
-     * @param array $gradevalues Grade values
+     * @param array $gradevalues Grade values.
      * @param array $excluded Excluded
      */
     private function sum_grades(&$grade, $oldfinalgrade, $items, $gradevalues, $excluded) {
@@ -905,7 +905,7 @@ class grade_category extends grade_object {
         }
 
         // ungraded and excluded items are not used in aggregation
-        foreach ($gradevalues as $itemid=>$v) {
+        foreach ($gradevalues as $itemid => $v) {
 
             if (is_null($v)) {
                 unset($gradevalues[$itemid]);
@@ -950,7 +950,7 @@ class grade_category extends grade_object {
     /**
      * Given an array of grade values (numerical indices) applies droplow or keephigh rules to limit the final array.
      *
-     * @param array $gradevalues itemid=>$grade_value float
+     * @param array $gradevalues itemid => $grade_value float.
      * @param array $items grade item objects
      * @return array Limited grades.
      */
