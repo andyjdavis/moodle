@@ -2866,7 +2866,9 @@ class grade_tree extends grade_structure {
     //                    $this->cats[$parentid]->grademax += $cat->grademax; // can't use $itemid here
     //                    $this->cats[$parentid]->finalgrade += $cat->finalgrade; // can't use $itemid here
     //                }
-                    $grades[$cat->id]->update('aggregation');
+                    if ($grades[$cat->id]->id) {
+                        $grades[$cat->id]->update('aggregation');
+                    }
                 } else if ((isset($cat->value) && $this->items[$cat->id]->grademax != $cat->grademax) ||
                         !isset($grades[$cat->id]->id)) {
                     $this->items[$cat->id]->grademax = $cat->grademax;
