@@ -2495,7 +2495,7 @@ class grade_tree extends grade_structure {
                                     }
                                     if ($tempweight != $this->items[$itemid]->weight) {
                                         $this->items[$itemid]->weight = $tempweight;
-                                        $this->update_field($itemid, 'weight', $this->items[$itemid]->weight, 'grade_items');
+                                        $DB->set_field('grade_items', 'weight', $this->items[$itemid]->weight, array('id' => $itemid));
                                     }
                                 }
                             } else if ($grades[$parentid]->rawgrademax != 0) {
@@ -2512,13 +2512,13 @@ class grade_tree extends grade_structure {
                                 }
                                 if ($grades[$itemid]->weight != $tempweight) {
                                     $grades[$itemid]->weight = $tempweight;
-                                    $this->update_field($grades[$itemid]->id, 'weight', $grades[$itemid]->weight, 'grade_grades');
+                                    $DB->set_field('grade_grades', 'weight', $grades[$itemid]->weight, array('id' => $grades[$itemid]->id));
                                 }
                             } else {
                                 $tempweight = 0;
                                 if ($grades[$itemid]->weight != $tempweight) {
                                     $grades[$itemid]->weight = $tempweight;
-                                    $this->update_field($grades[$itemid]->id, 'weight', $grades[$itemid]->weight, 'grade_grades');
+                                    $DB->set_field('grade_grades', 'weight', $grades[$itemid]->weight, array('id' => $grades[$itemid]->id));
                                 }
                             }
                         } else {
@@ -2560,7 +2560,7 @@ class grade_tree extends grade_structure {
                             }
                             if ($tempweight != $item->weight) {
                                 $item->weight = $tempweight;
-                                $this->update_field($itemid,'weight', $this->items[$itemid]->weight, 'grade_items');
+                                $DB->set_field('grade_items', 'weight', $this->items[$itemid]->weight, array('id' => $itemid));
                             }
                         } else {
                             if (!$this->is_extra_credit($itemid)) {
@@ -2584,7 +2584,7 @@ class grade_tree extends grade_structure {
                             }
                             if ($grades[$itemid]->weight != $tempweight) {
                                 $grades[$itemid]->weight = $tempweight;
-                                $this->update_field($grades[$itemid]->id,'weight', $grades[$itemid]->weight, 'grade_grades');
+                                $DB->set_field('grade_grades', 'weight', $grades[$itemid]->weight, array('id' => $grades[$itemid]->id));
                             }
                         }
                     }
@@ -2660,23 +2660,8 @@ class grade_tree extends grade_structure {
                     $grades[$id]->weight *= $normalizer;
                 }
             }
-            $this->update_field($id,'weight', $this->items[$id]->weight, 'grade_items');
+            $DB->set_field('grade_items', 'weight', $this->items[$id]->weight, array('id' => $id));
         }
-    }
-
-    /**
-     * Update fields in a table.
-     *
-     * @param int $itemid The item ID.
-     * @param string $field Field to be updated.
-     * @param string $value The value to set the field to.
-     * @param string $table The table name.
-     */
-    public function update_field($itemid, $field, $value, $table) {
-        global $DB;
-        $wheresql = "id=?";
-        $params   = array($itemid);
-        $DB->set_field_select($table, $field, $value, $wheresql, $params);
     }
 
     /**
