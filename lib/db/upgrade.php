@@ -3734,5 +3734,37 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2014080801.00);
     }
 
+    if ($oldversion < 2014082100.01) {
+
+        // Define fields weight, weightoverride, and extracredit to be added to grade_items.
+        $table = new xmldb_table('grade_items');
+
+        $field = new xmldb_field('weight', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0', 'needsupdate');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('weightoverride', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'weight');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('extracredit', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'weightoverride');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Add the weight field to grade_grades.
+        $table = new xmldb_table('grade_grades');
+
+        $field = new xmldb_field('weight', XMLDB_TYPE_NUMBER, '10, 5', null, XMLDB_NOTNULL, null, '0', 'informationformat');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2014082100.01);
+    }
+
     return true;
 }
