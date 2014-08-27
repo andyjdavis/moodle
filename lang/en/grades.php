@@ -50,7 +50,7 @@ $string['aggregateoutcomes_help'] = 'If enabled, outcomes are included in the ag
 $string['aggregatesonly'] = 'Aggregates only';
 $string['aggregatesubcats'] = 'Aggregate including subcategories';
 $string['aggregatesubcats_help'] = 'This setting determines whether grades in subcategories are included in the aggregation.';
-$string['aggregatesum'] = 'Sum of grades';
+$string['aggregatesum'] = 'Natural';
 $string['aggregateweightedmean'] = 'Weighted mean of grades';
 $string['aggregateweightedmean2'] = 'Simple weighted mean of grades';
 $string['aggregation'] = 'Aggregation';
@@ -61,15 +61,15 @@ $string['aggregation_help'] = 'The aggregation determines how grades in a catego
 * Lowest grade
 * Highest grade
 * Mode of grades - The grade that occurs the most frequently
-* Sum of grades - The sum of all grade values, with scale grades being ignored';
+* Natural - The sum of all grade values scaled by weight';
 $string['aggregation_link'] = 'grade/aggregation';
 $string['aggregationcoef'] = 'Aggregation coefficient';
 $string['aggregationcoefextra'] = 'Extra credit'; // for the header of the table at Edit categories and items page
-$string['aggregationcoefextra_help'] = 'If the aggregation is Sum of grades or Simple weighted mean and the extra credit checkbox is ticked, the grade item\'s maximum grade is not added to the category\'s maximum grade, resulting in the possibility of achieving the maximum grade (or grades over the maximum if enabled by the site administrator) in the category without having the maximum grade in all the grade items.
+$string['aggregationcoefextra_help'] = 'If the aggregation is Natural or Simple weighted mean and the extra credit checkbox is ticked, the grade item\'s maximum grade is not added to the category\'s maximum grade, resulting in the possibility of achieving the maximum grade (or grades over the maximum if enabled by the site administrator) in the category without having the maximum grade in all the grade items.
 
 If the aggregation is Mean of grades (with extra credits) and the extra credit is set to a value greater than zero, the extra credit is the factor by which the grade is multiplied before adding it to the total after the computation of the mean.';
 $string['aggregationcoefextra_link'] = 'grade/aggregation';
-$string['aggregationcoefextrasum'] = 'Extra credit'; // for the form with checkboxes: Sum of grades or Simple weighted mean
+$string['aggregationcoefextrasum'] = 'Extra credit'; // for the form with checkboxes: Natural or Simple weighted mean
 $string['aggregationcoefextrasum_help'] = 'If the extra credit checkbox is ticked, the grade item\'s maximum grade is not added to the category\'s maximum grade, resulting in the possibility of achieving the maximum grade (or grades over the maximum if enabled by the site administrator) in the category without having the maximum grade in all the grade items.';
 $string['aggregationcoefextrasum_link'] = 'grade/aggregation';
 $string['aggregationcoefextraweight'] = 'Extra credit weight'; // for the form with input: Mean of grades (with extra credits) only
@@ -659,7 +659,7 @@ $string['submittedon'] = 'Submitted: {$a}';
 $string['sumofgradesonly'] = 'Natural weights setting controlling aggregation and weight override behavior';
 $string['sumofgradesonly_help'] = 'When "Natural Weights forced" special (quicker) processing will be done and no aggregation drop down will appear on the Categories and items page.<br />
                When "Natural Weights" is left optional then special (quicker) processing will be done and no aggregation drop down will appear on the Categories and items page only if<br />
-               all aggregation methods for the course are Sum of grades. Otherwise normal (legacy) behavior will occur' . '<br />';
+               all aggregation methods for the course are Natural Weights. Otherwise normal (legacy) behavior will occur' . '<br />';
 $string['switchtofullview'] = 'Switch to full view';
 $string['switchtosimpleview'] = 'Switch to simple view';
 $string['tabs'] = 'Tabs';
