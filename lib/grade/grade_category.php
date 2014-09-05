@@ -1075,7 +1075,11 @@ class grade_category extends grade_object {
             if (!$grade_item->weightoverride) {
                 // Calculate this item's weight as a percentage of the non-overridden total grade maxes
                 // then convert it to a proportion of the available non-overriden weight.
-                $grade_item->aggregationcoef2 = ($grade_item->grademax/$totalgrademax) * (1 - $totaloverriddenweight);
+                if ($totalgrademax == 0) {
+                    $grade_item->aggregationcoef2 = 0.0;
+                } else {
+                    $grade_item->aggregationcoef2 = ($grade_item->grademax/$totalgrademax) * (1 - $totaloverriddenweight);
+                }
                 $grade_item->update();
             }
         }

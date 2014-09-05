@@ -243,11 +243,16 @@ if ($data = data_submitted() and confirm_sesskey()) {
     // Preload grade_items so we can determine if weights in particular have been manually changed or been automatically adjusted.
     // As soon as we touch one grade item the others will be re-weighted automatically so retrieving these from the database later
     // will result in them all being marked as adjusted.
+    // Also, this avoids fetching the same grade item more than once if multiple settings are supplied.
     $oldgradeitems = Array();
     foreach ($data as $key => $value) {
-        if (preg_match('/^(aggregationcoef2)_([0-9]+)$/', $key, $matches)) {
+        if (preg_match('/^(extracredit|grademax|aggregationcoef|aggregationcoef2|multfactor|plusfactor)_([0-9]+)$/', $key, $matches)) {
             $param = $matches[1];
             $aid   = $matches[2];
+
+            if (array_key_exists ($aid, $oldgradeitems)) {
+                continue;
+            }
 
             $value = unformat_float($value);
             $value = clean_param($value, PARAM_FLOAT);
