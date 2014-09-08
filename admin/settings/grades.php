@@ -76,10 +76,6 @@ if (has_capability('moodle/grade:manage', $systemcontext)
                                                     get_string('minimum_show', 'grades'),
                                                     get_string('minimum_show_help', 'grades'), '1'));
 
-        $temp->add(new admin_setting_configcheckbox('grade_report_showuserfields',
-                                                    get_string('userfields_show', 'grades'),
-                                                    get_string('userfields_show_help', 'grades'), '1'));
-
         $temp->add(new admin_setting_special_gradepointmax());
 
         $temp->add(new admin_setting_special_gradepointdefault());

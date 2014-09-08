@@ -580,11 +580,8 @@ class grade_report_grader extends grade_report {
         $strfeedback  = $this->get_lang_string("feedback");
         $strgrade     = $this->get_lang_string('grade');
 
-        if (get_config('moodle', 'grade_report_showuserfields')) {
-            $extrafields = get_extra_user_fields($this->context);
-        } else {
-            $extrafields = array();
-        }
+        $extrafields = get_extra_user_fields($this->context);
+
         $arrows = $this->get_sort_arrows($extrafields);
 
         $colspan = 1;
