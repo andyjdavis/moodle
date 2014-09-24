@@ -3334,10 +3334,12 @@ function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=fa
                                                    'role' => 'region',
                                                    'aria-label' => $discussionbyuser));
     $output .= html_writer::start_tag('div', array('class'=>'row header clearfix'));
+    $output .= html_writer::start_tag('div', array('class'=>'postheader'));
+    $output .= html_writer::start_tag('div', array('class'=>'postinfo'));
+
     $output .= html_writer::start_tag('div', array('class'=>'left picture'));
     $output .= $OUTPUT->user_picture($postuser, array('courseid'=>$course->id));
     $output .= html_writer::end_tag('div');
-
 
     $output .= html_writer::start_tag('div', array('class'=>'topic'.$topicclass));
 
@@ -3357,10 +3359,7 @@ function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=fa
                                                                                        'aria-level' => '2'));
 
     $output .= html_writer::end_tag('div'); //topic
-    $output .= html_writer::end_tag('div'); //row
-
-    $output .= html_writer::start_tag('div', array('class'=>'row maincontent clearfix'));
-    $output .= html_writer::start_tag('div', array('class'=>'left'));
+    $output .= html_writer::end_tag('div'); //postinfo
 
     $groupoutput = '';
     if ($groups) {
@@ -3371,7 +3370,10 @@ function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=fa
     }
     $output .= html_writer::tag('div', $groupoutput, array('class'=>'grouppictures'));
 
-    $output .= html_writer::end_tag('div'); //left side
+    $output .= html_writer::end_tag('div'); //postheader
+    $output .= html_writer::end_tag('div'); //row
+
+    $output .= html_writer::start_tag('div', array('class'=>'row maincontent clearfix'));
     $output .= html_writer::start_tag('div', array('class'=>'no-overflow'));
     $output .= html_writer::start_tag('div', array('class'=>'content'));
 
