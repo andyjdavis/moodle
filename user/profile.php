@@ -471,5 +471,16 @@ if (isloggedin() && has_capability('moodle/site:sendmessage', $context)
     echo '</div>';
 }
 
+// Print delete account link if allowed.
+if (has_capability('moodle/user:deleteaccount', $context)
+    && !isguestuser()
+    && !is_siteadmin()
+    && $USER->id == $user->id) {
+
+    echo '<div class="deleteaccountbox">';
+    echo '<a href="'.$CFG->wwwroot.'/user/delete.php">'.get_string('deletemyaccount').'</a>';
+    echo '</div>';
+}
+
 echo '</div>';  // Userprofile class.
 echo $OUTPUT->footer();

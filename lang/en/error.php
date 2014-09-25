@@ -536,6 +536,7 @@ $string['upgraderunning'] = 'Site is being upgraded, please retry later.';
 $string['urlnotdefinerss'] = 'URL not defined for RSS feed';
 $string['useradmineditadmin'] = 'Only administrators are allowed to modify other administrator accounts';
 $string['useradminodelete'] = 'Administrator accounts can not be deleted';
+$string['userguestnodelete'] = 'Guest account can not be deleted';
 $string['userautherror'] = 'Unknown auth plugin';
 $string['userauthunsupported'] = 'Auth plugin not supported here';
 $string['useremailduplicate'] = 'Duplicate address';

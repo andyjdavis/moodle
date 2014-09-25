@@ -471,6 +471,16 @@ $capabilities = array(
         )
     ),
 
+    'moodle/user:deleteaccount' => array(
+
+        'riskbitmask' => RISK_DATALOSS,
+
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+        )
+    ),
+
     'moodle/user:update' => array(
 
         'riskbitmask' => RISK_SPAM | RISK_PERSONAL,

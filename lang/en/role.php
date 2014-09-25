@@ -385,6 +385,7 @@ $string['unassignconfirm'] = 'Do you really want to unassign "{$a->role}" role f
 $string['user:changeownpassword'] = 'Change own password';
 $string['user:create'] = 'Create users';
 $string['user:delete'] = 'Delete users';
+$string['user:deleteaccount'] = 'Delete account';
 $string['user:editmessageprofile'] = 'Edit user messaging profile';
 $string['user:editownmessageprofile'] = 'Edit own user messaging profile';
 $string['user:editownprofile'] = 'Edit own user profile';
