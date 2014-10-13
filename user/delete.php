@@ -45,6 +45,10 @@ if (is_siteadmin($USER)) {
 //$context = context_user::instance($USER->id);
 require_capability('moodle/user:deleteaccount', $context);
 
+$PAGE->set_pagelayout('admin');
+$PAGE->set_title('a');
+$PAGE->set_heading(get_string('confirmation', 'admin'));
+
 echo $OUTPUT->header();
 
 if ($confirm and confirm_sesskey()) {
@@ -63,9 +67,10 @@ if ($confirm and confirm_sesskey()) {
     echo $OUTPUT->render($continue);
     echo $OUTPUT->box_end();
 } else {
-    echo $OUTPUT->heading(get_string('confirmation', 'admin'));
+    echo $OUTPUT->heading("fullname() are you sure you want to delete your account?");
     $formcontinue = new single_button(new moodle_url('delete.php', array('confirm' => 1)), get_string('yes'));
-    $formcancel = new single_button(new moodle_url('profile.php', array('id' => $USER->id)), get_string('no'), 'get');
+
+    $formcancel = new single_button(new moodle_url('profile.php', array('id' => $USER->id)), get_string('cancel'), 'get');
     echo $OUTPUT->confirm(get_string('deletecheckaccount', ''), $formcontinue, $formcancel);
 }
 
