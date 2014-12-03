@@ -2875,11 +2875,17 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
     }
 
     // Redirect to the login page if session has expired, only with dbsessions enabled (MDL-35029) to maintain current behaviour.
-    if ((!isloggedin() or isguestuser()) && !empty($SESSION->has_timed_out) && !$preventredirect && !empty($CFG->dbsessions)) {
-        if ($setwantsurltome) {
-            $SESSION->wantsurl = qualified_me();
+    if (!isloggedin() or isguestuser()) {
+        if (!empty($SESSION->has_timed_out) && !$preventredirect && !empty($CFG->dbsessions)) {
+            // Only redirect if we aren't going to auto-login the user as guest below.
+            // These conditions are the inverse of those around the guest login code below.
+            if (isloggedin() or !$autologinguest or empty($CFG->guestloginbutton) or empty($CFG->autologinguests)) {
+                if ($setwantsurltome) {
+                    $SESSION->wantsurl = qualified_me();
+                }
+                redirect(get_login_url());
+            }
         }
-        redirect(get_login_url());
     }
 
     // If the user is not even logged in yet then make sure they are.
