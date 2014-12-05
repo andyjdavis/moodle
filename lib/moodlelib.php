@@ -4954,6 +4954,7 @@ function set_login_session_preferences() {
     unset($SESSION->lang);
     unset($SESSION->forcelang);
     unset($SESSION->load_navigation_admin);
+    unset($SESSION->has_timed_out);
 }
 
 
