@@ -3401,13 +3401,31 @@ function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=fa
     $output .= html_writer::start_tag('div', array('class'=>'forumpost clearfix'.$forumpostclass.$topicclass,
                                                    'role' => 'region',
                                                    'aria-label' => $discussionbyuser));
+
+    // Top row containing user image, post topic and group icons.
     $output .= html_writer::start_tag('div', array('class'=>'row header clearfix'));
+
+    // The left hand area containing the user profile picture.
     $output .= html_writer::start_tag('div', array('class'=>'left picture'));
     $output .= $OUTPUT->user_picture($postuser, array('courseid'=>$course->id));
     $output .= html_writer::end_tag('div');
 
+    // The right hand area containing group icons.
+    $output .= html_writer::start_tag('div', array('class' => 'right'));
 
-    $output .= html_writer::start_tag('div', array('class'=>'topic'.$topicclass));
+    $groupoutput = '';
+    if ($groups) {
+        $groupoutput = print_group_picture($groups, $course->id, false, true, true);
+    }
+    if (empty($groupoutput)) {
+        $groupoutput = '&nbsp;';
+    }
+    $output .= html_writer::tag('div', $groupoutput, array('class' => 'grouppictures'));
+
+    $output .= html_writer::end_tag('div'); // End groups icons.
+
+    // The center area containing the post topic.
+    $output .= html_writer::start_tag('div', array('class' => 'topic'.$topicclass));
 
     $postsubject = $post->subject;
     if (empty($post->subjectnoformat)) {
@@ -3424,22 +3442,12 @@ function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=fa
                                                                                        'role' => 'heading',
                                                                                        'aria-level' => '2'));
 
-    $output .= html_writer::end_tag('div'); //topic
-    $output .= html_writer::end_tag('div'); //row
+    $output .= html_writer::end_tag('div'); // End post topic.
 
-    $output .= html_writer::start_tag('div', array('class'=>'row maincontent clearfix'));
-    $output .= html_writer::start_tag('div', array('class'=>'left'));
+    $output .= html_writer::end_tag('div'); // End top row.
 
-    $groupoutput = '';
-    if ($groups) {
-        $groupoutput = print_group_picture($groups, $course->id, false, true, true);
-    }
-    if (empty($groupoutput)) {
-        $groupoutput = '&nbsp;';
-    }
-    $output .= html_writer::tag('div', $groupoutput, array('class'=>'grouppictures'));
+    $output .= html_writer::start_tag('div', array('class' => 'row maincontent clearfix'));
 
-    $output .= html_writer::end_tag('div'); //left side
     $output .= html_writer::start_tag('div', array('class'=>'no-overflow'));
     $output .= html_writer::start_tag('div', array('class'=>'content'));
 

@@ -28,8 +28,13 @@
 .forumpost {display: block;position:relative;margin:0 0 1em 0;padding:0;border:1px solid #000;max-width:100%;}
 .forumpost .row {width:100%;position:relative;}
 .forumpost .row .left {float:left;width: 43px;overflow:hidden;}
-.forumpost .row .left .grouppictures a {text-align:center;display:block;margin:6px 2px 0 2px;}
-.forumpost .row .left .grouppicture {width:20px;height:20px;}
+
+.forumpost .row .right {float:right;width: 43px;overflow:hidden;}
+.forumpost .row .right .grouppictures a {text-align:center;display:block;margin:6px 2px 0 2px;}
+.forumpost .row .right .grouppicture {width:20px;height:20px;}
+.forumpost .row .topic {margin-left:0;}
+.forumpost .maincontent {clear:both;}
+
 .forumpost .row .topic,
 .forumpost .row .content-mask,
 .forumpost .row .options {margin-left:43px;}
@@ -48,6 +53,7 @@
 .dir-rtl .forumpost .row .content-mask,
 .dir-rtl .forumpost .row .options {margin-right:43px;margin-left:0;}
 .dir-rtl .forumpost .row .left {float:right;}
+.dir-rtl .forumpost .row .right {float:left;}
 .dir-rtl.path-mod-forum .indent {
     margin-right: 3%;
     margin-left: 0;
