@@ -218,7 +218,7 @@ $tasks = array(
         'minute' => '0',
         'hour' => '3',
         'day' => '*',
-        'dayofweek' => '*',
+        'dayofweek' => '0', // Every Sunday.
         'month' => '*'
     ),
     array(
