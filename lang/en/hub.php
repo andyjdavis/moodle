@@ -164,7 +164,7 @@ $string['registermoochtips'] = 'In order to register with Moodle.net, your site 
 $string['registersite'] = 'Register with {$a}';
 $string['registerwith'] = 'Register with a hub';
 $string['registrationconfirmed'] = 'Site registration confirmed';
-$string['registrationconfirmedon'] = 'You are now registered on {$a}. You can now <a href="https://docs.moodle.org/en/Publishing_a_course" target="_blank">publish courses to this hub</a>.';
+$string['registrationconfirmedon'] = 'Your site is now registered. You can choose to allow users to <a href="https://docs.moodle.org/en/Publishing_a_course" target="_blank">share courses on {$a}</a>. Your site will automatically keep its registration information up to date. You can control this via the <a href="https://docs.moodle.org/en/Scheduled_tasks" target="_blank">scheduled tasks interface</a>.';
 $string['registrationupdated'] = 'Registration has been updated.';
 $string['registrationupdatedfailed'] = 'Registration update failed.';
 $string['removefromhub'] = 'Remove from hub';

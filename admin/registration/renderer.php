@@ -47,8 +47,7 @@ class core_register_renderer extends plugin_renderer_base {
 
         $moodleorgregmsg = get_string('registermoodleorg', 'admin', $hublink);
         $items = array(get_string('registermoodleorgli1', 'admin'),
-            get_string('registermoodleorgli2', 'admin', $moodleorgstatslink),
-            get_string('registermoodleorgli3', 'admin', $hublink));
+                       get_string('registermoodleorgli2', 'admin', $moodleorgstatslink));
         $moodleorgregmsg .= html_writer::alist($items);
         return $moodleorgregmsg;
     }
