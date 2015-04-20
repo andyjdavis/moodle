@@ -590,7 +590,8 @@ class block_base {
             // Is 'my' explicitly forbidden?
             // If 'all' has not been allowed, has 'my' been explicitly allowed?
             if ((isset($formats['my']) && $formats['my'] == false)
-                || (empty($formats['all']) && empty($formats['my']))) {
+                || (isset($formats['my-index']) && $formats['my-index'] == false)
+                || (empty($formats['all']) && empty($formats['my']) && empty($formats['my-index']))) {
 
                 // Block cannot be added to /my regardless of capabilities.
                 return false;
