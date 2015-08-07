@@ -24,5 +24,7 @@
 
 require_once '../config.php';
 
+// Demo comment. DO not integrate.
+
 $id = required_param('id', PARAM_INT);
 redirect('report/index.php?id='.$id);
