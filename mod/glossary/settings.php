@@ -53,25 +53,24 @@ if ($ADMIN->fulltree) {
     $formats = array();
     //Take names
     foreach ($recformats as $format) {
-        $formats[$format->id] = get_string("displayformat$format->name", "glossary");
+        $formats[get_string("displayformat$format->name", "glossary")] = $format;
     }
-    asort($formats);
+    ksort($formats);
 
     $str = '<table>';
-    foreach ($formats as $formatid=>$formatname) {
-        $recformat = $DB->get_record('glossary_formats', array('id'=>$formatid));
+    foreach ($formats as $formatname=>$format) {
         $str .= '<tr>';
         $str .= '<td>' . $formatname . '</td>';
-        $eicon = "<a title=\"".get_string("edit")."\" href=\"$CFG->wwwroot/mod/glossary/formats.php?id=$formatid&amp;mode=edit\">";
+        $eicon = "<a title=\"".get_string("edit")."\" href=\"$CFG->wwwroot/mod/glossary/formats.php?id=$format->id&amp;mode=edit\">";
         $eicon .= $OUTPUT->pix_icon('t/edit', get_string('edit')). "</a>";
-        if ( $recformat->visible ) {
+        if ( $format->visible ) {
             $vtitle = get_string("hide");
             $vicon  = "t/hide";
         } else {
             $vtitle = get_string("show");
             $vicon  = "t/show";
         }
-        $url = "$CFG->wwwroot/mod/glossary/formats.php?id=$formatid&amp;mode=visible&amp;sesskey=".sesskey();
+        $url = "$CFG->wwwroot/mod/glossary/formats.php?id=$format->id&amp;mode=visible&amp;sesskey=".sesskey();
         $viconlink = "<a title=\"$vtitle\" href=\"$url\">";
         $viconlink .= $OUTPUT->pix_icon($vicon, $vtitle) . "</a>";
 
